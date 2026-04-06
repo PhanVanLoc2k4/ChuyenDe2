@@ -4,9 +4,14 @@
 
 let clubsData = []; 
 let currentUser = null;
+let userJoinedClubIds = []; // <--- Lưu danh sách ID các CLB đã tham gia
+let userRequestedClubIds = []; // Danh sách yêu cầu tham gia
 
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
     checkAuth();      
+    if (currentUser) {
+        await fetchUserMemberships(); // <--- Lấy danh sách đã tham gia trước khi render
+    }
     fetchClubs();     
     setupEventListeners(); 
 });
@@ -34,6 +39,29 @@ function renderAuthSection() {
                     ${currentUser.name.charAt(0).toUpperCase()}
                 </div>
             </div>`;
+    }
+}
+
+// 2.5 Lấy danh sách ID các CLB mà User này đã tham gia & đang chờ duyệt
+async function fetchUserMemberships() {
+    const userId = currentUser.id || currentUser.user_id;
+    if (!userId) return;
+
+    try {
+        const responseJoined = await fetch(`/api/user/clubs/${userId}`);
+        if (responseJoined.ok) {
+            const dataJoined = await responseJoined.json();
+            userJoinedClubIds = dataJoined.map(c => Number(c.id));
+        }
+
+        const responseRequested = await fetch(`/api/user/requests/${userId}`);
+        if(responseRequested.ok) {
+            const dataRequested = await responseRequested.json();
+            userRequestedClubIds = dataRequested.map(r => Number(r.club_id));
+        }
+
+    } catch (error) {
+        console.error("Lỗi fetch memberships:", error);
     }
 }
 
@@ -110,21 +138,33 @@ function renderClubs() {
         const coverImg = club.cover_url || 'https://via.placeholder.com/400x150?text=CLB+Connect';
         const logoImg = club.logo_url || 'https://via.placeholder.com/80?text=LOGO';
 
-        // --- LOGIC XỬ LÝ NÚT BẤM ---
+        // --- LOGIC XỬ LÝ NÚT BẤM (CẬP NHẬT) ---
         let actionBtn = '';
-        
-        // Ép kiểu ID về Number để so sánh chính xác 
         const currentUserId = currentUser ? Number(currentUser.id || currentUser.user_id) : null;
         const clubCreatorId = Number(club.created_by);
+        const isMember = userJoinedClubIds.includes(Number(club.id));
+        const isRequested = userRequestedClubIds.includes(Number(club.id));
 
         if (currentUserId && clubCreatorId === currentUserId) {
-            // Nếu là chủ CLB: Đổi màu xanh lá, không cho click 
+            // Nếu là chủ CLB
             actionBtn = `<button class="btn-join" style="background: #28a745; cursor: default;" onclick="event.stopPropagation()">
-                            <i class="fas fa-check-circle"></i> Đã tham gia (Chủ CLB)
+                            <i class="fas fa-crown"></i> Chủ CLB
                          </button>`;
         } 
+        else if (isMember) {
+            // Nếu đã là thành viên (nhưng không phải chủ)
+            actionBtn = `<button class="btn-join" style="background: #28a745; cursor: default;" onclick="event.stopPropagation()">
+                            <i class="fas fa-check-circle"></i> Đã tham gia
+                         </button>`;
+        }
+        else if (isRequested) {
+            // Nếu đang chờ duyệt
+            actionBtn = `<button class="btn-join" style="background: #eab308; cursor: default;" onclick="event.stopPropagation()">
+                            <i class="fas fa-hourglass-half"></i> Chờ duyệt
+                         </button>`;
+        }
         else {
-            // Nếu là người khác: Hiển thị nút Tham gia và gọi hàm handleJoinClub 
+            // Nếu chưa tham gia
             actionBtn = `<button class="btn-join" onclick="event.stopPropagation(); handleJoinClub(${club.id})">
                             Tham gia
                          </button>`;
@@ -172,6 +212,59 @@ async function handleJoinClub(clubId) {
         }
     } catch (error) {
         console.error("Lỗi khi tham gia CLB:", error);
+    }
+}
+
+async function handleLeaveClub(clubId) {
+    if (!currentUser) return alert("Vui lòng đăng nhập!");
+    
+    // Debug: Hiện log để biết hàm được gọi
+    console.log("handleLeaveClub called", clubId);
+    
+    if (!confirm("Bạn có chắc chắn muốn rời câu lạc bộ này không?")) return;
+
+    try {
+        const userId = currentUser.id || currentUser.user_id;
+        const response = await fetch('/api/clubs/leave', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                club_id: Number(clubId),
+                user_id: Number(userId)
+            })
+        });
+        
+        const result = await response.json();
+        if (response.ok) {
+            alert(result.message || "Đã rời câu lạc bộ!");
+            location.reload();
+        } else {
+            alert("Lỗi: " + (result.message || "Không thể rời CLB"));
+        }
+    } catch (error) {
+        console.error("Lỗi khi rời CLB:", error);
+        alert("Lỗi kết nối máy chủ khi rời CLB.");
+    }
+}
+
+async function handleDeleteClub(clubId) {
+    if (!currentUser) return;
+    if (!confirm("⚠️ CẢNH BÁO: Việc xóa câu lạc bộ sẽ xóa toàn bộ dữ liệu liên quan (thành viên, bài viết, sự kiện) và không thể khôi phục. Bạn có chắc chắn muốn HỦY câu lạc bộ này không?")) return;
+
+    try {
+        const userId = currentUser.id || currentUser.user_id;
+        const response = await fetch(`/api/clubs/${clubId}?user_id=${userId}`, {
+            method: 'DELETE'
+        });
+        const result = await response.json();
+        if (response.ok) {
+            alert(result.message);
+            location.reload();
+        } else {
+            alert(result.message);
+        }
+    } catch (error) {
+        console.error("Lỗi khi xóa CLB:", error);
     }
 }
 
@@ -250,39 +343,8 @@ function createClubCard(club) {
     return card;
 }
 
-function showClubDetail(club) {
-    const modal = document.getElementById('clubModal');
-    const modalBody = document.getElementById('modalBody');
-    
-    // Kiểm tra xem các phần tử có tồn tại không để tránh lỗi null
-    const nameEl = document.getElementById('modalClubName');
-    const categoryEl = document.getElementById('modalClubCategory');
+// Hàm showClubDetail đã được định nghĩa bên dưới (dòng 359), xóa bản cũ này đi để tránh xung đột
 
-    if (nameEl) nameEl.textContent = club.name; 
-    if (categoryEl) categoryEl.textContent = club.category;
-
-    // Render nội dung vào modal
-    if (modalBody) {
-        modalBody.innerHTML = `
-            <div class="modal-detail-content">
-                <img src="${club.cover_url || 'https://via.placeholder.com/400x150?text=CLB+Connect'}" class="modal-detail-banner" style="width: 100%; height: 200px; object-fit: cover; border-radius: 8px;">
-                
-                <div class="modal-detail-section" style="margin-top: 20px;">
-                    <h3 style="color: #c53030;"><i class="fas fa-info-circle"></i> Giới thiệu</h3>
-                    <p style="line-height: 1.6; color: #4a5568;">${club.description || 'Chưa có mô tả chi tiết.'}</p>
-                </div>
-
-                ${club.achievements ? `
-                <div class="modal-detail-section" style="margin-top: 15px;">
-                    <h3 style="color: #c53030;"><i class="fas fa-trophy"></i> Thành tựu</h3>
-                    <p>${club.achievements}</p>
-                </div>` : ''}
-            </div>
-        `;
-    }
-
-    if (modal) modal.style.display = 'block'; 
-}
 
 function showClubDetail(id) {
     const club = clubsData.find(c => c.id === id);
@@ -346,38 +408,73 @@ function showClubDetail(id) {
         </div>
     `;
 
-    // 3. LOGIC XỬ LÝ NÚT BẤM (QUAN TRỌNG)
+    // 3. LOGIC XỬ LÝ NÚT BẤM (SỬA ĐỔI: Tái sử dụng nút modalJoinBtn duy nhất)
     if (modalJoinBtn) {
         const currentUserId = currentUser ? Number(currentUser.id || currentUser.user_id) : null;
         const clubCreatorId = Number(club.created_by);
+        const isMember = userJoinedClubIds.includes(Number(club.id));
+
+        // Reset trạng thái nút
+        modalJoinBtn.disabled = false;
+        modalJoinBtn.style.display = "block";
+        modalJoinBtn.style.opacity = "1";
+        modalJoinBtn.style.cursor = "pointer";
 
         if (currentUserId && clubCreatorId === currentUserId) {
-            // Nếu là chủ CLB
-            modalJoinBtn.innerHTML = `<i class="fas fa-crown"></i> Bạn là chủ CLB`;
-            modalJoinBtn.style.background = "#28a745"; // Màu xanh lá
-            modalJoinBtn.disabled = true;
-            modalJoinBtn.onclick = null;
+            // Trường hợp là chủ CLB: Có thể hủy CLB
+            modalJoinBtn.innerHTML = `<i class="fas fa-trash-alt"></i> Giải thể Câu lạc bộ (Chủ CLB)`;
+            modalJoinBtn.style.background = "#dc3545"; 
+            modalJoinBtn.onclick = () => handleDeleteClub(club.id);
+        } else if (isMember) {
+            // Trường hợp là thành viên: Có thể rời CLB
+            modalJoinBtn.innerHTML = `<i class="fas fa-sign-out-alt"></i> Rời khỏi Câu lạc bộ`;
+            modalJoinBtn.style.background = "#ed8936"; 
+            modalJoinBtn.onclick = () => handleLeaveClub(club.id);
         } else {
-            // Nếu là người dùng bình thường hoặc chưa tham gia
+            // Chưa tham gia: Hiển thị nút tham gia bình thường
             modalJoinBtn.innerHTML = `<i class="fas fa-sign-in-alt"></i> Tham gia CLB`;
-            modalJoinBtn.style.background = "#c53030"; // Màu đỏ mặc định
-            modalJoinBtn.disabled = false;
+            modalJoinBtn.style.background = "#c53030"; 
             modalJoinBtn.onclick = () => handleJoinClub(club.id);
+        }
+
+        // --- BỔ SUNG NÚT VÀO TRANG QUẢN LÝ / DASHBOARD ---
+        // Xóa nút cũ nếu đã tồn tại để tránh bị lặp
+        const existingBtn = modalJoinBtn.parentNode.querySelector('.btn-dashboard-nav');
+        if (existingBtn) existingBtn.remove();
+
+        if (currentUserId && (clubCreatorId === currentUserId || isMember)) {
+            const dashboardBtn = document.createElement('button');
+            dashboardBtn.className = 'btn-join btn-dashboard-nav';
+            dashboardBtn.innerHTML = `<i class="fas fa-external-link-alt"></i> Vào trang Câu lạc bộ`;
+            dashboardBtn.style.background = "#4a5568";
+            dashboardBtn.style.marginTop = "10px";
+            dashboardBtn.style.width = "100%";
+            dashboardBtn.style.display = "block";
+            dashboardBtn.onclick = () => {
+                window.location.href = `/DienDan?id=${club.id}`;
+            };
+            modalJoinBtn.parentNode.appendChild(dashboardBtn);
         }
     }
 
     modal.style.display = 'flex'; 
 }
 
-// Đảm bảo hàm đóng modal hoạt động
+// Đảm bảo hàm đóng modal duy nhất hoạt động
 function closeModal() {
     const modal = document.getElementById('clubModal');
     if (modal) modal.style.display = 'none';
 }
 
-// Hàm đóng modal đã có sẵn trong code của bạn
-function closeModal() {
-    document.getElementById('clubModal').style.display = 'none';
+// Hàm bổ sung để khớp với thuộc tính onclick="joinClubFromModal()" trong clb.ejs
+function joinClubFromModal() {
+    const name = document.getElementById('modalClubName').textContent;
+    const club = clubsData.find(c => c.name === name);
+    if (club) {
+        handleJoinClub(club.id);
+    } else {
+        alert("Không tìm thấy thông tin câu lạc bộ để tham gia.");
+    }
 }
 
 // 7. Event Listeners & Điều khiển Modal

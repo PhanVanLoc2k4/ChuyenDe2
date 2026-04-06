@@ -105,6 +105,7 @@
         color: white;
         font-weight: 700;
         text-transform: uppercase;
+        overflow: hidden; /* Đảm bảo ảnh không tràn ra ngoài vòng tròn */
     }
 
     .nav-bar {
@@ -328,8 +329,14 @@
 
             if (user.isLoggedIn && user.name) {
                 usernameEl.textContent = user.name;
-                avatarEl.textContent = user.name.charAt(0).toUpperCase();
-                avatarEl.style.background = "#c53030";
+                
+                // KIỂM TRA AVATAR: Nếu có ảnh thì hiển thị ảnh, ngược lại hiển thị chữ cái đầu
+                if (user.avatar) {
+                    avatarEl.innerHTML = `<img src="${user.avatar}" alt="Avatar" style="width: 100%; height: 100%; object-fit: cover;">`;
+                } else {
+                    avatarEl.textContent = user.name.charAt(0).toUpperCase();
+                    avatarEl.style.background = "#c53030";
+                }
 
                 // Click vào profile để bật/tắt menu sổ xuống
                 profileBtn.onclick = function(e) {
