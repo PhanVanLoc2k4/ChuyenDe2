@@ -167,6 +167,186 @@
         overflow: hidden;
     }
 
+    /* Notification specific styles - Premium Redesign */
+    #noti-btn {
+        transition: transform 0.2s ease;
+    }
+    #noti-btn:hover {
+        transform: scale(1.05);
+    }
+    
+    .noti-badge {
+        position: absolute;
+        top: 2px;
+        right: 2px;
+        background: #e53e3e;
+        color: white;
+        font-size: 10px;
+        font-weight: 800;
+        min-width: 18px;
+        height: 18px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 2px solid white;
+        box-shadow: 0 0 0 2px rgba(229, 62, 62, 0.2);
+        animation: pulse-red 2s infinite;
+    }
+
+    @keyframes pulse-red {
+        0% { box-shadow: 0 0 0 0 rgba(229, 62, 62, 0.7); }
+        70% { box-shadow: 0 0 0 6px rgba(229, 62, 62, 0); }
+        100% { box-shadow: 0 0 0 0 rgba(229, 62, 62, 0); }
+    }
+
+    #noti-dropdown {
+        padding: 0;
+        margin-top: 15px;
+        width: 360px !important;
+        border-radius: 16px;
+        border: 1px solid #e2e8f0;
+        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+        transform-origin: top right;
+        transition: opacity 0.2s ease, transform 0.2s ease;
+        opacity: 0;
+        transform: translateY(-10px) scale(0.95);
+        pointer-events: none;
+        display: block !important;
+        visibility: hidden;
+    }
+    
+    #noti-dropdown.show {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+        pointer-events: auto;
+        visibility: visible;
+    }
+
+    .noti-header {
+        padding: 16px 20px;
+        border-bottom: 1px solid #edf2f7;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(8px);
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        border-top-left-radius: 16px;
+        border-top-right-radius: 16px;
+    }
+
+    .noti-header span {
+        font-weight: 800;
+        font-size: 16px;
+        color: #2d3748;
+    }
+
+    .noti-header button {
+        background: none;
+        border: none;
+        color: #3182ce;
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: color 0.2s;
+    }
+    
+    .noti-header button:hover {
+        color: #2b6cb0;
+        text-decoration: underline;
+    }
+
+    .noti-item {
+        padding: 16px 20px;
+        border-bottom: 1px solid #f7fafc;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        display: flex;
+        gap: 12px;
+        text-decoration: none !important;
+        background: #ffffff;
+    }
+
+    .noti-item:last-child {
+        border-bottom: none;
+    }
+
+    .noti-item:hover {
+        background: #f8fafc;
+    }
+
+    .noti-item.unread {
+        background: #ebf8ff;
+    }
+    
+    .noti-item.unread .noti-title {
+        color: #2b6cb0;
+    }
+
+    .noti-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        font-size: 16px;
+    }
+    .noti-icon.membership { background: #ebf4ff; color: #3182ce; }
+    .noti-icon.post { background: #f0fff4; color: #38a169; }
+    .noti-icon.event { background: #fffaf0; color: #dd6b20; }
+    .noti-icon.default { background: #edf2f7; color: #718096; }
+
+    .noti-content {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        min-width: 0;
+    }
+
+    .noti-item .noti-title {
+        font-weight: 700;
+        font-size: 14px;
+        color: #2d3748;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .noti-indicator {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: #3182ce;
+        display: none;
+    }
+    
+    .noti-item.unread .noti-indicator {
+        display: block;
+    }
+
+    .noti-item .noti-msg {
+        font-size: 13px;
+        color: #4a5568;
+        line-height: 1.5;
+        white-space: pre-wrap;
+        word-break: break-word;
+    }
+
+    .noti-item .noti-time {
+        font-size: 11px;
+        color: #a0aec0;
+        font-weight: 500;
+        margin-top: 2px;
+    }
+
+
+
     .user-dropdown-content a {
         color: #2d3748;
         padding: 12px 16px;
@@ -181,16 +361,9 @@
         color: #c53030;
     }
 
-    .user-dropdown-content hr {
-        margin: 0;
-        border: none;
-        border-top: 1px solid #e2e8f0;
-    }
-
-    /* Hiển thị menu khi có class 'show' */
+    /* .user-dropdown-content.show was used for displaying it */
     .user-dropdown-content.show {
-        display: block;
-        width: 230px;
+        display: block !important;
     }
 
 
@@ -280,7 +453,26 @@
                 Nơi hội tụ tinh hoa sinh viên
             </div>
         </div>
-        <div class="user-info" id="user-profile-btn" style="position: relative;">
+        <div style="display: flex; align-items: center; gap: 20px; margin-left: auto;">
+            <!-- Notification Bell -->
+            <div id="noti-btn" style="position: relative; cursor: pointer; padding: 10px;">
+                <i class="fas fa-bell" style="font-size: 20px; color: #4a5568;"></i>
+                <div id="noti-count" class="noti-badge" style="display: none;">0</div>
+                
+                <div id="noti-dropdown" class="user-dropdown-content">
+                    <div class="noti-header">
+                        <span>Thông báo</span>
+                        <button onclick="markAllAsRead()">Đọc tất cả</button>
+                    </div>
+                    <div id="noti-list-container" style="max-height: 400px; overflow-y: auto;">
+                        <div style="padding: 30px; text-align: center; color: #a0aec0; font-style: italic;">
+                            Đang tải thông báo...
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="user-info" id="user-profile-btn" style="position: relative;">
             <span>Xin chào, <strong id="username">Khách</strong></span>
             <div class="user-avatar" id="userAvatar">?</div>
             
@@ -290,6 +482,7 @@
                 </a>
                 <hr>
                 <a href="#" id="logout-btn"><i class="fas fa-sign-out-alt"></i> Đăng xuất</a>
+            </div>
             </div>
         </div>
     </div>
@@ -302,9 +495,7 @@
             <li class="<%= title === 'Danh sách Câu lạc bộ' ? 'active' : '' %>">
                 <a href="/clb" style="text-decoration: none; color: inherit;">Câu lạc bộ</a>
             </li>
-            <li class="<%= title === 'Sự kiện sắp tới' ? 'active' : '' %>">
-                <a href="/SuKien" style="text-decoration: none; color: inherit;">Sự kiện</a>
-            </li>
+
             <li class="<%= title === 'TinTuc' ? 'active' : '' %>">
                 <a href="/TinTuc" style="text-decoration: none; color: inherit;">Tin tức</a>
             </li>
@@ -357,10 +548,102 @@
                     }
                 };
                 
-                // Đóng menu nếu click ra ngoài vùng user-info
+                // --- Notification Handling ---
+                const notiBtn = document.getElementById('noti-btn');
+                const notiDropdown = document.getElementById('noti-dropdown');
+
+                if (notiBtn) {
+                    notiBtn.onclick = function(e) {
+                        e.stopPropagation();
+                        notiDropdown.classList.toggle("show");
+                        // Close user dropdown if open
+                        dropdown.classList.remove("show");
+                        if (notiDropdown.classList.contains("show")) {
+                            loadNotifications(user.id);
+                        }
+                    };
+                }
+
+                async function loadNotifications(userId) {
+                    try {
+                        console.log(`🔔 Fetching notifications for User: ${userId}`);
+                        const response = await fetch(`/api/notifications/${userId}`);
+                        const notifications = await response.json();
+                        console.log(`📥 Received ${notifications.length} notifications`, notifications);
+                        renderNotifications(notifications);
+                    } catch (err) { console.error("Lỗi tải thông báo:", err); }
+                }
+
+                function renderNotifications(notis) {
+                    const container = document.getElementById('noti-list-container');
+                    const countBadge = document.getElementById('noti-count');
+                    
+                    if (!container) return;
+
+                    const unreadCount = notis.filter(n => !n.is_read).length;
+                    console.log(`📊 Unread count: ${unreadCount}`);
+                    if (unreadCount > 0) {
+                        countBadge.innerText = unreadCount > 99 ? '99+' : unreadCount;
+                        countBadge.style.display = 'flex';
+                    } else {
+                        countBadge.style.display = 'none';
+                    }
+
+                    if (notis.length === 0) {
+                        container.innerHTML = `<div style="padding: 30px; text-align: center; color: #a0aec0;">Không có thông báo nào</div>`;
+                        return;
+                    }
+
+                    container.innerHTML = notis.map(n => {
+                        let iconClass = 'default';
+                        let iconItem = 'fa-bell';
+                        if (n.type === 'membership') { iconClass = 'membership'; iconItem = 'fa-user-check'; }
+                        else if (n.type === 'post') { iconClass = 'post'; iconItem = 'fa-file-alt'; }
+                        else if (n.type === 'event') { iconClass = 'event'; iconItem = 'fa-calendar-alt'; }
+
+                        return `
+                        <a href="${n.link || '#'}" class="noti-item ${n.is_read ? '' : 'unread'}" onclick="handleNotiClick(event, ${n.id}, '${n.link}')">
+                            <div class="noti-icon ${iconClass}">
+                                <i class="fas ${iconItem}"></i>
+                            </div>
+                            <div class="noti-content">
+                                <div class="noti-title">
+                                    ${n.title}
+                                    <span class="noti-indicator"></span>
+                                </div>
+                                <span class="noti-msg">${n.message}</span>
+                                <span class="noti-time">${new Date(n.created_at).toLocaleString('vi-VN')}</span>
+                            </div>
+                        </a>
+                        `;
+                    }).join('');
+                }
+
+                window.handleNotiClick = async function(e, id, link) {
+                    if (link === '#' || !link) e.preventDefault();
+                    try {
+                        await fetch(`/api/notifications/read/${id}`, { method: 'PUT' });
+                    } catch (err) { console.error(err); }
+                };
+
+                window.markAllAsRead = async function() {
+                    try {
+                        await fetch(`/api/notifications/read-all/${user.id}`, { method: 'PUT' });
+                        loadNotifications(user.id);
+                    } catch (err) { console.error(err); }
+                };
+
+                // Initial load and periodic refresh
+                loadNotifications(user.id);
+                setInterval(() => loadNotifications(user.id), 60000);
+
+                // Đóng menu nếu click ra ngoài vùng user-info hoặc noti-btn
                 window.onclick = function(event) {
                     if (!profileBtn.contains(event.target)) {
                         dropdown.classList.remove("show");
+                    }
+                    if (notiBtn && !notiBtn.contains(event.target)) {
+                        notiDropdown.classList.remove("show");
                     }
                 };
                 return;
@@ -368,6 +651,9 @@
         }
 
         // Trạng thái Khách
+        const notiBtnGuest = document.getElementById('noti-btn');
+        if (notiBtnGuest) notiBtnGuest.style.display = 'none';
+
         usernameEl.textContent = "Khách";
         avatarEl.textContent = "?";
         avatarEl.style.background = "#718096";

@@ -85,14 +85,40 @@ async function handleLogin() {
 async function handleRegister() {
     const name = document.getElementById('regName').value.trim();
     const email = document.getElementById('regEmail').value.trim();
-    const username = document.getElementById('regUsername').value.trim();
+    const dob = document.getElementById('regDob').value;
+    const gender = document.querySelector('input[name="regGender"]:checked').value;
     const password = document.getElementById('regPassword').value.trim();
     const confirm = document.getElementById('regConfirm').value.trim();
     const agree = document.getElementById('agreeTerms').checked;
 
     // Validate dữ liệu cơ bản ở Frontend
-    if (!name || !email || !username || !password || !confirm) {
+    if (!name || !email || !dob || !password || !confirm) {
         alert('Vui lòng điền đầy đủ thông tin!');
+        return;
+    }
+
+    if (name.length < 2) {
+        alert('Họ và tên quá ngắn!');
+        return;
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+        alert('Email không đúng định dạng!');
+        return;
+    }
+
+    // Kiểm tra tuổi (16 - 100)
+    const birthDate = new Date(dob);
+    const today = new Date();
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const m = today.getMonth() - birthDate.getMonth();
+    if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+        age--;
+    }
+
+    if (age < 16 || age > 100) {
+        alert(`Tuổi không hợp lệ (${age} tuổi). Bạn phải từ 16 đến 100 tuổi!`);
         return;
     }
 
@@ -123,7 +149,9 @@ async function handleRegister() {
             body: JSON.stringify({ 
                 name: name, 
                 email: email, 
-                password: password 
+                password: password,
+                dob: dob,
+                gender: gender 
             })
         });
 

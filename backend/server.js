@@ -120,11 +120,133 @@ async function checkSchema() {
         `);
         console.log("  + Checked club_members table for joined_at column");
 
-        console.log("✅ Schema check completed.");
+        // 7.1. Kiểm tra và thêm cột status cho bảng clubs và events
+        await pool.request().query(`
+            IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('clubs') AND name = 'status')
+            BEGIN
+                ALTER TABLE clubs ADD status NVARCHAR(50) DEFAULT 'active';
+            END
+            
+            IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('events') AND name = 'status')
+            BEGIN
+                ALTER TABLE events ADD status NVARCHAR(50) DEFAULT 'active';
+            END
+            
+            -- Đảm bảo tất cả đều là active
+            UPDATE clubs SET status = 'active' WHERE status IS NULL OR status = 'pending';
+            UPDATE events SET status = 'active' WHERE status IS NULL OR status = 'pending';
+        `);
+        console.log("  + Checked status column for clubs and events");
+
+        // 8. Đảm bảo các cột cho bảng users
+        const userCols = [
+            { name: 'phone', type: 'NVARCHAR(20)' },
+            { name: 'dob', type: 'DATE' },
+            { name: 'gender', type: 'NVARCHAR(10)' },
+            { name: 'bio', type: 'NVARCHAR(MAX)' },
+            { name: 'hobbies', type: 'NVARCHAR(MAX)' },
+            { name: 'avatar', type: 'NVARCHAR(MAX)' },
+            { name: 'created_at', type: 'DATETIME DEFAULT GETDATE()' }
+        ];
+
+        for (const col of userCols) {
+            try {
+                await pool.request().query(`
+                    IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('users') AND name = '${col.name}')
+                    BEGIN
+                        ALTER TABLE users ADD ${col.name} ${col.type};
+                    END
+                `);
+            } catch (colErr) {
+                console.warn(`      - Warning checking/adding column ${col.name}:`, colErr.message);
+            }
+        }
+        console.log("  + Checked users table columns for profile and admin");
+        
+        // 9. Tạo bảng notifications nếu chưa có
+        await pool.request().query(`
+            IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'notifications')
+            BEGIN
+                CREATE TABLE notifications (
+                    id INT IDENTITY(1,1) PRIMARY KEY,
+                    user_id INT NOT NULL FOREIGN KEY REFERENCES users(id) ON DELETE CASCADE,
+                    title NVARCHAR(255),
+                    message NVARCHAR(MAX),
+                    type NVARCHAR(50), -- 'membership', 'post', 'event'
+                    link NVARCHAR(MAX),
+                    is_read BIT DEFAULT 0,
+                    created_at DATETIME DEFAULT GETDATE()
+                )
+            END
+            ELSE
+            BEGIN
+                IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('notifications') AND name = 'title')
+                BEGIN
+                    ALTER TABLE notifications ADD title NVARCHAR(255);
+                END
+                IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('notifications') AND name = 'message')
+                BEGIN
+                    ALTER TABLE notifications ADD message NVARCHAR(MAX);
+                END
+                IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('notifications') AND name = 'type')
+                BEGIN
+                    ALTER TABLE notifications ADD type NVARCHAR(50);
+                END
+                IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('notifications') AND name = 'link')
+                BEGIN
+                    ALTER TABLE notifications ADD link NVARCHAR(MAX);
+                END
+                IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('notifications') AND name = 'is_read')
+                BEGIN
+                    ALTER TABLE notifications ADD is_read BIT DEFAULT 0;
+                END
+            END
+        `);
+        console.log("  + Checked notifications table");
+
         console.log("✅ Schema check completed.");
     } catch (err) {
-        console.warn("⚠️ Schema check warning (This is normal if columns already exist):", err.message);
+        console.warn("⚠️ Schema check warning:", err.message);
     }
+
+    // 9. Đảm bảo các ràng buộc bổ sung (Unique, Check)
+    try {
+        // Email unique
+        await pool.request().query(`
+            IF NOT EXISTS (SELECT * FROM sys.objects WHERE name = 'UQ_Users_Email' AND type = 'UQ')
+            BEGIN
+                ALTER TABLE users ADD CONSTRAINT UQ_Users_Email UNIQUE (email);
+            END
+        `);
+        
+        console.log("  + Checked UNIQUE constraint for email");
+    } catch (err) {
+        console.warn("⚠️ Error adding constraints:", err.message);
+    }
+}
+
+// ================= VALIDATION UTILS =================
+function validateEmail(email) {
+    const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return re.test(email);
+}
+
+function validatePhone(phone) {
+    if (!phone) return true; // Phone is optional
+    const re = /^[0-9]{10,11}$/;
+    return re.test(phone.replace(/[\s\-\.]/g, ''));
+}
+
+function calculateAge(dob) {
+    if (!dob) return 0;
+    const birthDate = new Date(dob);
+    const today = new Date();
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const m = today.getMonth() - birthDate.getMonth();
+    if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+        age--;
+    }
+    return age;
 }
 
 connectDB();
@@ -151,10 +273,27 @@ app.use("/", viewRoutes);
 
 // 1. API Đăng ký
 app.post("/api/register", ensureDB, async (req, res) => {
-    const { name, email, password } = req.body;
+    const { name, email, password, dob, gender } = req.body;
     
-    if (!name || !email || !password) {
+    if (!name || !email || !password || !dob) {
         return res.status(400).json({ message: "Thiếu thông tin" });
+    }
+
+    // Validation bổ sung
+    if (!validateEmail(email)) {
+        return res.status(400).json({ message: "Email không đúng định dạng!" });
+    }
+    if (name.trim().length < 2) {
+        return res.status(400).json({ message: "Họ và tên quá ngắn!" });
+    }
+    if (password.length < 6) {
+        return res.status(400).json({ message: "Mật khẩu phải từ 6 ký tự trở lên!" });
+    }
+
+    // Kiểm tra tuổi (16 - 100)
+    const age = calculateAge(dob);
+    if (age < 16 || age > 100) {
+        return res.status(400).json({ message: `Độ tuổi không hợp lệ (${age} tuổi). Bạn phải từ 16 đến 100 tuổi!` });
     }
     
     try {
@@ -176,9 +315,11 @@ app.post("/api/register", ensureDB, async (req, res) => {
             .input("name", sql.NVarChar, name)
             .input("email", sql.VarChar, email)
             .input("password", sql.VarChar, hashedPassword)
+            .input("dob", sql.Date, dob)
+            .input("gender", sql.NVarChar, gender || "Khác")
             .query(`
-                INSERT INTO users (user_code, full_name, email, password)
-                VALUES (@code, @name, @email, @password)
+                INSERT INTO users (user_code, full_name, email, password, dob, gender)
+                VALUES (@code, @name, @email, @password, @dob, @gender)
             `);
             
         res.json({ message: "Đăng ký thành công" });
@@ -236,7 +377,27 @@ app.post("/api/login", ensureDB, async (req, res) => {
     }
 });
 
-// ================= CLUBS API =================
+// 3. API Lấy thống kê nhanh của User (Bài viết & CLB)
+app.get("/api/user/stats/:userId", ensureDB, async (req, res) => {
+    const userId = req.params.userId;
+    try {
+        const postCountRes = await pool.request()
+            .input("uid", sql.Int, userId)
+            .query("SELECT COUNT(*) as count FROM posts WHERE user_id = @uid");
+            
+        const clubCountRes = await pool.request()
+            .input("uid", sql.Int, userId)
+            .query("SELECT COUNT(*) as count FROM club_members WHERE user_id = @uid AND status = 'active'");
+        
+        res.json({
+            postCount: postCountRes.recordset[0].count,
+            clubCount: clubCountRes.recordset[0].count
+        });
+    } catch (err) {
+        console.error("Lỗi lấy stats user:", err);
+        res.status(500).json({ postCount: 0, clubCount: 0 });
+    }
+});
 
 // 1. API Tạo câu lạc bộ mới
 app.post("/api/clubs", ensureDB, async (req, res) => {
@@ -275,9 +436,23 @@ app.post("/api/clubs", ensureDB, async (req, res) => {
             .input("logo", sql.NVarChar, logo_url || "")
             .input("cover", sql.NVarChar, cover_url || "")
             .query(`
-                INSERT INTO clubs (club_name, club_code, description, category_id, created_by, logo_url, cover_url)
-                VALUES (@name, @code, @desc, @catId, @userId, @logo, @cover)
+                INSERT INTO clubs (club_name, club_code, description, category_id, created_by, logo_url, cover_url, status)
+                VALUES (@name, @code, @desc, @catId, @userId, @logo, @cover, 'active')
             `);
+
+        // 3. Tự động thêm người tạo vào danh sách thành viên với vai trò leader
+        try {
+            await pool.request()
+                .input("code", sql.VarChar, club_code)
+                .input("uid", sql.Int, created_by)
+                .query(`
+                    DECLARE @new_club_id INT = (SELECT id FROM clubs WHERE club_code = @code);
+                    INSERT INTO club_members (club_id, user_id, status, role)
+                    VALUES (@new_club_id, @uid, 'active', 'leader')
+                `);
+        } catch (err) {
+            console.error("Lỗi thêm leader:", err);
+        }
 
         res.json({ message: "Tạo câu lạc bộ thành công!" });
     } catch (err) {
@@ -542,19 +717,32 @@ app.get("/api/clubs/:id/requests", ensureDB, async (req, res) => {
 app.post("/api/clubs/requests/action", ensureDB, async (req, res) => {
     const { request_id, action } = req.body; 
     try {
-        const reqData = await pool.request().input("id", sql.Int, request_id).query("SELECT * FROM join_requests WHERE id = @id");
+        const reqIdInt = parseInt(request_id);
+        const reqData = await pool.request().input("id", sql.Int, reqIdInt).query("SELECT * FROM join_requests WHERE id = @id");
         if (reqData.recordset.length === 0) return res.status(404).json({ message: "Yêu cầu không tồn tại" });
         
         const { club_id, user_id } = reqData.recordset[0];
         if (action === 'approve') {
-            await pool.request().input("id", sql.Int, request_id).query("UPDATE join_requests SET status = 'approved' WHERE id = @id");
+            await pool.request().input("id", sql.Int, reqIdInt).query("UPDATE join_requests SET status = 'approved' WHERE id = @id");
             await pool.request()
                 .input("c", sql.Int, club_id)
                 .input("u", sql.Int, user_id)
                 .query("INSERT INTO club_members (club_id, user_id, status, role) VALUES (@c, @u, 'active', 'member')");
+            
+            // Thông báo cho user
+            const clubRes = await pool.request().input("cid", sql.Int, club_id).query("SELECT club_name FROM clubs WHERE id = @cid");
+            const clubName = clubRes.recordset[0]?.club_name || "CLB";
+            await createNotification(user_id, "Chào mừng thành viên mới!", `Chúc mừng! Yêu cầu gia nhập "${clubName}" của bạn đã được duyệt.`, "membership", `/DienDan?id=${club_id}`);
+
             res.json({ message: "Đã duyệt thành viên thành công!" });
         } else {
-            await pool.request().input("id", sql.Int, request_id).query("UPDATE join_requests SET status = 'rejected' WHERE id = @id");
+            await pool.request().input("id", sql.Int, reqIdInt).query("UPDATE join_requests SET status = 'rejected' WHERE id = @id");
+            
+            // Thông báo
+            const clubRes = await pool.request().input("cid", sql.Int, club_id).query("SELECT club_name FROM clubs WHERE id = @cid");
+            const clubName = clubRes.recordset[0]?.club_name || "CLB";
+            await createNotification(user_id, "Kết quả yêu cầu gia nhập", `Yêu cầu gia nhập "${clubName}" của bạn đã bị từ chối.`, "membership", "#");
+
             res.json({ message: "Đã từ chối yêu cầu gia nhập." });
         }
     } catch (err) { 
@@ -573,6 +761,31 @@ app.post("/api/clubs/members/promote", ensureDB, async (req, res) => {
             .query("UPDATE club_members SET role = @role WHERE id = @id");
         res.json({ message: `Đã cập nhật vai trò thành: ${new_role}` });
     } catch (err) { res.status(500).json({ message: "Lỗi phân quyền" }); }
+});
+
+// 5.1 API Xóa thành viên (Kick)
+app.delete("/api/clubs/members/:id", ensureDB, async (req, res) => {
+    try {
+        const memberIdInt = parseInt(req.params.id);
+        // Lấy user_id và club_id trước khi xóa
+        const memberInfo = await pool.request().input("id", sql.Int, memberIdInt)
+            .query("SELECT cm.user_id, c.club_name, c.id as club_id FROM club_members cm JOIN clubs c ON cm.club_id = c.id WHERE cm.id = @id");
+        
+        if (memberInfo.recordset.length > 0) {
+            const { user_id, club_name, club_id } = memberInfo.recordset[0];
+            await pool.request().input("id", sql.Int, memberIdInt).query("DELETE FROM club_members WHERE id = @id");
+            
+            // Thông báo cho user
+            await createNotification(user_id, "Thông báo thành viên", `Bạn đã bị loại khỏi câu lạc bộ "${club_name}".`, "membership", "#");
+        } else {
+             await pool.request().input("id", sql.Int, memberIdInt).query("DELETE FROM club_members WHERE id = @id");
+        }
+
+        res.json({ message: "Đã xóa thành viên khỏi câu lạc bộ." });
+    } catch (err) {
+        console.error("Lỗi xóa thành viên:", err);
+        res.status(500).json({ message: "Lỗi khi xóa thành viên" });
+    }
 });
 
 // 6. API Lấy thống kê CLB
@@ -670,7 +883,7 @@ app.get("/api/events", ensureDB, async (req, res) => {
 app.post("/api/events", ensureDB, async (req, res) => {
     const { event_name, description, location, start_time, end_time, club_id, created_by, image } = req.body;
     try {
-        await pool.request()
+        const result = await pool.request()
             .input("name", sql.NVarChar, event_name)
             .input("desc", sql.NVarChar, description)
             .input("loc", sql.NVarChar, location)
@@ -679,9 +892,34 @@ app.post("/api/events", ensureDB, async (req, res) => {
             .input("cid", sql.Int, club_id)
             .input("uid", sql.Int, created_by)
             .input("img", sql.NVarChar(sql.MAX), image)
-            .query(`INSERT INTO events (event_name, description, location, start_time, end_time, club_id, created_by, created_at, image) 
-                    VALUES (@name, @desc, @loc, @st, @et, @cid, @uid, GETDATE(), @img)`);
-        res.json({ message: "Tạo sự kiện thành công!" });
+            .query(`INSERT INTO events (event_name, description, location, start_time, end_time, club_id, created_by, created_at, image, status) 
+                    OUTPUT INSERTED.id
+                    VALUES (@name, @desc, @loc, @st, @et, @cid, @uid, GETDATE(), @img, 'active')`);
+        
+        const eventId = result.recordset[0].id;
+
+        // --- Gửi thông báo sự kiện mới ---
+        try {
+            const clubRes = await pool.request().input("cid", sql.Int, club_id).query("SELECT club_name, created_by FROM clubs WHERE id = @cid");
+            const clubData = clubRes.recordset[0];
+            const clubName = clubData?.club_name || "CLB";
+            const creatorId = clubData?.created_by;
+            
+            const members = await pool.request().input("cid", sql.Int, club_id).query("SELECT user_id FROM club_members WHERE club_id = @cid AND status = 'active'");
+            
+            const recipientIds = new Set(members.recordset.map(m => m.user_id));
+            if (creatorId && creatorId !== parseInt(created_by)) recipientIds.add(creatorId);
+
+            console.log(`📅 Sending event notifications to ${recipientIds.size} users`);
+
+            for (const rid of recipientIds) {
+                if (rid !== parseInt(created_by)) {
+                    await createNotification(rid, "Sự kiện mới!", `"${clubName}" vừa tạo sự kiện mới: ${event_name}`, "event", `/DienDan?id=${club_id}`);
+                }
+            }
+        } catch (notifErr) { console.error("Lỗi gửi thông báo sự kiện:", notifErr); }
+
+        res.json({ message: "Tạo sự kiện thành công!", eventId });
     } catch (err) { 
         console.error("Lỗi POST Event:", err);
         res.status(500).json({ message: "Lỗi tạo sự kiện" }); 
@@ -781,7 +1019,7 @@ app.get("/api/posts", ensureDB, async (req, res) => {
         }
 
         let query = `
-            SELECT p.id, p.title, p.content, p.image, p.likes, p.views, p.comments, p.type, p.created_at,
+            SELECT p.id, p.title, p.content, p.image, p.likes, p.views, p.comments, p.type, p.created_at, p.user_id,
                    c.id AS club_id, c.club_name, c.club_code,
                    u.full_name as author_name, u.avatar as author_avatar
                    ${user_id ? ", CASE WHEN EXISTS (SELECT 1 FROM post_likes pl WHERE pl.post_id = p.id AND pl.user_id = @current_uid) THEN 1 ELSE 0 END as user_liked" : ""}
@@ -819,7 +1057,7 @@ app.get("/api/posts", ensureDB, async (req, res) => {
 app.post("/api/posts", ensureDB, async (req, res) => {
     const { title, content, type, club_id, user_id, image } = req.body;
     try {
-        await pool.request()
+        const result = await pool.request()
             .input("t", sql.NVarChar, title)
             .input("c", sql.NVarChar, content)
             .input("ty", sql.NVarChar, type)
@@ -827,8 +1065,39 @@ app.post("/api/posts", ensureDB, async (req, res) => {
             .input("uid", sql.Int, user_id)
             .input("img", sql.NVarChar(sql.MAX), image)
             .query(`INSERT INTO posts (title, content, type, club_id, user_id, created_at, likes, views, comments, image) 
+                    OUTPUT INSERTED.id
                     VALUES (@t, @c, @ty, @cid, @uid, GETDATE(), 0, 0, 0, @img)`);
-        res.json({ message: "Đăng bài thành công!" });
+        
+        const postId = result.recordset[0].id;
+
+        // --- Gửi thông báo bài viết mới ---
+        if (club_id && !isNaN(parseInt(club_id))) {
+            try {
+                const clubRes = await pool.request().input("cid", sql.Int, parseInt(club_id)).query("SELECT club_name, created_by FROM clubs WHERE id = @cid");
+                const clubData = clubRes.recordset[0];
+                if (clubData) {
+                    const clubName = clubData.club_name || "CLB";
+                    const creatorId = clubData.created_by;
+                    
+                    const members = await pool.request().input("cid", sql.Int, parseInt(club_id)).query("SELECT user_id FROM club_members WHERE club_id = @cid AND status = 'active'");
+                    
+                    const recipientIds = new Set(members.recordset.map(m => m.user_id));
+                    if (creatorId && parseInt(creatorId) !== parseInt(user_id)) recipientIds.add(parseInt(creatorId));
+
+                    console.log(`📡 Sending post notifications to ${recipientIds.size} users for club ${club_id}`);
+
+                    for (const rid of recipientIds) {
+                        if (rid !== parseInt(user_id)) {
+                            await createNotification(rid, "Bài viết mới!", `"${clubName}" vừa có bài viết mới: ${title}`, "post", `/DienDan?id=${club_id}&postId=${postId}`);
+                        }
+                    }
+                } else {
+                    console.warn(`⚠️ Notifying Post: Club ID ${club_id} not found.`);
+                }
+            } catch (notifErr) { console.error("Lỗi gửi thông báo bài viết:", notifErr); }
+        }
+
+        res.json({ message: "Đăng bài thành công!", postId });
     } catch (err) { res.status(500).json({ message: "Lỗi đăng bài" }); }
 });
 
@@ -980,15 +1249,39 @@ app.get("/api/user/profile/:id", ensureDB, async (req, res) => {
 app.post("/api/user/update", ensureDB, async (req, res) => {
     const { id, full_name, phone, dob, gender, bio, avatar, hobbies } = req.body;
     try {
+        // 1. Kiểm tra họ tên
+        if (!full_name || full_name.trim().length < 2) {
+            return res.status(400).json({ success: false, message: "Họ và tên không hợp lệ!" });
+        }
+
+        // 2. Kiểm tra tuổi (16 - 100)
+        if (dob) {
+            const age = calculateAge(dob);
+            if (age < 16 || age > 100) {
+                return res.status(400).json({ 
+                    success: false, 
+                    message: `Tuổi không hợp lệ (${age} tuổi). Bạn phải từ 16 đến 100 tuổi!` 
+                });
+            }
+        }
+
+        // 3. Kiểm tra số điện thoại
+        if (phone && !validatePhone(phone)) {
+            return res.status(400).json({ success: false, message: "Số điện thoại không đúng định dạng (10-11 số)!" });
+        }
+
+        // Xử lý dob: Nếu là chuỗi trống "" thì chuyển thành null để tránh lỗi SQL
+        const birthDate = (dob && dob.trim() !== "") ? dob : null;
+
         await pool.request()
             .input("id", sql.Int, id)
             .input("full_name", sql.NVarChar, full_name)
-            .input("phone", sql.VarChar, phone)
-            .input("dob", sql.Date, dob)
+            .input("phone", sql.NVarChar, phone) 
+            .input("dob", sql.Date, birthDate) 
             .input("gender", sql.NVarChar, gender)
             .input("bio", sql.NVarChar, bio)
             .input("hobbies", sql.NVarChar, hobbies)
-            .input("avatar", sql.NVarChar, avatar) // Lưu Base64
+            .input("avatar", sql.NVarChar(sql.MAX), avatar) 
             .query(`
                 UPDATE users 
                 SET full_name = @full_name, 
@@ -1002,8 +1295,8 @@ app.post("/api/user/update", ensureDB, async (req, res) => {
             `);
         res.json({ success: true, message: "Cập nhật thành công!" });
     } catch (err) {
-        console.error(err);
-        res.status(500).json({ message: "Lỗi khi lưu vào Database" });
+        console.error("❌ Lỗi Update User Profile:", err.message);
+        res.status(500).json({ success: false, message: "Lỗi khi lưu vào Database: " + err.message });
     }
 });
 
@@ -1034,8 +1327,143 @@ app.get("/api/user/clubs/:userId", ensureDB, async (req, res) => {
     }
 });
 
+// ================= NOTIFICATION SYSTEM =================
+async function createNotification(userId, title, message, type, link = "") {
+    try {
+        const uId = parseInt(userId);
+        if (isNaN(uId)) {
+            console.error(`❌ Invalid userId passed to createNotification: ${userId}`);
+            return;
+        }
+        console.log(`📝 Creating notification for User ${uId}: ${title}`);
+        await pool.request()
+            .input("u", sql.Int, uId)
+            .input("t", sql.NVarChar, title)
+            .input("m", sql.NVarChar, message)
+            .input("tp", sql.NVarChar, type)
+            .input("l", sql.NVarChar, link)
+            .query("INSERT INTO notifications (user_id, title, message, type, link) VALUES (@u, @t, @m, @tp, @l)");
+        console.log(`✅ Notification created successfully for User ${uId}`);
+    } catch (err) { 
+        console.error(`❌ Error creating notification for User ${userId}:`, err.message); 
+    }
+}
+
+// 1. API Lấy thông báo theo User
+app.get("/api/notifications/:userId", ensureDB, async (req, res) => {
+    try {
+        const result = await pool.request()
+            .input("uid", sql.Int, req.params.userId)
+            .query("SELECT * FROM notifications WHERE user_id = @uid ORDER BY created_at DESC");
+        res.json(result.recordset);
+    } catch (err) { res.status(500).json({ message: "Lỗi lấy thông báo" }); }
+});
+
+// 2. Đánh dấu đã đọc
+app.put("/api/notifications/read/:id", ensureDB, async (req, res) => {
+    try {
+        await pool.request().input("id", sql.Int, req.params.id).query("UPDATE notifications SET is_read = 1 WHERE id = @id");
+        res.json({ success: true });
+    } catch (err) { res.status(500).json({ message: "Lỗi cập nhật thông báo" }); }
+});
+
+// 3. Đánh dấu đọc tất cả
+app.put("/api/notifications/read-all/:userId", ensureDB, async (req, res) => {
+    try {
+        await pool.request().input("uid", sql.Int, req.params.userId).query("UPDATE notifications SET is_read = 1 WHERE user_id = @uid");
+        res.json({ success: true });
+    } catch (err) { res.status(500).json({ message: "Lỗi cập nhật thông báo" }); }
+});
+
+// ================= ADMIN API =================
+
+// 1. API Lấy thống kê tổng quan (Dashboard)
+app.get("/api/admin/stats", ensureDB, async (req, res) => {
+    try {
+        const stats = await pool.request().query(`
+            SELECT 
+                (SELECT COUNT(*) FROM users) as totalUsers,
+                (SELECT COUNT(*) FROM clubs WHERE status = 'active') as totalClubs,
+                (SELECT COUNT(*) FROM events WHERE status = 'active') as totalEvents,
+                0 as pendingRequests
+        `);
+        res.json(stats.recordset[0]);
+    } catch (err) {
+        res.status(500).json({ message: "Lỗi lấy thống kê Admin" });
+    }
+});
+
+// 2. API Lấy danh sách tất cả người dùng
+app.get("/api/admin/users", ensureDB, async (req, res) => {
+    try {
+        const result = await pool.request().query(`
+            SELECT 
+                u.id, 
+                u.full_name, 
+                u.email, 
+                ISNULL(r.role_name, 'user') as [role], 
+                ISNULL(u.created_at, GETDATE()) as created_at, 
+                u.avatar, 
+                u.bio
+            FROM users u
+            LEFT JOIN user_roles ur ON u.id = ur.user_id
+            LEFT JOIN roles r ON ur.role_id = r.id
+            ORDER BY u.created_at DESC
+        `);
+        res.json(result.recordset);
+    } catch (err) {
+        console.error("Fetch Users Error:", err);
+        res.status(500).json({ message: "Lỗi lấy danh sách người dùng", error: err.message });
+    }
+});
+
+// 3. API Lấy danh sách tất cả CLB cho Admin
+app.get("/api/admin/clubs", ensureDB, async (req, res) => {
+    try {
+        const result = await pool.request().query(`
+            SELECT c.*, u.full_name as creator_name, cat.category_name,
+                   (SELECT COUNT(*) FROM club_members cm WHERE cm.club_id = c.id) as member_count
+            FROM clubs c
+            LEFT JOIN users u ON c.created_by = u.id
+            LEFT JOIN categories cat ON c.category_id = cat.id
+            WHERE c.status = 'active'
+            ORDER BY c.created_at DESC
+        `);
+        res.json(result.recordset);
+    } catch (err) {
+        res.status(500).json({ message: "Lỗi lấy danh sách CLB" });
+    }
+});
+
+// 4. API Lấy danh sách tất cả sự kiện cho Admin
+app.get("/api/admin/events", ensureDB, async (req, res) => {
+    try {
+        const result = await pool.request().query(`
+            SELECT e.*, c.club_name, u.full_name as creator_name
+            FROM events e
+            JOIN clubs c ON e.club_id = c.id
+            LEFT JOIN users u ON e.created_by = u.id
+            WHERE e.status = 'active'
+            ORDER BY e.start_time DESC
+        `);
+        res.json(result.recordset);
+    } catch (err) {
+        res.status(500).json({ message: "Lỗi lấy danh sách sự kiện" });
+    }
+});
+
+// 5. API Lấy danh sách chờ duyệt (Trống vì không cần duyệt nữa)
+app.get("/api/admin/pending", ensureDB, async (req, res) => {
+    res.json({ clubs: [], events: [] });
+});
+
+// 6. API Phê duyệt/Từ chối Duyệt (Để lại để tương thích nhưng không dùng)
+app.post("/api/admin/approve/:type/:id", ensureDB, async (req, res) => {
+    res.json({ success: true, message: "Hệ thống tự động duyệt bài!" });
+});
+
 // ================= START SERVER =================
 const PORT = 5000;
 app.listen(PORT, () => {
-    console.log(`🚀 Server running: http://localhost:${PORT}`);
+    console.log(`🚀 Server running V2: http://localhost:${PORT}`);
 });

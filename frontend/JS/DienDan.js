@@ -58,7 +58,7 @@ async function loadMyClubs() {
     list.innerHTML = '<div class="loading-placeholder">Đang tải danh sách CLB của bạn...</div>';
 
     try {
-        const response = await fetch(`/api/user/clubs/${currentUser.id}`);
+        const response = await fetch(`/api/user/clubs/${currentUser.user_id || currentUser.id}`);
         const clubs = await response.json();
 
         if (clubs.length === 0) {
@@ -111,7 +111,7 @@ async function loadClubInfo() {
         }
 
         // Kiểm tra quyền Trưởng CLB
-        const isLeader = currentUser && Number(currentUser.id) === Number(clubData.created_by);
+        const isLeader = currentUser && Number(currentUser.user_id || currentUser.id) === Number(clubData.created_by);
         if (isLeader) {
             document.getElementById('navMembers').style.display = 'flex';
             document.getElementById('btnCreateEvent').style.display = 'flex';
@@ -289,7 +289,7 @@ async function loadPosts() {
             url += `&search=${encodeURIComponent(currentSearchQuery)}`;
         }
         if (currentUser) {
-            url += `&user_id=${currentUser.id || currentUser.user_id}`;
+            url += `&user_id=${currentUser.user_id || currentUser.id}`;
         }
         
         const response = await fetch(url);
@@ -311,54 +311,79 @@ async function loadPosts() {
             const canManage = isLeader || isAuthor;
 
             const manageHtml = canManage ? `
-                <div style="position: absolute; top: 15px; right: 15px; z-index: 20;">
-                    <button onclick="togglePostDropdown(event, 'post-${post.id}')" style="background:none; border:none; cursor:pointer; color:#94a3b8; font-size: 18px; padding: 5px; border-radius: 50%; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; transition: 0.2s;" onmouseover="this.style.background='#f1f5f9'" onmouseout="this.style.background='none'">
+                <div class="post-manage-menu">
+                    <button onclick="togglePostDropdown(event, 'post-${post.id}')" class="manage-btn">
                         <i class="fas fa-ellipsis-v"></i>
                     </button>
-                    <div id="dropdown-post-${post.id}" class="action-dropdown" style="display: none; position: absolute; right: 0; top: 35px; background: white; box-shadow: 0 4px 15px rgba(0,0,0,0.1); border-radius: 12px; overflow: hidden; min-width: 140px; border: 1px solid #e2e8f0;">
-                        <button onclick="openEditPost(${post.id})" style="display: block; width: 100%; text-align: left; padding: 12px 16px; background: none; border: none; cursor: pointer; color: #475569; font-size: 13px; transition: 0.2s; font-weight: 500;" onmouseover="this.style.background='#f8fafc'"><i class="fas fa-edit" style="width: 20px; color: #94a3b8;"></i> Sửa bài</button>
-                        <button onclick="deletePost(${post.id})" style="display: block; width: 100%; text-align: left; padding: 12px 16px; background: none; border: none; cursor: pointer; color: #ef4444; font-size: 13px; transition: 0.2s; font-weight: 500;" onmouseover="this.style.background='#fee2e2'"><i class="fas fa-trash" style="width: 20px; color: #ef4444;"></i> Xóa bài</button>
+                    <div id="dropdown-post-${post.id}" class="action-dropdown">
+                        <button onclick="openEditPost(${post.id})" class="dropdown-item"><i class="fas fa-edit"></i> Sửa bài</button>
+                        <button onclick="deletePost(${post.id})" class="dropdown-item delete"><i class="fas fa-trash"></i> Xóa bài</button>
                     </div>
                 </div>
             ` : "";
 
             return `
-            <div class="post-card" style="position: relative;">
+            <div class="premium-post-card" id="post-${post.id}">
                 ${manageHtml}
-                <div class="post-user">
-                    <div class="user-avatar" style="background: #c53030; color: white;">
-                        ${post.author_avatar ? `<img src="${post.author_avatar}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">` : (post.author_name || 'U').charAt(0)}
+                <div class="post-header">
+                    <div class="user-info-side">
+                        <div class="user-avatar-wrapper">
+                            ${post.author_avatar ? 
+                                `<img src="${post.author_avatar}" class="avatar-img">` : 
+                                `<div class="avatar-placeholder">${(post.author_name || 'U').charAt(0)}</div>`}
+                        </div>
+                        <div class="user-meta">
+                            <span class="user-name">${post.author_name || 'Thành viên'}</span>
+                            <span class="post-date"><i class="far fa-clock"></i> ${new Date(post.created_at).toLocaleDateString('vi-VN')}</span>
+                        </div>
                     </div>
-                    <div class="post-user-info">
-                        <h4>${post.author_name || 'Thành viên'}</h4>
-                        <span><i class="fas fa-clock"></i> ${new Date(post.created_at).toLocaleDateString('vi-VN')}</span>
+                    <div class="header-right-side">
+                        <div class="post-type-badge">${post.type || 'Bài viết'}</div>
+                        ${manageHtml}
                     </div>
-                    <span class="post-badge" style="margin-left: auto; background: #f1f5f9; padding: 4px 12px; border-radius: 20px; font-size: 11px;">
-                        ${post.type}
-                    </span>
                 </div>
-                <h3 class="post-title">${post.title}</h3>
-                <div class="post-content-body">${post.content}</div>
-                ${post.image ? `<img src="${post.image}" class="post-img" onerror="this.style.display='none'">` : ''}
-                <div class="post-stats" style="display: flex; gap: 20px; color: #64748b; font-size: 13px; border-top: 1px solid #f1f5f9; padding-top: 15px;">
-                    <span style="cursor:pointer; display: flex; align-items: center; gap: 5px; transition: 0.2s;" onclick="likePost(${post.id})">
-                        <i class="${heartClass}" id="heart-icon-${post.id}" style="${heartColor}"></i> 
-                        <span id="like-count-${post.id}">${post.likes}</span> Yêu thích
-                    </span>
-                    <span style="cursor:pointer; color: #6366f1;" onclick="toggleComments(${post.id})"><i class="far fa-comment"></i> <span id="comment-count-${post.id}">${post.comments}</span> Bình luận</span>
-                    <span><i class="far fa-eye"></i> ${post.views} Lượt xem</span>
+
+                <div class="post-body">
+                    ${post.title && post.title !== 'Trạng thái' ? `<h3 class="post-title">${post.title}</h3>` : ''}
+                    <div class="post-content">${post.content || ''}</div>
+                    ${post.image ? `
+                        <div class="post-media-container">
+                            <img src="${post.image}" class="post-media-content" onerror="this.parentElement.style.display='none'">
+                        </div>
+                    ` : ''}
                 </div>
-                
-                <!-- Comment Section (Hidden by default) -->
-                <div id="comments-section-${post.id}" style="display: none; margin-top: 15px; border-top: 1px solid #f1f5f9; padding-top: 15px;">
-                    <div id="comments-list-${post.id}" style="max-height: 250px; overflow-y: auto; margin-bottom: 15px; padding-right: 5px;">
-                        <div style="font-size:12px; color:#94a3b8; text-align:center;">Đang tải bình luận...</div>
+
+                <div class="post-footer">
+                    <div class="post-actions-toolbar">
+                        <div class="action-item ${isLiked ? 'is-liked' : ''}" onclick="likePost(${post.id})">
+                            <i class="${heartClass}" id="heart-icon-${post.id}" style="${heartColor}"></i>
+                            <span class="count" id="like-count-${post.id}">${post.likes || 0}</span>
+                            <span class="label">Yêu thích</span>
+                        </div>
+                        <div class="action-item comment-btn" onclick="toggleComments(${post.id})">
+                            <i class="far fa-comment-dots"></i>
+                            <span class="count" id="comment-count-${post.id}">${post.comments || 0}</span>
+                            <span class="label">Bình luận</span>
+                        </div>
+                        <div class="action-item views-info">
+                            <i class="far fa-eye"></i>
+                            <span class="count">${post.views || 0}</span>
+                            <span class="label">Lượt xem</span>
+                        </div>
                     </div>
-                    <div style="display: flex; gap: 10px; align-items: center;">
-                        <input type="text" id="comment-input-${post.id}" placeholder="Viết bình luận..." style="flex: 1; padding: 10px 15px; border: 1px solid #e2e8f0; border-radius: 20px; font-size: 13px; outline: none;" onkeyup="if(event.key === 'Enter') submitComment(${post.id})">
-                        <button class="btn-primary" style="padding: 10px 18px; border-radius: 20px; font-size: 13px;" onclick="submitComment(${post.id})">
-                            <i class="fas fa-paper-plane"></i>
-                        </button>
+                    
+                    <div id="comments-section-${post.id}" class="premium-comments-section" style="display: none;">
+                        <div class="comments-divider"></div>
+                        <div id="comments-list-${post.id}" class="comments-list">
+                            <div class="loading-comments">Đang tải bình luận...</div>
+                        </div>
+                        <div class="comment-input-wrapper">
+                            <input type="text" id="comment-input-${post.id}" placeholder="Chia sẻ suy nghĩ của bạn..." 
+                                   onkeyup="if(event.key === 'Enter') submitComment(${post.id})">
+                            <button class="send-comment-btn" onclick="submitComment(${post.id})">
+                                <i class="fas fa-paper-plane"></i>
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -624,12 +649,17 @@ async function loadMembers() {
                     </span>
                 </td>
                 <td>
-                    <select class="role-select" onchange="promoteMember(${m.member_record_id}, this.value)">
-                        <option value="">-- Cấp quyền --</option>
-                        <option value="Phó CLB">Phó CLB</option>
-                        <option value="Ban quản lý">Ban quản lý</option>
-                        <option value="Thành viên">Thành viên (Gỡ quyền)</option>
-                    </select>
+                    <div style="display: flex; gap: 8px; align-items: center;">
+                        <select class="role-select" onchange="promoteMember(${m.member_record_id}, this.value)" style="flex: 1;">
+                            <option value="">-- Cấp quyền --</option>
+                            <option value="Phó CLB">Phó CLB</option>
+                            <option value="Ban quản lý">Ban quản lý</option>
+                            <option value="Thành viên">Thành viên (Gỡ quyền)</option>
+                        </select>
+                        <button class="btn-action btn-reject" onclick="kickMember(${m.member_record_id}, '${m.name}')" title="Loại khỏi CLB" style="padding: 5px 10px; border-radius: 6px;">
+                            <i class="fas fa-user-minus"></i>
+                        </button>
+                    </div>
                 </td>
             </tr>
         `).join('');
@@ -666,6 +696,26 @@ async function promoteMember(memberRecordId, newRole) {
         alert(result.message);
         loadMembers();
     } catch (err) { alert("Lỗi phân quyền."); }
+}
+
+async function kickMember(memberRecordId, memberName) {
+    if (!confirm(`Bạn có chắc chắn muốn loại thành viên "${memberName}" ra khỏi câu lạc bộ không?`)) return;
+    
+    try {
+        const response = await fetch(`/api/clubs/members/${memberRecordId}`, {
+            method: 'DELETE'
+        });
+        const result = await response.json();
+        if (response.ok) {
+            alert(result.message);
+            loadMembers(); // Tải lại danh sách
+        } else {
+            alert("Lỗi: " + result.message);
+        }
+    } catch (err) {
+        console.error("Lỗi khi loại thành viên:", err);
+        alert("Lỗi kết nối máy chủ.");
+    }
 }
 
 async function registerForEvent(eventId, eventObj) {

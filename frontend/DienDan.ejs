@@ -259,7 +259,7 @@
             <h2>Tạo bài viết mới</h2>
             <button class="close-btn" onclick="closeModal('createPostModal')">&times;</button>
         </div>
-        <form id="postForm">
+        <form id="postForm" class="no-scrollbar">
             <div class="form-group">
                 <label>Tiêu đề bài viết</label>
                 <input type="text" id="postTitle" placeholder="Nhập tiêu đề..." required>
@@ -292,7 +292,7 @@
             <h2>Hành động Trưởng CLB: Tạo sự kiện mới</h2>
             <button class="close-btn" onclick="closeModal('createEventModal')">&times;</button>
         </div>
-        <form id="eventForm">
+        <form id="eventForm" class="no-scrollbar">
             <div class="form-group">
                 <label>Tên sự kiện</label>
                 <input type="text" id="eventName" placeholder="VD: Workshop Lập trình Web" required>
@@ -331,7 +331,7 @@
             <h2>Chỉnh sửa bài viết</h2>
             <button class="close-btn" onclick="closeModal('editPostModal')">&times;</button>
         </div>
-        <form id="editPostForm">
+        <form id="editPostForm" class="no-scrollbar">
             <input type="hidden" id="editPostId">
             <div class="form-group">
                 <label>Tiêu đề bài viết</label>
@@ -365,7 +365,7 @@
             <h2>Chỉnh sửa sự kiện</h2>
             <button class="close-btn" onclick="closeModal('editEventModal')">&times;</button>
         </div>
-        <form id="editEventForm">
+        <form id="editEventForm" class="no-scrollbar">
             <input type="hidden" id="editEventId">
             <div class="form-group">
                 <label>Tên sự kiện</label>
@@ -407,10 +407,10 @@
                     <h2 style="margin: 0; font-size: 20px; color: #0f172a;"><i class="fas fa-clipboard-list" style="color: #2563eb; margin-right: 8px;"></i> Danh sách ghi danh</h2>
                     <p id="registrationsCount" style="margin: 5px 0 0 0; font-size: 13px; color: #64748b;"></p>
                 </div>
-                <button class="close-btn" style="position: static; font-size: 24px; color: #94a3b8; background: #f1f5f9; width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center;" onclick="closeModal('eventRegistrationsModal')">&times;</button>
+                <button class="close-btn" onclick="closeModal('eventRegistrationsModal')">&times;</button>
             </div>
         </div>
-        <div id="registrationsContainer" style="max-height: 450px; overflow-y: auto; padding: 25px 30px;">
+        <div id="registrationsContainer" class="no-scrollbar" style="max-height: 450px; overflow-y: auto; padding: 25px 30px; -ms-overflow-style: none; scrollbar-width: none;">
             <!-- Data here -->
         </div>
     </div>
@@ -646,8 +646,6 @@
     @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
     @keyframes slideUp { from { transform: translateY(30px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 </style>
-
-</style>
-
+<link rel="stylesheet" href="CSS/TinTuc.css">
 <script src="JS/DienDan.js" defer></script>
 <%- include('partials/Footer') %>

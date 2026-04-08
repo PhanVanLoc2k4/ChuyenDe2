@@ -1,93 +1,98 @@
 <link rel="stylesheet" href="CSS/Home.css">
-<link rel="stylesheet" href="JS/Home.js">
+<script src="JS/Home.js" defer></script>
 <%- include('partials/Header') %>
 
-<!-- Main Content -->
-<div class="container" id="mainContent">
+<!-- Main Layout for Landing Page -->
+<div class="landing-container">
+    
     <!-- Hero Banner -->
-    <div class="hero-banner">
+    <section class="hero-section">
         <div class="hero-content">
-            <h1 class="hero-title" id="heroTitle">Chào mừng đến với CLB Connect! 🎉</h1>
-            <p class="hero-subtitle" id="heroSubtitle">Khám phá những hoạt động sôi nổi nhất từ các câu lạc bộ sinh viên. Kết nối đam mê, phát triển bản thân!</p>
-            
-            <!-- <div class="hero-stats">
-                <div class="hero-stat">
-                    <span class="hero-stat-number">50+</span>
-                    <span class="hero-stat-label">Câu lạc bộ</span>
-                </div>
-                <div class="hero-stat">
-                    <span class="hero-stat-number">200+</span>
-                    <span class="hero-stat-label">Sự kiện</span>
-                </div>
-                <div class="hero-stat">
-                    <span class="hero-stat-number">5000+</span>
-                    <span class="hero-stat-label">Thành viên</span>
-                </div>
-            </div> -->
+            <div class="hero-badge">🚀 NỀN TẢNG CLB SỐ 1</div>
+            <h1 class="hero-title" id="heroTitle">Kết nối đam mê,<br>Định hình tương lai</h1>
+            <p class="hero-subtitle" id="heroSubtitle">Hàng ngàn sinh viên đã tìm thấy cộng đồng của mình. Nơi tuyệt vời nhất để tổ chức sự kiện, chia sẻ ý tưởng và phát triển vượt bậc.</p>
+            <div class="hero-cta" id="heroCtaContainer">
+                <a href="#discover-clubs" class="btn-primary-large">Khám Phá CLB</a>
+                <a href="/login" class="btn-secondary-large" id="heroBtnThamGia"><i class="fas fa-sign-in-alt"></i> Tham gia nền tảng</a>
+            </div>
+        </div>
+        <div class="hero-image">
+            <div class="hero-glass-card top-card">
+                 <div class="glass-icon"><i class="fas fa-users"></i></div>
+                 <div class="glass-text">
+                     <h4>Cộng Đồng Trẻ</h4>
+                     <p>Hàng ngàn sinh viên.</p>
+                 </div>
+            </div>
+            <div class="hero-glass-card bottom-card">
+                 <div class="glass-icon" style="color: #059669"><i class="fas fa-calendar-check"></i></div>
+                 <div class="glass-text">
+                     <h4>Sự Kiện Bùng Nổ</h4>
+                     <p>Diễn ra mỗi tuần.</p>
+                 </div>
+            </div>
+            <!-- Background abstraction -->
+            <div class="glow-orb orb-1"></div>
+            <div class="glow-orb orb-2"></div>
+        </div>
+    </section>
+
+    <!-- Platform Stats -->
+    <section class="stats-section">
+        <div class="stat-box">
+            <div class="stat-number" id="statClubs">50+</div>
+            <div class="stat-label">Câu Lạc Bộ</div>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat-box">
+            <div class="stat-number" id="statMembers">12K+</div>
+            <div class="stat-label">Thành Viên Tích Cực</div>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat-box">
+            <div class="stat-number" id="statEvents">300+</div>
+            <div class="stat-label">Sự Kiện Đã Phục Vụ</div>
+        </div>
+    </section>
+
+    <!-- Discover Clubs Section -->
+    <section class="discover-section" id="discover-clubs">
+        <div class="section-header text-center">
+            <h2>Khám Phá Câu Lạc Bộ Tiêu Biểu</h2>
+            <p>Từ học thuật, kỹ năng đến nghệ thuật - Đều có một bến đỗ dành cho bạn.</p>
+        </div>
         
+        <div class="clubs-grid" id="featuredClubsGrid">
+            <!-- Clubs will be dynamically injected here via JS -->
+             <div style="grid-column: 1/-1; text-align: center; color: #94a3b8; padding: 40px;"><i class="fas fa-spinner fa-spin fa-2x"></i><p style="margin-top: 10px;">Đang lấy dữ liệu Câu lạc bộ...</p></div>
         </div>
-    </div>
+        
+        <div style="text-align: center; margin-top: 50px;">
+            <a href="/clb" class="btn-outline-large">Xem Toàn Bộ Danh Sách <i class="fas fa-arrow-right"></i></a>
+        </div>
+    </section>
 
-    <!-- Filter Section -->
-    <div class="filter-section">
-        <div class="filter-header">
-            <h3><i class="fas fa-filter"></i> Bộ lọc nhanh</h3>
-            <div class="my-clubs" id="myClubsList">
-                <!-- My clubs sẽ được load từ API nếu đã đăng nhập -->
-            </div>
+    <!-- Upcoming Events Section -->
+    <section class="events-section bg-gray">
+        <div class="section-header text-center">
+            <h2>Những Sự Kiện Đang Chờ Bạn</h2>
+            <p>Đừng bỏ lỡ cơ hội giao lưu, học hỏi và cháy hết mình cùng CLB bạn thích.</p>
         </div>
-        <div class="club-filter" id="clubFilter">
-            <div class="filter-chip active" onclick="filterByClub('all')">Tất cả CLB</div>
-            <div class="filter-chip" onclick="filterByClub('CLB Tin học')">CLB Tin học</div>
-            <div class="filter-chip" onclick="filterByClub('CLB Âm nhạc')">CLB Âm nhạc</div>
-            <div class="filter-chip" onclick="filterByClub('CLB Tình nguyện')">CLB Tình nguyện</div>
-            <div class="filter-chip" onclick="filterByClub('CLB Thể thao')">CLB Thể thao</div>
-            <div class="filter-chip" onclick="filterByClub('CLB Tiếng Anh')">CLB Tiếng Anh</div>
-            <div class="filter-chip" onclick="filterByClub('CLB Robot')">CLB Robot</div>
-            <div class="filter-chip" onclick="filterByClub('CLB Mỹ thuật')">CLB Mỹ thuật</div>
-        </div>
-    </div>
 
-    <!-- Featured Posts -->
-    <div class="featured-posts" id="featuredPosts">
-        <div class="featured-post">
-            <div class="featured-image">
-                <img src="https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=600" alt="Featured">
-            </div>
-            <div class="featured-content">
-                <span class="featured-category">🔥 NỔI BẬT</span>
-                <h3 class="featured-title">Đại hội CLB Tin học nhiệm kỳ 2026-2027</h3>
-                <div class="featured-meta">
-                    <span><i class="far fa-eye"></i> 1.2K lượt xem</span>
-                    <span><i class="far fa-heart"></i> 234 thích</span>
-                </div>
-            </div>
+        <div class="events-grid" id="upcomingEventsGrid">
+             <!-- Events will be dynamically injected here via JS -->
+            <div style="grid-column: 1/-1; text-align: center; color: #94a3b8; padding: 40px;"><i class="fas fa-spinner fa-spin fa-2x"></i><p style="margin-top: 10px;">Đang tải danh sách sự kiện...</p></div>
         </div>
-        <div class="featured-post">
-            <div class="featured-image">
-                <img src="https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=600" alt="Featured">
-            </div>
-            <div class="featured-content">
-                <span class="featured-category">⚡ XU HƯỚNG</span>
-                <h3 class="featured-title">Workshop "AI cho mọi người" - CLB Tin học</h3>
-                <div class="featured-meta">
-                    <span><i class="far fa-eye"></i> 890 lượt xem</span>
-                    <span><i class="far fa-heart"></i> 156 thích</span>
-                </div>
-            </div>
+    </section>
+
+    <!-- Bottom CTA -->
+    <section class="bottom-cta" id="bottomCtaSection">
+        <div class="cta-content">
+            <h2>Bạn Đã Sẵn Sàng Vượt Giới Hạn Bản Thân?</h2>
+            <p>Đăng ký tài khoản ngay hôm nay để nhận thông báo mới nhất về tất cả sự kiện và các đợt tuyển quân.</p>
+            <a href="/login?tab=register" class="btn-primary-xl">Tạo Tài Khoản Hoàn Toàn Miễn Phí</a>
         </div>
-    </div>
-
-    <!-- Posts Container -->
-    <div id="postsContainer">
-        <!-- Posts sẽ được load từ API hoặc hiển thị demo -->
-    </div>
-
-    <!-- Load More Button -->
-    <div class="load-more">
-        <button class="btn-load" id="loadMoreBtn" onclick="loadMorePosts()">
-            <i class="fas fa-sync-alt"></i> Xem thêm bài viết
-        </button>
-    </div>
+    </section>
 </div>
+
 <%- include('partials/Footer') %>

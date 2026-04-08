@@ -26,10 +26,7 @@ router.get("/clb", (req, res) => {
     res.render("CLB", { title: "Danh sách Câu lạc bộ" });
 });
 
-// Trang Sự kiện
-router.get("/SuKien", (req, res) => {
-    res.render("SuKien", { title: "Sự kiện sắp tới" });
-});
+
 
 // Trang Tin Tức
 router.get("/TinTuc", (req, res) => {

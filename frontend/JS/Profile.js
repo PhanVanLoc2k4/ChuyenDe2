@@ -43,96 +43,73 @@ document.addEventListener('DOMContentLoaded', async () => {
     await loadFullData(); 
 });
 
-async function loadProfileFromServer() {
-    const userStr = localStorage.getItem('currentUser');
-    if (!userStr) {
-        window.location.href = "/login";
-        return;
-    }
-    
-    const user = JSON.parse(userStr);
-    const userId = user.id || user.user_id; 
-
-    if (!userId) return;
-
-    // --- PHẦN 1: LẤY THÔNG TIN CÁ NHÂN (Bắt buộc) ---
-    try {
-        const profileRes = await fetch(`/api/user/profile/${userId}`);
-        if (!profileRes.ok) throw new Error("Không lấy được Profile");
-
-        const data = await profileRes.json();
-        currentProfile = { ...data, id: userId }; 
-        renderFormData();
-    } catch (error) {
-        console.error("Lỗi Profile:", error);
-        showToast("Không thể tải thông tin cá nhân!", false);
-        return; // Dừng luôn nếu không lấy được thông tin chính
-    }
-
-    // --- PHẦN 2: LẤY DANH SÁCH CLB (Tùy chọn) ---
-    try {
-        const clubsRes = await fetch(`/api/user/clubs/${userId}`);
-        if (clubsRes.ok) {
-            const joinedClubs = await clubsRes.json();
-            renderJoinedClubs(joinedClubs); 
-        }
-    } catch (clubErr) {
-        // Nếu lỗi ở đây, ta chỉ log ra console, không làm phiền người dùng bằng Toast
-        console.warn("Lưu ý: Không tải được danh sách CLB (có thể do lỗi SQL cột 'name')");
-    }
-}
-// Hàm render CLB từ database (Thay cho cái set cứng cũ)
-function renderRealClubs(clubs) {
-    const clubContainer = document.getElementById('clubChecklist');
-    if (!clubContainer) return;
-
-    if (clubs.length === 0) {
-        clubContainer.innerHTML = '<p style="font-size:0.9rem; color:#64748b;">Chưa tham gia CLB nào.</p>';
-        return;
-    }
-
-    clubContainer.innerHTML = clubs.map(club => `
-        <div class="club-tag" style="background: #eef2ff; color: #4338ca; padding: 5px 12px; border-radius: 20px; font-size: 0.85rem; display: inline-block; margin: 4px; border: 1px solid #e0e7ff;">
-            <i class="fas fa-users"></i> ${club.name}
-        </div>
-    `).join('');
-}
-
 /**
  * 2. LẤY TOÀN BỘ DỮ LIỆU TỪ DATABASE
  */
 async function loadFullData() {
-    const userId = currentUser.id || currentUser.user_id;
+    // Ưu tiên id từ currentUser (được set lúc login)
+    const userId = currentUser ? (currentUser.id || currentUser.user_id) : null;
+    
+    if (!userId) {
+        console.error("No valid UserID found in currentUser");
+        showToast("Không tìm thấy thông tin đăng nhập!", false);
+        return;
+    }
+
+    console.log("🚀 Starting fetch for UserID:", userId);
 
     try {
-        // Lấy thông tin cá nhân và danh sách CLB song song để tối ưu tốc độ
         const [profileRes, clubsRes] = await Promise.all([
             fetch(`/api/user/profile/${userId}`),
             fetch(`/api/user/clubs/${userId}`)
         ]);
 
+        if (!profileRes.ok) {
+            const errData = await profileRes.json();
+            throw new Error(errData.message || "Lỗi API Profile");
+        }
+
         const profileData = await profileRes.json();
         const joinedClubs = await clubsRes.json();
+        
+        console.log("✅ Profile Data received from DB:", profileData);
 
-        if (profileRes.ok) {
-            currentProfile = {
-                id: userId,
-                fullName: profileData.full_name || "",
-                email: profileData.email || "",
-                phone: profileData.phone || "",
-                dob: profileData.dob ? profileData.dob.split('T')[0] : "", 
-                gender: profileData.gender || "Nam",
-                bio: profileData.bio || "",
-                hobbies: profileData.hobbies || "",
-                avatar: profileData.avatar || DEFAULT_AVATAR
-            };
-            
-            renderProfileToForm();
-            renderJoinedClubsUI(joinedClubs);
-        }
+        // Map data từ Database sang State (Dùng các key từ SELECT trong server.js)
+        currentProfile = {
+            id: userId,
+            fullName: profileData.full_name || "",
+            email: profileData.email || "",
+            phone: profileData.phone || "",
+            // Ép kiểu dob về YYYY-MM-DD
+            dob: profileData.dob ? new Date(profileData.dob).toISOString().split('T')[0] : "",
+            gender: profileData.gender || "Nam",
+            bio: profileData.bio || "",
+            hobbies: profileData.hobbies || "",
+            avatar: profileData.avatar || DEFAULT_AVATAR
+        };
+        
+        console.log("📍 Render Form with:", currentProfile);
+        renderProfileToForm();
+        renderJoinedClubsUI(joinedClubs);
+        
     } catch (error) {
-        console.error("Lỗi tải dữ liệu:", error);
-        showToast("Không thể kết nối đến máy chủ", false);
+        console.error("❌ Lỗi tải dữ liệu Profile:", error);
+        showToast("Lỗi: " + error.message, false);
+    }
+}
+
+function formatDobForInput(dob) {
+    if (!dob) return "";
+    try {
+        // Nếu là định dạng ISO (có chữ T), cắt lấy phần ngày
+        if (typeof dob === 'string' && dob.includes('T')) {
+            return dob.split('T')[0];
+        }
+        // Nếu là đối tượng Date hoặc định dạng khác, ép kiểu về ISO
+        return new Date(dob).toISOString().split('T')[0];
+    } catch (e) {
+        console.warn("Lỗi format ngày sinh:", dob, e);
+        return "";
     }
 }
 
@@ -181,14 +158,44 @@ async function handleSaveProfile() {
     let genderValue = "Nam";
     genderRadios.forEach(radio => { if (radio.checked) genderValue = radio.value; });
 
+    // Tiền xử lý dữ liệu trước khi gửi
+    const fullName = fullNameInput.value.trim();
+    const phone = phoneInput.value.trim();
+    const dob = dobInput.value ? dobInput.value : null; // Nếu không có ngày sinh thì gửi null
+    const bio = bioTextarea.value.trim();
+    const hobbies = hobbiesInput.value.trim();
+
+    // Kiểm tra cơ bản
+    if (!fullName) {
+        return showToast("Họ và tên không được để trống!", false);
+    }
+
+    if (dob) {
+        const birthDate = new Date(dob);
+        const today = new Date();
+        let age = today.getFullYear() - birthDate.getFullYear();
+        const m = today.getMonth() - birthDate.getMonth();
+        if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+            age--;
+        }
+
+        if (age < 16 || age > 100) {
+            return showToast(`Tuổi không hợp lệ (${age} tuổi). Bạn phải từ 16 đến 100 tuổi!`, false);
+        }
+    }
+
+    if (phone && !/^[0-9]{10,11}$/.test(phone.replace(/[\s\-\.]/g, ''))) {
+        return showToast("Số điện thoại không hợp lệ (10-11 số)!", false);
+    }
+
     const updatedData = {
         id: userId,
-        full_name: fullNameInput.value.trim(),
-        phone: phoneInput.value.trim(),
-        dob: dobInput.value,
+        full_name: fullName,
+        phone: phone,
+        dob: dob,
         gender: genderValue,
-        bio: bioTextarea.value.trim(),
-        hobbies: hobbiesInput.value.trim(),
+        bio: bio,
+        hobbies: hobbies,
         avatar: newAvatarBase64 || currentProfile.avatar
     };
 
@@ -208,7 +215,13 @@ async function handleSaveProfile() {
             showToast("Đã cập nhật thông tin thành công! ✅");
             
             // Cập nhật State và localStorage để đồng bộ Header
-            currentProfile = { ...currentProfile, ...updatedData, fullName: updatedData.full_name };
+            currentProfile = { 
+                ...currentProfile, 
+                ...updatedData, 
+                fullName: updatedData.full_name,
+                dob: updatedData.dob // Cập nhật lại ngày để form không bị mất giá trị
+            };
+            
             currentUser.name = updatedData.full_name;
             currentUser.avatar = updatedData.avatar;
             localStorage.setItem('currentUser', JSON.stringify(currentUser));
@@ -217,11 +230,11 @@ async function handleSaveProfile() {
             // Nếu có đổi ảnh, cập nhật lại ảnh trên header (nếu có hàm global)
             if(window.renderAuthSection) window.renderAuthSection(); 
         } else {
-            showToast(result.message || "Lỗi khi cập nhật", false);
+            showToast(result.message || "Lỗi khi cập nhật từ máy chủ", false);
         }
     } catch (error) {
-        console.error("Lỗi Save:", error);
-        showToast("Lỗi kết nối mạng", false);
+        console.error("Lỗi API Save:", error);
+        showToast("Lỗi kết nối máy chủ", false);
     } finally {
         saveBtn.disabled = false;
         saveBtn.innerHTML = '<i class="fas fa-save"></i> Lưu thay đổi';

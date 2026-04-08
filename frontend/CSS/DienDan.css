@@ -558,7 +558,13 @@
     max-width: 90%;
     max-height: 90vh;
     overflow-y: auto;
+    -ms-overflow-style: none; /* IE and Edge */
+    scrollbar-width: none; /* Firefox */
     animation: slideUp 0.3s ease;
+}
+
+.modal-content::-webkit-scrollbar {
+    display: none; /* Chrome, Safari and Opera */
 }
 
 @keyframes slideUp {
@@ -581,26 +587,6 @@
     border-bottom: 2px solid #e2e8f0;
 }
 
-.modal-header h2 {
-    font-size: 24px;
-    font-weight: 700;
-}
-
-.close-btn {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    border: none;
-    background: #f1f5f9;
-    color: #64748b;
-    cursor: pointer;
-    transition: all 0.2s;
-}
-
-.close-btn:hover {
-    background: #e2e8f0;
-    color: #c53030;
-}
 
 /* Post Content */
 .post-content {
