@@ -542,39 +542,81 @@ async function loadEvents() {
                 </div>
             ` : "";
 
+            const isLiked = ev.user_liked === 1;
+            const heartClass = isLiked ? 'fas fa-heart' : 'far fa-heart';
+            const heartColor = isLiked ? 'color: #ef4444;' : '';
+
             return `
-            <div class="post-card event-card" style="position: relative; overflow: hidden; padding: 0; display: flex; flex-direction: row; min-height: 220px;">
-                <div style="flex: 1; padding: 25px; position: relative;" ${isLeader ? `onclick="openEventRegistrations(${ev.id})" style="cursor:pointer;" title="Nhấn để xem danh sách đăng ký"` : ''}>
-                    ${mgmtHtml}
-                    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 15px;">
-                        <div class="event-date-box" style="background: #fef2f2; border: 1px solid #fee2e2; padding: 10px; border-radius: 12px; text-align: center; min-width: 70px;">
-                            <span style="display: block; font-size: 12px; color: #c53030; font-weight: 700; text-transform: uppercase;">Tháng ${new Date(ev.start_time).getMonth() + 1}</span>
-                            <span style="display: block; font-size: 24px; font-weight: 800; color: #1a2639;">${new Date(ev.start_time).getDate()}</span>
+            <div class="post-card event-card" style="position: relative; overflow: visible; padding: 0; display: flex; flex-direction: column; min-height: 220px;">
+                <div style="display: flex; flex-direction: row; flex: 1;">
+                    <div style="flex: 1; padding: 25px; position: relative;" ${isLeader ? `onclick="openEventRegistrations(${ev.id})" style="cursor:pointer;" title="Nhấn để xem danh sách đăng ký"` : ''}>
+                        ${mgmtHtml}
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 15px;">
+                            <div class="event-date-box" style="background: #fef2f2; border: 1px solid #fee2e2; padding: 10px; border-radius: 12px; text-align: center; min-width: 70px;">
+                                <span style="display: block; font-size: 12px; color: #c53030; font-weight: 700; text-transform: uppercase;">Tháng ${new Date(ev.start_time).getMonth() + 1}</span>
+                                <span style="display: block; font-size: 24px; font-weight: 800; color: #1a2639;">${new Date(ev.start_time).getDate()}</span>
+                            </div>
+                            <div style="display: flex; gap: 10px;">
+                                ${!isLeader ? 
+                                    (ev.is_registered 
+                                        ? `<button onclick="cancelEventRegistration(${ev.id}, event)" class="btn-registered">
+                                                <i class="fas fa-check-circle icon-default"></i><i class="fas fa-times icon-hover"></i>
+                                                <span class="text-default">Đã đăng ký</span><span class="text-hover">Hủy tham gia</span>
+                                           </button>` 
+                                        : `<button class="btn-action btn-approve" onclick="registerForEvent(${ev.id}, event)">Đăng ký tham gia</button>`) 
+                                    : `<span style="font-size: 12px; color: #c53030; font-weight: bold; background: #fef2f2; padding: 5px 10px; border-radius: 8px; margin-right: 25px;"><i class="fas fa-users"></i> DS Đăng ký</span>`}
+                            </div>
                         </div>
-                        ${!isLeader ? 
-                            (ev.is_registered 
-                                ? `<button onclick="cancelEventRegistration(${ev.id}, event)" class="btn-registered">
-                                        <i class="fas fa-check-circle icon-default"></i><i class="fas fa-times icon-hover"></i>
-                                        <span class="text-default">Đã đăng ký</span><span class="text-hover">Hủy tham gia</span>
-                                   </button>` 
-                                : `<button class="btn-action btn-approve" onclick="registerForEvent(${ev.id}, event)">Đăng ký tham gia</button>`) 
-                            : `<span style="font-size: 12px; color: #c53030; font-weight: bold; background: #fef2f2; padding: 5px 10px; border-radius: 8px; margin-right: 25px;"><i class="fas fa-users"></i> DS Đăng ký</span>`}
+                        <h3 class="post-title" style="padding-right: 30px;">${ev.event_name}</h3>
+                        <p style="color: #64748b; font-size: 14px; margin-bottom: 10px;">
+                            <i class="fas fa-map-marker-alt"></i> ${ev.location}
+                        </p>
+                        <div class="post-content-body" style="padding-right: 15px;">${ev.description}</div>
+                        <div style="font-size: 13px; color: #64748b; margin-top: 15px;">
+                            <i class="far fa-clock"></i> ${new Date(ev.start_time).toLocaleTimeString('vi-VN')} - ${new Date(ev.end_time).toLocaleTimeString('vi-VN')}
+                        </div>
                     </div>
-                    <h3 class="post-title" style="padding-right: 30px;">${ev.event_name}</h3>
-                    <p style="color: #64748b; font-size: 14px; margin-bottom: 10px;">
-                        <i class="fas fa-map-marker-alt"></i> ${ev.location}
-                    </p>
-                    <div class="post-content-body" style="padding-right: 15px;">${ev.description}</div>
-                    <div style="font-size: 13px; color: #64748b; margin-top: 15px;">
-                        <i class="far fa-clock"></i> ${new Date(ev.start_time).toLocaleTimeString('vi-VN')} - ${new Date(ev.end_time).toLocaleTimeString('vi-VN')}
+                    ${ev.image ? `
+                    <div style="width: 250px; flex-shrink: 0; background-image: url('${ev.image}'); background-size: cover; background-position: center; position: relative;">
+                        <div style="position: absolute; top:0; left:0; width: 50px; height: 100%; background: linear-gradient(to right, white, transparent);"></div>
+                    </div>
+                    ` : ''}
+                </div>
+                
+                <div class="post-footer" style="padding: 12px 25px; border-top: 1px solid #f1f5f9; background: #fafafa; border-radius: 0 0 20px 20px;">
+                    <div class="post-stats" style="display: flex; flex-direction: row; gap: 20px; align-items: center;">
+                        <div class="stat-item" onclick="likeEvent(${ev.id}, event)" id="event-like-btn-${ev.id}" 
+                             style="display: flex; align-items: center; gap: 8px; cursor: pointer; transition: 0.2s; color: #64748b;"
+                             onmouseover="this.style.color='#ef4444'" onmouseout="if(!${ev.user_liked === 1}) this.style.color='#64748b'">
+                            <i class="${heartClass}" id="event-heart-icon-${ev.id}" style="${heartColor}; font-size: 18px;"></i>
+                            <span id="event-like-count-${ev.id}" style="font-weight: 600; font-size: 14px;">${ev.likes || 0}</span>
+                        </div>
+                        <div class="stat-item" onclick="toggleEventComments(${ev.id}, event)" 
+                             style="display: flex; align-items: center; gap: 8px; cursor: pointer; transition: 0.2s; color: #64748b;"
+                             onmouseover="this.style.color='#3b82f6'" onmouseout="this.style.color='#64748b'">
+                            <i class="far fa-comment" style="font-size: 18px;"></i>
+                            <span style="font-weight: 600; font-size: 14px;">${ev.comments || 0}</span>
+                        </div>
+                    </div>
+
+                    <div id="event-comments-section-${ev.id}" class="premium-comments-section" style="display: none; width: 100%; margin-top: 15px;">
+                        <div class="comments-divider" style="margin: 12px 0; border-top: 1px solid #e2e8f0;"></div>
+                        <div id="event-comments-list-${ev.id}" class="comments-list">
+                            <div class="loading-comments" style="text-align: center; padding: 10px; font-size: 13px; color: #94a3b8;">Đang tải bình luận...</div>
+                        </div>
+                        <div class="comment-input-wrapper" style="display: flex; gap: 10px; margin-top: 12px;">
+                            <input type="text" id="event-comment-input-${ev.id}" placeholder="Hỏi điều gì đó về sự kiện này..." 
+                                   style="flex: 1; padding: 10px 16px; border-radius: 25px; border: 1px solid #e2e8f0; font-size: 14px; outline: none; transition: 0.2s;"
+                                   onfocus="this.style.borderColor='#3b82f6'" onblur="this.style.borderColor='#e2e8f0'"
+                                   onkeyup="if(event.key === 'Enter') submitEventComment(${ev.id})">
+                            <button class="send-comment-btn" onclick="submitEventComment(${ev.id})" 
+                                    style="background: #3b82f6; color: white; border: none; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s; box-shadow: 0 4px 10px rgba(59, 130, 246, 0.3);"
+                                    onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+                                <i class="fas fa-paper-plane" style="font-size: 14px;"></i>
+                            </button>
+                        </div>
                     </div>
                 </div>
-                ${ev.image ? `
-                <div style="width: 250px; flex-shrink: 0; background-image: url('${ev.image}'); background-size: cover; background-position: center; position: relative;">
-                    <!-- Hiệu ứng chuyển vân mờ -->
-                    <div style="position: absolute; top:0; left:0; width: 50px; height: 100%; background: linear-gradient(to right, white, transparent);"></div>
-                </div>
-                ` : ''}
             </div>
             `;
         }).join('');
@@ -632,13 +674,16 @@ async function loadMembers() {
         const response = await fetch(`/api/clubs/${clubId}/members`);
         const members = await response.json();
 
-        tbody.innerHTML = members.map(m => `
+        tbody.innerHTML = members.map(m => {
+            const isMe = currentUser && (Number(m.user_id) === Number(currentUser.id || currentUser.user_id));
+            
+            return `
             <tr>
                 <td>
                     <div class="user-cell">
                         <div class="last-post-avatar" style="background:#f1f5f9; color:#475569;">${m.name.charAt(0)}</div>
                         <div>
-                            <div style="font-weight: 600;">${m.name}</div>
+                            <div style="font-weight: 600;">${m.name} ${isMe ? '<span style="color: #2563eb; font-size: 11px; background: #eff6ff; padding: 2px 6px; border-radius: 4px; margin-left: 5px;">Bạn</span>' : ''}</div>
                             <div style="font-size: 12px; color: #64748b;">${m.email}</div>
                         </div>
                     </div>
@@ -649,20 +694,25 @@ async function loadMembers() {
                     </span>
                 </td>
                 <td>
-                    <div style="display: flex; gap: 8px; align-items: center;">
-                        <select class="role-select" onchange="promoteMember(${m.member_record_id}, this.value)" style="flex: 1;">
-                            <option value="">-- Cấp quyền --</option>
-                            <option value="Phó CLB">Phó CLB</option>
-                            <option value="Ban quản lý">Ban quản lý</option>
-                            <option value="Thành viên">Thành viên (Gỡ quyền)</option>
-                        </select>
-                        <button class="btn-action btn-reject" onclick="kickMember(${m.member_record_id}, '${m.name}')" title="Loại khỏi CLB" style="padding: 5px 10px; border-radius: 6px;">
-                            <i class="fas fa-user-minus"></i>
-                        </button>
-                    </div>
+                    ${isMe ? `
+                        <div style="color: #94a3b8; font-size: 12px; font-style: italic; text-align: center;">Hệ thống bảo vệ</div>
+                    ` : `
+                        <div style="display: flex; gap: 8px; align-items: center;">
+                            <select class="role-select" onchange="promoteMember(${m.member_record_id}, this.value)" style="flex: 1;">
+                                <option value="">-- Cấp quyền --</option>
+                                <option value="Phó CLB">Phó CLB</option>
+                                <option value="Ban quản lý">Ban quản lý</option>
+                                <option value="Thành viên">Thành viên (Gỡ quyền)</option>
+                            </select>
+                            <button class="btn-action btn-reject" onclick="kickMember(${m.member_record_id}, '${m.name}')" title="Loại khỏi CLB" style="padding: 5px 10px; border-radius: 6px;">
+                                <i class="fas fa-user-minus"></i>
+                            </button>
+                        </div>
+                    `}
                 </td>
             </tr>
-        `).join('');
+            `;
+        }).join('');
     } catch (err) { tbody.innerHTML = 'Lỗi tải thành viên.'; }
 }
 
@@ -1082,3 +1132,86 @@ function closeModal(id) { document.getElementById(id).style.display = 'none'; }
 window.onclick = (event) => {
     if (event.target.classList.contains('modal')) event.target.style.display = 'none';
 };
+async function likeEvent(eventId) {
+    if (!currentUser) return alert("Vui lòng đăng nhập!");
+    try {
+        const response = await fetch(`/api/events/like/${eventId}`, { 
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ user_id: currentUser.id })
+        });
+        const result = await response.json();
+        
+        if (result.success) {
+            const heartIcon = document.getElementById(`event-heart-icon-${eventId}`);
+            const countSpan = document.getElementById(`event-like-count-${eventId}`);
+            if (!heartIcon || !countSpan) return;
+
+            let currentLikes = parseInt(countSpan.textContent);
+            if (result.liked) {
+                heartIcon.classList.remove('far'); heartIcon.classList.add('fas'); heartIcon.style.color = '#ef4444';
+                countSpan.textContent = currentLikes + 1;
+            } else {
+                heartIcon.classList.remove('fas'); heartIcon.classList.add('far'); heartIcon.style.color = '';
+                countSpan.textContent = Math.max(0, currentLikes - 1);
+            }
+        }
+    } catch (e) { console.error(e); }
+}
+
+async function toggleEventComments(eventId) {
+    const section = document.getElementById(`event-comments-section-${eventId}`);
+    if (section.style.display === 'none') {
+        section.style.display = 'block';
+        await loadEventComments(eventId);
+    } else {
+        section.style.display = 'none';
+    }
+}
+
+async function loadEventComments(eventId) {
+    const container = document.getElementById(`event-comments-list-${eventId}`);
+    try {
+        const res = await fetch(`/api/events/${eventId}/comments`);
+        const comments = await res.json();
+        
+        if (comments.length === 0) {
+            container.innerHTML = '<div style="padding: 15px; color: #a0aec0; text-align: center; font-size: 13px;">Chưa có câu hỏi hay bình luận nào.</div>';
+            return;
+        }
+
+        container.innerHTML = comments.map(c => `
+            <div class="comment-item">
+                <div class="comment-user-avatar">${c.author_avatar ? `<img src="${c.author_avatar}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">` : (c.author_name ? c.author_name[0] : '?')}</div>
+                <div class="comment-content-wrapper" style="background:#f8fafc; padding:10px; border-radius:12px; flex:1">
+                    <div class="comment-user-name" style="font-weight:700; font-size:13px; color:#1e293b">${c.author_name}</div>
+                    <div class="comment-text" style="font-size:13.5px; color:#475569; margin:3px 0">${c.content}</div>
+                    <div class="comment-time" style="font-size:11px; color:#94a3b8">${new Date(c.created_at).toLocaleString('vi-VN')}</div>
+                </div>
+            </div>
+        `).join('');
+    } catch (e) { container.innerHTML = 'Lỗi tải bình luận.'; }
+}
+
+async function submitEventComment(eventId) {
+    if (!currentUser) return alert("Vui lòng đăng nhập!");
+    const input = document.getElementById(`event-comment-input-${eventId}`);
+    if (!input) return;
+    const content = input.value.trim();
+    if (!content) return;
+
+    try {
+        const res = await fetch(`/api/events/${eventId}/comments`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+                user_id: currentUser.id,
+                content: content 
+            })
+        });
+        if (res.ok) {
+            input.value = '';
+            await loadEventComments(eventId);
+        }
+    } catch (e) { alert("Lỗi gửi bình luận."); }
+}

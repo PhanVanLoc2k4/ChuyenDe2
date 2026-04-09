@@ -1,686 +1,402 @@
-
 <%- include('partials/Header') %>
 
-<!-- Main Content - Layout 3 cột kiểu Facebook -->
-<div class="container">
-    <!-- Left Sidebar -->
-    <div class="left-sidebar">
-        <!-- Profile Card Widget -->
-        <div class="sidebar-widget profile-card-widget">
-            <div class="profile-cover"></div>
-            <div class="profile-content">
-                <div class="profile-avatar-large" id="sidebarAvatar">
-                    <i class="fas fa-user"></i>
-                </div>
-                <h3 class="profile-name" id="sidebarName">Người dùng</h3>
-                <span class="profile-role" id="sidebarRole">Thành viên</span>
-                <div class="profile-stats">
-                    <div class="stat-box">
-                        <span class="stat-value" id="sidebarPostCount">0</span>
-                        <span class="stat-label">Bài viết</span>
+    <!-- Main Content - Layout 3 cột kiểu Facebook -->
+    <div class="container">
+        <!-- Left Sidebar -->
+        <div class="left-sidebar">
+            <!-- Profile Card Widget -->
+            <div class="sidebar-widget profile-card-widget">
+                <div class="profile-cover"></div>
+                <div class="profile-content">
+                    <div class="profile-avatar-large" id="sidebarAvatar">
+                        <i class="fas fa-user"></i>
                     </div>
-                    <div class="stat-box">
-                        <span class="stat-value" id="sidebarClubCount">0</span>
-                        <span class="stat-label">CLB</span>
+                    <h3 class="profile-name" id="sidebarName">Người dùng</h3>
+                    <span class="profile-role" id="sidebarRole">Thành viên</span>
+                    <div class="profile-stats">
+                        <div class="stat-box">
+                            <span class="stat-value" id="sidebarPostCount">0</span>
+                            <span class="stat-label">Bài viết</span>
+                        </div>
+                        <div class="stat-box">
+                            <span class="stat-value" id="sidebarClubCount">0</span>
+                            <span class="stat-label">CLB</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Navigation Menu -->
+            <div class="sidebar-widget">
+                <nav class="sidebar-menu-list">
+                    <a href="#" class="sidebar-menu-item active">
+                        <i class="fas fa-newspaper"></i>
+                        <span>Bảng tin cộng đồng</span>
+                    </a>
+                    <a href="/DienDan" class="sidebar-menu-item">
+                        <i class="fas fa-users"></i>
+                        <span>Câu lạc bộ của tôi</span>
+                    </a>
+                    <a href="#" class="sidebar-menu-item">
+                        <i class="fas fa-calendar-alt"></i>
+                        <span>Sự kiện sắp tới</span>
+                    </a>
+                    <a href="#" class="sidebar-menu-item">
+                        <i class="fas fa-bookmark"></i>
+                        <span>Mục đã lưu</span>
+                    </a>
+                </nav>
+            </div>
+
+            <div class="sidebar-widget">
+                <h3 class="sidebar-widget-title"><i class="fas fa-users" style="color: #c53030;"></i> CLB Hoạt động</h3>
+                <div class="club-list-item">
+                    <div class="club-avatar-small">IT</div>
+                    <div class="club-info-small">
+                        <div class="club-name-small">CLB Tin học</div>
+                        <div class="club-status-small">12 bài mới hôm nay</div>
+                    </div>
+                </div>
+                <div class="club-list-item">
+                    <div class="club-avatar-small">AN</div>
+                    <div class="club-info-small">
+                        <div class="club-name-small">CLB Âm nhạc</div>
+                        <div class="club-status-small">3 hoạt động mới</div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Navigation Menu -->
-        <div class="sidebar-widget">
-            <nav class="sidebar-menu-list">
-                <a href="#" class="sidebar-menu-item active">
-                    <i class="fas fa-newspaper"></i>
-                    <span>Bảng tin cộng đồng</span>
-                </a>
-                <a href="/DienDan" class="sidebar-menu-item">
-                    <i class="fas fa-users"></i>
-                    <span>Câu lạc bộ của tôi</span>
-                </a>
-                <a href="#" class="sidebar-menu-item">
-                    <i class="fas fa-calendar-alt"></i>
-                    <span>Sự kiện sắp tới</span>
-                </a>
-                <a href="#" class="sidebar-menu-item">
-                    <i class="fas fa-bookmark"></i>
-                    <span>Mục đã lưu</span>
-                </a>
-            </nav>
-        </div>
-
-        <div class="sidebar-widget">
-            <h3 class="sidebar-widget-title"><i class="fas fa-users" style="color: #c53030;"></i> CLB Hoạt động</h3>
-            <div class="club-list-item">
-                <div class="club-avatar-small">IT</div>
-                <div class="club-info-small">
-                    <div class="club-name-small">CLB Tin học</div>
-                    <div class="club-status-small">12 bài mới hôm nay</div>
+        <!-- Main Content Area -->
+        <div class="main-content">
+            <!-- Create Post -->
+            <div class="create-post">
+                <div class="create-post-header">
+                    <div class="user-avatar-medium" id="createPostAvatar">NA</div>
+                    <div class="post-input" onclick="openCreatePostModal()">
+                        Bạn đang nghĩ gì?
+                    </div>
+                </div>
+                <div class="create-post-divider"></div>
+                <div class="create-post-actions">
+                    <div class="post-action" onclick="openCreatePostModal('image')">
+                        <i class="fas fa-image"></i>
+                        <span>Ảnh</span>
+                    </div>
+                    <div class="post-action" onclick="openCreatePostModal('video')">
+                        <i class="fas fa-video"></i>
+                        <span>Video</span>
+                    </div>
+                    <div class="post-action" onclick="openCreatePostModal('event')">
+                        <i class="fas fa-calendar"></i>
+                        <span>Sự kiện</span>
+                    </div>
                 </div>
             </div>
-            <div class="club-list-item">
-                <div class="club-avatar-small">AN</div>
-                <div class="club-info-small">
-                    <div class="club-name-small">CLB Âm nhạc</div>
-                    <div class="club-status-small">3 hoạt động mới</div>
+
+            <!-- Feed Tabs -->
+            <div class="feed-tabs">
+                <div class="feed-tab active" onclick="filterFeed(event, 'all')">
+                    <i class="fas fa-layer-group"></i> Tất cả
+                </div>
+                <div class="feed-tab" onclick="filterFeed(event, 'community')">
+                    <i class="fas fa-globe-asia"></i> Cộng đồng
+                </div>
+                <div class="feed-tab" onclick="filterFeed(event, 'clubs')">
+                    <i class="fas fa-users-cog"></i> Từ CLB
+                </div>
+                <div class="feed-tab" onclick="filterFeed(event, 'events')">
+                    <i class="fas fa-calendar-star"></i> Sự kiện
+                </div>
+            </div>
+
+            <!-- News Feed -->
+            <div class="news-feed" id="newsFeed">
+                <!-- Posts will be dynamically loaded here by JS -->
+            </div>
+
+            <!-- Load More -->
+            <div style="text-align: center; margin: 30px 0;">
+                <button class="btn-primary" style="width: 200px;" onclick="loadMorePosts()">
+                    <i class="fas fa-sync-alt"></i> Xem thêm
+                </button>
+            </div>
+        </div>
+
+        <!-- Right Sidebar -->
+        <div class="right-sidebar">
+            <!-- Upcoming Events -->
+            <div class="sidebar-widget">
+                <h3 class="sidebar-widget-title"><i class="fas fa-calendar-star" style="color: #c53030;"></i> Sắp diễn
+                    ra</h3>
+                <div class="right-event-card">
+                    <div class="event-date-badge">
+                        <span class="event-date-day">15</span>
+                        <span class="event-date-month">Th4</span>
+                    </div>
+                    <div class="right-event-info">
+                        <div class="right-event-name">Workshop React & Next.js</div>
+                        <div class="right-event-meta">Phòng A101 • 08:30</div>
+                    </div>
+                </div>
+                <div class="right-event-card">
+                    <div class="event-date-badge">
+                        <span class="event-date-day">20</span>
+                        <span class="event-date-month">Th4</span>
+                    </div>
+                    <div class="right-event-info">
+                        <div class="right-event-name">Đêm nhạc Acoustic GACOUSTIC</div>
+                        <div class="right-event-meta">Sân trường • 19:00</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Trending Widget -->
+            <div class="sidebar-widget">
+                <h3 class="sidebar-widget-title"><i class="fas fa-fire" style="color: #c53030;"></i> Xu hướng hôm nay
+                </h3>
+                <div class="trending-item-modern">
+                    <div class="trending-hashtag">#CongNgheAI</div>
+                    <div class="trending-topic">Lộ trình học AI cho người mới</div>
+                    <div class="trending-count">1.2K quan tâm</div>
+                </div>
+                <div class="trending-item-modern">
+                    <div class="trending-hashtag">#MuaHeXanh</div>
+                    <div class="trending-topic">Đăng ký tình nguyện hè 2026</div>
+                    <div class="trending-count">890 bài viết</div>
+                </div>
+                <div class="trending-item-modern">
+                    <div class="trending-hashtag">#WorkshopIT</div>
+                    <div class="trending-topic">Kỹ năng mềm cho sinh viên IT</div>
+                    <div class="trending-count">456 trả lời</div>
+                </div>
+            </div>
+
+            <!-- Suggested Clubs -->
+            <div class="sidebar-widget">
+                <h3 class="sidebar-widget-title"><i class="fas fa-users-medical" style="color: #c53030;"></i> Gợi ý tham
+                    gia</h3>
+                <div class="suggest-club-row">
+                    <div class="club-avatar-small">RB</div>
+                    <div class="suggest-club-info">
+                        <div class="club-name-small">CLB Robotics</div>
+                        <div class="club-status-small">125 thành viên</div>
+                    </div>
+                    <button class="join-btn-mini"><i class="fas fa-plus"></i></button>
+                </div>
+                <div class="suggest-club-row">
+                    <div class="club-avatar-small">MT</div>
+                    <div class="suggest-club-info">
+                        <div class="club-name-small">CLB Mỹ Thuật</div>
+                        <div class="club-status-small">210 thành viên</div>
+                    </div>
+                    <button class="join-btn-mini"><i class="fas fa-plus"></i></button>
                 </div>
             </div>
         </div>
     </div>
-
-    <!-- Main Content Area -->
-    <div class="main-content">
-        <!-- Create Post -->
-        <div class="create-post">
-            <div class="create-post-header">
-                <div class="user-avatar-medium" id="createPostAvatar">NA</div>
-                <div class="post-input" onclick="openCreatePostModal()">
-                    Bạn đang nghĩ gì?
-                </div>
-            </div>
-            <div class="create-post-divider"></div>
-            <div class="create-post-actions">
-                <div class="post-action" onclick="openCreatePostModal('image')">
-                    <i class="fas fa-image"></i>
-                    <span>Ảnh</span>
-                </div>
-                <div class="post-action" onclick="openCreatePostModal('video')">
-                    <i class="fas fa-video"></i>
-                    <span>Video</span>
-                </div>
-                <div class="post-action" onclick="openCreatePostModal('event')">
-                    <i class="fas fa-calendar"></i>
-                    <span>Sự kiện</span>
-                </div>
-            </div>
-        </div>
-
-        <!-- Feed Tabs -->
-        <div class="feed-tabs">
-            <div class="feed-tab active" onclick="filterFeed(event, 'all')">
-                <i class="fas fa-layer-group"></i> Tất cả
-            </div>
-            <div class="feed-tab" onclick="filterFeed(event, 'community')">
-                <i class="fas fa-globe-asia"></i> Cộng đồng
-            </div>
-            <div class="feed-tab" onclick="filterFeed(event, 'clubs')">
-                <i class="fas fa-users-cog"></i> Từ CLB
-            </div>
-            <div class="feed-tab" onclick="filterFeed(event, 'events')">
-                <i class="fas fa-calendar-star"></i> Sự kiện
-            </div>
-        </div>
-
-        <!-- News Feed -->
-        <div class="news-feed" id="newsFeed">
-            <!-- Posts will be dynamically loaded here by JS -->
-        </div>
-
-        <!-- Load More -->
-        <div style="text-align: center; margin: 30px 0;">
-            <button class="btn-primary" style="width: 200px;" onclick="loadMorePosts()">
-                <i class="fas fa-sync-alt"></i> Xem thêm
-            </button>
-        </div>
-    </div>
-
-    <!-- Right Sidebar -->
-    <div class="right-sidebar">
-        <!-- Upcoming Events -->
-        <div class="sidebar-widget">
-            <h3 class="sidebar-widget-title"><i class="fas fa-calendar-star" style="color: #c53030;"></i> Sắp diễn ra</h3>
-            <div class="right-event-card">
-                <div class="event-date-badge">
-                    <span class="event-date-day">15</span>
-                    <span class="event-date-month">Th4</span>
-                </div>
-                <div class="right-event-info">
-                    <div class="right-event-name">Workshop React & Next.js</div>
-                    <div class="right-event-meta">Phòng A101 • 08:30</div>
-                </div>
-            </div>
-            <div class="right-event-card">
-                <div class="event-date-badge">
-                    <span class="event-date-day">20</span>
-                    <span class="event-date-month">Th4</span>
-                </div>
-                <div class="right-event-info">
-                    <div class="right-event-name">Đêm nhạc Acoustic GACOUSTIC</div>
-                    <div class="right-event-meta">Sân trường • 19:00</div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Trending Widget -->
-        <div class="sidebar-widget">
-            <h3 class="sidebar-widget-title"><i class="fas fa-fire" style="color: #c53030;"></i> Xu hướng hôm nay</h3>
-            <div class="trending-item-modern">
-                <div class="trending-hashtag">#CongNgheAI</div>
-                <div class="trending-topic">Lộ trình học AI cho người mới</div>
-                <div class="trending-count">1.2K quan tâm</div>
-            </div>
-            <div class="trending-item-modern">
-                <div class="trending-hashtag">#MuaHeXanh</div>
-                <div class="trending-topic">Đăng ký tình nguyện hè 2026</div>
-                <div class="trending-count">890 bài viết</div>
-            </div>
-            <div class="trending-item-modern">
-                <div class="trending-hashtag">#WorkshopIT</div>
-                <div class="trending-topic">Kỹ năng mềm cho sinh viên IT</div>
-                <div class="trending-count">456 trả lời</div>
-            </div>
-        </div>
-
-        <!-- Suggested Clubs -->
-        <div class="sidebar-widget">
-            <h3 class="sidebar-widget-title"><i class="fas fa-users-medical" style="color: #c53030;"></i> Gợi ý tham gia</h3>
-            <div class="suggest-club-row">
-                <div class="club-avatar-small">RB</div>
-                <div class="suggest-club-info">
-                    <div class="club-name-small">CLB Robotics</div>
-                    <div class="club-status-small">125 thành viên</div>
-                </div>
-                <button class="join-btn-mini"><i class="fas fa-plus"></i></button>
-            </div>
-            <div class="suggest-club-row">
-                <div class="club-avatar-small">MT</div>
-                <div class="suggest-club-info">
-                    <div class="club-name-small">CLB Mỹ Thuật</div>
-                    <div class="club-status-small">210 thành viên</div>
-                </div>
-                <button class="join-btn-mini"><i class="fas fa-plus"></i></button>
-            </div>
-        </div>
-    </div>
-</div>
 
     <!-- Modals are moved to the bottom for better organization -->
 
-<link rel="stylesheet" href="CSS/TinTuc.css">
-<style>
-/* Reset & Refined Modal Styles */
-.modal-content.detail-modal, 
-.modal-content.compact-modal {
-    width: 500px;
-    padding: 0;
-    overflow: hidden;
-    border-radius: 20px;
-}
+    <link rel="stylesheet" href="CSS/TinTuc.css">
 
-.modal-header {
-    padding: 16px 24px;
-    margin-bottom: 0;
-    background: #fff;
-    border-bottom: 1px solid #f1f5f9;
-}
-
-.modal-header h3 {
-    font-size: 18px;
-    font-weight: 700;
-    color: #1e293b;
-}
-
-/* Event Detail Header & Body */
-.event-detail-body {
-    max-height: 70vh;
-    overflow-y: auto;
-    padding: 0;
-}
-
-.detail-image-container {
-    position: relative;
-    width: 100%;
-    height: 220px;
-}
-
-.detail-image-container img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-}
-
-.detail-status-pill {
-    position: absolute;
-    top: 16px;
-    right: 16px;
-    padding: 6px 14px;
-    border-radius: 30px;
-    font-size: 12px;
-    font-weight: 700;
-    color: white;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-}
-
-.detail-main-info {
-    padding: 24px 24px 16px;
-}
-
-.detail-club-tag {
-    font-size: 13px;
-    font-weight: 700;
-    color: #c53030;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    margin-bottom: 8px;
-}
-
-.detail-event-name {
-    font-size: 22px;
-    font-weight: 800;
-    line-height: 1.3;
-    color: #0f172a;
-    margin-bottom: 12px;
-}
-
-.detail-stats-row {
-    display: flex;
-    gap: 16px;
-    color: #64748b;
-    font-size: 14px;
-}
-
-.detail-info-cards {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 12px;
-    padding: 0 24px 20px;
-}
-
-.info-card {
-    background: #f8fafc;
-    padding: 12px 16px;
-    border-radius: 12px;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    border: 1px solid #f1f5f9;
-}
-
-.info-card i {
-    color: #c53030;
-    font-size: 16px;
-}
-
-.info-card-text label {
-    display: block;
-    font-size: 11px;
-    color: #94a3b8;
-    font-weight: 700;
-    text-transform: uppercase;
-    margin-bottom: 2px;
-}
-
-.info-card-text div {
-    font-size: 13px;
-    font-weight: 600;
-    color: #334155;
-}
-
-.detail-description {
-    padding: 0 24px 24px;
-}
-
-.detail-description h4 {
-    font-size: 15px;
-    font-weight: 700;
-    margin-bottom: 10px;
-    color: #1e293b;
-}
-
-.detail-description p {
-    font-size: 14px;
-    line-height: 1.6;
-    color: #475569;
-    background: #f1f5f9;
-    padding: 16px;
-    border-radius: 12px;
-}
-
-.modal-footer {
-    padding: 16px 24px;
-    background: #fff;
-    border-top: 1px solid #f1f5f9;
-    display: flex;
-    justify-content: flex-end;
-    gap: 12px;
-}
-
-/* Form Styles for Compact Modal */
-.form-body {
-    padding: 24px;
-    max-height: 70vh;
-    overflow-y: auto;
-}
-
-.form-group {
-    margin-bottom: 16px;
-}
-
-.form-group label {
-    display: block;
-    font-size: 14px;
-    font-weight: 600;
-    color: #475569;
-    margin-bottom: 6px;
-}
-
-.form-group input, 
-.form-group select, 
-.form-group textarea {
-    width: 100%;
-    padding: 10px 14px;
-    border: 1.5px solid #e2e8f0;
-    border-radius: 10px;
-    font-size: 14px;
-    transition: 0.2s;
-}
-
-.form-group input:focus { border-color: #c53030; outline: none; }
-
-.form-grid {
-    display: grid;
-    grid-template-columns: 1.5fr 1fr;
-    gap: 12px;
-}
-
-.custom-upload {
-    padding: 12px;
-    background: #f1f5f9;
-    border: 2px dashed #cbd5e1;
-    border-radius: 10px;
-    text-align: center;
-    cursor: pointer;
-    font-size: 14px;
-    color: #64748b;
-}
-
-/* New Compact Event Card (Trending style) */
-.event-card-compact {
-    display: flex;
-    justify-content: space-between;
-    gap: 16px;
-    background: white;
-    padding: 16px;
-    border-radius: 16px;
-    border-left: 4px solid #c53030;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-    cursor: pointer;
-    transition: all 0.2s;
-    margin-bottom: 16px;
-}
-
-.event-card-compact:hover {
-    transform: translateX(4px);
-    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-}
-
-.event-compact-content {
-    flex: 1;
-}
-
-.event-category {
-    font-size: 12px;
-    color: #c53030;
-    font-weight: 700;
-    margin-bottom: 4px;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
-
-.event-title {
-    font-size: 16px;
-    font-weight: 700;
-    color: #1e293b;
-    margin-bottom: 6px;
-    line-height: 1.4;
-}
-
-.event-meta {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 12px;
-    font-size: 12px;
-    color: #64748b;
-    margin-bottom: 8px;
-    align-items: center;
-}
-
-.event-meta span {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-}
-
-.event-status-mini {
-    padding: 2px 8px;
-    border-radius: 4px;
-    font-size: 10px;
-    font-weight: 700;
-    text-transform: uppercase;
-}
-
-.event-desc-short {
-    font-size: 13px;
-    color: #475569;
-    line-height: 1.5;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-}
-
-.event-compact-thumb {
-    width: 80px;
-    height: 80px;
-    flex-shrink: 0;
-    border-radius: 10px;
-    overflow: hidden;
-}
-
-.event-compact-thumb img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-}
-
-.badge-upcoming { background: #e0f2fe; color: #0369a1; }
-.badge-ongoing { background: #dcfce7; color: #15803d; }
-.badge-ended { background: #f1f5f9; color: #475569; }
-</style>
-
-<!-- Modal: Tạo bài viết -->
-<div class="modal" id="createPostModal">
-    <div class="modal-content">
-        <div class="modal-header">
-            <h3>Hành động: Tạo bài viết mới</h3>
-            <button class="close-btn" onclick="closeModal('createPostModal')">&times;</button>
-        </div>
-        <div class="form-body no-scrollbar">
-            <div class="modal-user-info">
-                <div class="modal-user-avatar" id="modalPostAvatar">NA</div>
-                <div class="modal-user-details">
-                    <div class="modal-user-name" id="modalPostName">Tên người dùng</div>
-                    <div class="post-privacy-select">
-                        <i class="fas fa-globe"></i> Công khai
-                    </div>
-                </div>
+    <!-- Modal: Tạo bài viết -->
+    <div class="modal" id="createPostModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Hành động: Tạo bài viết mới</h3>
+                <button class="close-btn" onclick="closeModal('createPostModal')">&times;</button>
             </div>
-            <textarea class="modal-post-input" id="postContent" placeholder="Bạn đang nghĩ gì?"></textarea>
-            <div class="media-upload-area" onclick="document.getElementById('postMedia').click()" id="uploadArea">
-                <i class="fas fa-cloud-upload-alt"></i>
-                <p>Thêm ảnh hoặc video</p>
-            </div>
-            <input type="file" id="postMedia" accept="image/*" style="display: none;" onchange="previewMedia(this)">
-            <div class="media-preview" id="mediaPreview" style="display: none;">
-                <img src="" id="previewImage" style="width: 100%; border-radius: 10px;">
-                <button class="remove-media" onclick="removeMedia()">&times;</button>
-            </div>
-        </div>
-        <div class="modal-footer">
-            <button class="btn-secondary" onclick="closeModal('createPostModal')">Hủy</button>
-            <button class="btn-primary" onclick="createPost()">Đăng bài ngay</button>
-        </div>
-    </div>
-</div>
-
-<!-- Modal: Tạo sự kiện -->
-<div class="modal" id="createEventModal">
-    <div class="modal-content compact-modal">
-        <div class="modal-header">
-            <h3><i class="fas fa-plus-circle" style="color: #c53030; margin-right: 8px;"></i> Tạo sự kiện</h3>
-            <button class="close-btn" onclick="closeModal('createEventModal')">&times;</button>
-        </div>
-        <form id="createEventForm" onsubmit="event.preventDefault(); createEventSubmit();">
             <div class="form-body no-scrollbar">
-                <div class="form-group">
-                    <label>Tên sự kiện</label>
-                    <input type="text" id="eventName" placeholder="VD: Workshop React" required>
-                </div>
-                <div class="form-group">
-                    <label>Câu lạc bộ tổ chức</label>
-                    <select id="eventClub" required>
-                        <option value="">Chọn CLB</option>
-                    </select>
-                </div>
-                <div class="form-grid">
-                    <div class="form-group">
-                        <label>Ngày bắt đầu</label>
-                        <input type="date" id="eventStartDate" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Giờ bắt đầu</label>
-                        <input type="time" id="eventStartTime" required>
+                <div class="modal-user-info">
+                    <div class="modal-user-avatar" id="modalPostAvatar">NA</div>
+                    <div class="modal-user-details">
+                        <div class="modal-user-name" id="modalPostName">Tên người dùng</div>
+                        <select id="postClub"
+                            style="border: none; background: #f1f5f9; font-size: 12px; padding: 4px 8px; border-radius: 4px; color: #4a5568; outline: none; margin-top: 4px; cursor: pointer;">
+                            <option value="">🌎 Công khai</option>
+                        </select>
                     </div>
                 </div>
-                <div class="form-grid">
-                    <div class="form-group">
-                        <label>Ngày kết thúc</label>
-                        <input type="date" id="eventEndDate" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Giờ kết thúc</label>
-                        <input type="time" id="eventEndTime" required>
-                    </div>
+                <textarea class="modal-post-input" id="postContent" placeholder="Bạn đang nghĩ gì?"></textarea>
+                <div class="media-upload-area" onclick="document.getElementById('postMedia').click()" id="uploadArea">
+                    <i class="fas fa-cloud-upload-alt"></i>
+                    <p>Thêm ảnh hoặc video</p>
                 </div>
-                <div class="form-group">
-                    <label>Địa điểm</label>
-                    <input type="text" id="eventLocation" placeholder="VD: Phòng A101" required>
-                </div>
-                <div class="form-group">
-                    <label>Mô tả chi tiết</label>
-                    <textarea id="eventDescription" placeholder="Nội dung chính..." rows="3" required></textarea>
-                </div>
-                <div class="form-group">
-                    <label>Ảnh bìa sự kiện</label>
-                    <div class="custom-upload" onclick="document.getElementById('eventImage').click()">
-                        <i class="fas fa-image"></i>
-                        <span id="eventImageName">Chọn ảnh tải lên</span>
-                    </div>
-                    <input type="file" id="eventImage" accept="image/*" style="display: none;" onchange="previewEventImage(this)">
+                <input type="file" id="postMedia" accept="image/*" style="display: none;" onchange="previewMedia(this)">
+                <div class="media-preview" id="mediaPreview" style="display: none;">
+                    <img src="" id="previewImage" style="width: 100%; border-radius: 10px;">
+                    <button class="remove-media" onclick="removeMedia()">&times;</button>
                 </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn-secondary" onclick="closeModal('createEventModal')">Hủy</button>
-                <button type="submit" class="btn-primary">Xác nhận tạo</button>
+                <button class="btn-secondary" onclick="closeModal('createPostModal')">Hủy</button>
+                <button class="btn-primary" onclick="createPost()">Đăng bài ngay</button>
             </div>
-        </form>
-    </div>
-</div>
-
-<!-- Modal: Chi tiết sự kiện -->
-<div class="modal" id="eventDetailModal">
-    <div class="modal-content detail-modal">
-        <div class="modal-header">
-            <h3 id="detailEventTitle">Chi tiết sự kiện</h3>
-            <button class="close-btn" onclick="closeModal('eventDetailModal')">&times;</button>
         </div>
-        <div class="event-detail-body no-scrollbar">
-            <div class="detail-image-container">
-                <img id="detailEventImage" src="" alt="Event banner">
-                <div id="detailEventStatus" class="detail-status-pill"></div>
-            </div>
-            
-            <div class="detail-main-info">
-                <div class="detail-club-tag" id="detailEventClub">CLB CÔNG ĐỒNG</div>
-                <h2 class="detail-event-name" id="detailEventName">Tên sự kiện</h2>
-                <div class="detail-stats-row">
-                    <span><i class="fas fa-users"></i> <strong id="detailRegistered">0</strong> người tham gia</span>
-                    <span><i class="far fa-heart"></i> <strong>24</strong> yêu thích</span>
-                </div>
-            </div>
+    </div>
 
-            <div class="detail-info-cards">
-                <div class="info-card">
-                    <i class="far fa-calendar-alt"></i>
-                    <div class="info-card-text">
-                        <label>Thời gian</label>
-                        <div id="detailDateTime">...</div>
+    <!-- Modal: Tạo sự kiện -->
+    <div class="modal" id="createEventModal">
+        <div class="modal-content compact-modal">
+            <div class="modal-header">
+                <h3><i class="fas fa-plus-circle" style="color: #c53030; margin-right: 8px;"></i> Tạo sự kiện</h3>
+                <button class="close-btn" onclick="closeModal('createEventModal')">&times;</button>
+            </div>
+            <form id="createEventForm" onsubmit="event.preventDefault(); createEventSubmit();">
+                <div class="form-body no-scrollbar">
+                    <div class="form-group">
+                        <label>Tên sự kiện</label>
+                        <input type="text" id="eventName" placeholder="VD: Workshop React" required>
                     </div>
-                </div>
-                <div class="info-card">
-                    <i class="fas fa-map-marker-alt"></i>
-                    <div class="info-card-text">
+                    <div class="form-group">
+                        <label>Câu lạc bộ tổ chức</label>
+                        <select id="eventClub" required>
+                            <option value="">Chọn CLB</option>
+                        </select>
+                    </div>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>Ngày bắt đầu</label>
+                            <input type="date" id="eventStartDate" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Giờ bắt đầu</label>
+                            <input type="time" id="eventStartTime" required>
+                        </div>
+                    </div>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>Ngày kết thúc</label>
+                            <input type="date" id="eventEndDate" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Giờ kết thúc</label>
+                            <input type="time" id="eventEndTime" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
                         <label>Địa điểm</label>
-                        <div id="detailLocation">...</div>
+                        <input type="text" id="eventLocation" placeholder="VD: Phòng A101" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Mô tả chi tiết</label>
+                        <textarea id="eventDescription" placeholder="Nội dung chính..." rows="3" required></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Ảnh bìa sự kiện</label>
+                        <div class="custom-upload" onclick="document.getElementById('eventImage').click()">
+                            <i class="fas fa-image"></i>
+                            <span id="eventImageName">Chọn ảnh tải lên</span>
+                        </div>
+                        <input type="file" id="eventImage" accept="image/*" style="display: none;"
+                            onchange="previewEventImage(this)">
                     </div>
                 </div>
-            </div>
-
-            <div class="detail-description">
-                <h4>Về sự kiện này</h4>
-                <p id="detailDescription">...</p>
-            </div>
-        </div>
-        <div class="modal-footer">
-            <button class="btn-secondary" onclick="closeModal('eventDetailModal')">Đóng</button>
-            <button class="btn-primary" id="detailRegisterBtn" onclick="toggleRegisterFromDetail()">Tham gia ngay</button>
+                <div class="modal-footer">
+                    <button type="button" class="btn-secondary" onclick="closeModal('createEventModal')">Hủy</button>
+                    <button type="submit" class="btn-primary">Xác nhận tạo</button>
+                </div>
+            </form>
         </div>
     </div>
-</div>
 
-<!-- Modal: Sửa bài viết -->
-<div class="modal" id="editPostModal">
-    <div class="modal-content">
-        <div class="modal-header">
-            <h3>Chỉnh sửa bài viết</h3>
-            <button class="close-btn" onclick="closeModal('editPostModal')">&times;</button>
-        </div>
-        <form id="editPostForm" onsubmit="submitEditPost(event)">
-            <input type="hidden" id="editPostId">
-            <div class="form-body no-scrollbar">
-                <div class="form-group">
-                    <label>Tiêu đề bài viết</label>
-                    <input type="text" id="editPostTitle" required>
+    <!-- Modal: Chi tiết sự kiện -->
+    <div class="modal" id="eventDetailModal">
+        <div class="modal-content detail-modal">
+            <div class="modal-header">
+                <h3 id="detailEventTitle">Chi tiết sự kiện</h3>
+                <button class="close-btn" onclick="closeModal('eventDetailModal')">&times;</button>
+            </div>
+            <div class="event-detail-body no-scrollbar">
+                <div class="detail-image-container">
+                    <img id="detailEventImage" src="" alt="Event banner">
+                    <div id="detailEventStatus" class="detail-status-pill"></div>
                 </div>
-                <div class="form-group">
-                    <label>Loại bài viết</label>
-                    <select id="editPostType">
-                        <option value="Cộng đồng">Cộng đồng</option>
-                        <option value="Thảo luận">Thảo luận</option>
-                        <option value="Thông báo">Thông báo</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>Nội dung</label>
-                    <textarea id="editPostContent" rows="5" required></textarea>
-                </div>
-                <div class="form-group">
-                    <label>Ảnh đính kèm mới (tùy chọn)</label>
-                    <div class="custom-upload" onclick="document.getElementById('editPostImage').click()">
-                        <i class="fas fa-cloud-upload-alt"></i>
-                        <span id="editPostImageName">Chọn ảnh khác...</span>
+
+                <div class="detail-main-info">
+                    <div class="detail-club-tag" id="detailEventClub">CLB CÔNG ĐỒNG</div>
+                    <h2 class="detail-event-name" id="detailEventName">Tên sự kiện</h2>
+                    <div class="detail-stats-row">
+                        <span><i class="fas fa-users"></i> <strong id="detailRegistered">0</strong> người tham
+                            gia</span>
+                        <span><i class="fas fa-heart"></i> <strong id="detailLikes">0</strong> yêu thích</span>
                     </div>
-                    <input type="file" id="editPostImage" accept="image/*" style="display: none;" onchange="document.getElementById('editPostImageName').textContent = this.files[0].name">
+                </div>
+
+                <div class="detail-info-cards">
+                    <div class="info-card">
+                        <i class="far fa-calendar-alt"></i>
+                        <div class="info-card-text">
+                            <label>Thời gian</label>
+                            <div id="detailDateTime">...</div>
+                        </div>
+                    </div>
+                    <div class="info-card">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <div class="info-card-text">
+                            <label>Địa điểm</label>
+                            <div id="detailLocation">...</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="detail-description">
+                    <h4>Về sự kiện này</h4>
+                    <p id="detailDescription">...</p>
                 </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn-secondary" onclick="closeModal('editPostModal')">Hủy</button>
-                <button type="submit" class="btn-primary">Cập nhật ngay</button>
+                <button class="btn-secondary" onclick="closeModal('eventDetailModal')">Đóng</button>
+                <button class="btn-primary" id="detailRegisterBtn" onclick="toggleRegisterFromDetail()">Tham gia
+                    ngay</button>
             </div>
-        </form>
+        </div>
     </div>
-</div>
-<script src="JS/TinTuc.js"></script>
 
-<%- include('partials/Footer') %>
+    <!-- Modal: Sửa bài viết -->
+    <div class="modal" id="editPostModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Chỉnh sửa bài viết</h3>
+                <button class="close-btn" onclick="closeModal('editPostModal')">&times;</button>
+            </div>
+            <form id="editPostForm" onsubmit="submitEditPost(event)">
+                <input type="hidden" id="editPostId">
+                <div class="form-body no-scrollbar">
+                    <div class="form-group">
+                        <label>Tiêu đề bài viết</label>
+                        <input type="text" id="editPostTitle" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Loại bài viết</label>
+                        <select id="editPostType">
+                            <option value="Cộng đồng">Cộng đồng</option>
+                            <option value="Thảo luận">Thảo luận</option>
+                            <option value="Thông báo">Thông báo</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Nội dung</label>
+                        <textarea id="editPostContent" rows="5" required></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Ảnh đính kèm mới (tùy chọn)</label>
+                        <div class="custom-upload" onclick="document.getElementById('editPostImage').click()">
+                            <i class="fas fa-cloud-upload-alt"></i>
+                            <span id="editPostImageName">Chọn ảnh khác...</span>
+                        </div>
+                        <input type="file" id="editPostImage" accept="image/*" style="display: none;"
+                            onchange="document.getElementById('editPostImageName').textContent = this.files[0].name">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn-secondary" onclick="closeModal('editPostModal')">Hủy</button>
+                    <button type="submit" class="btn-primary">Cập nhật ngay</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <script src="JS/TinTuc.js"></script>
+
+    <%- include('partials/Footer') %>

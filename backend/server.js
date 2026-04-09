@@ -111,14 +111,16 @@ async function checkSchema() {
         `);
         console.log("  + Checked event table for image column");
 
-        // 7. Kiểm tra và thêm cột joined_at cho bảng club_members
         await pool.request().query(`
             IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('club_members') AND name = 'joined_at')
             BEGIN
                 ALTER TABLE club_members ADD joined_at DATETIME DEFAULT GETDATE();
             END
+            
+            -- Cập nhật dữ liệu cho các bản ghi cũ bị NULL
+            UPDATE club_members SET joined_at = GETDATE() WHERE joined_at IS NULL;
         `);
-        console.log("  + Checked club_members table for joined_at column");
+        console.log("  + Checked and backfilled joined_at column for club_members");
 
         // 7.1. Kiểm tra và thêm cột status cho bảng clubs và events
         await pool.request().query(`
@@ -613,7 +615,7 @@ app.get("/api/clubs/:id/members", ensureDB, async (req, res) => {
         const result = await pool.request()
             .input("id", sql.Int, req.params.id)
             .query(`
-                SELECT cm.id as member_record_id, cm.role, cm.status, u.id as user_id, u.full_name as name, u.email, u.avatar
+                SELECT cm.id as member_record_id, cm.role, cm.status, u.id as user_id, u.full_name as name, u.email, u.avatar, cm.joined_at
                 FROM club_members cm
                 JOIN users u ON cm.user_id = u.id
                 WHERE cm.club_id = @id
@@ -974,6 +976,25 @@ app.put("/api/events/:id", ensureDB, async (req, res) => {
         console.error("Lỗi PUT Event:", err);
         res.status(500).json({ message: "Lỗi cập nhật sự kiện" }); 
     }
+});
+
+app.get("/api/events/:id", ensureDB, async (req, res) => {
+    try {
+        const result = await pool.request()
+            .input("id", sql.Int, req.params.id)
+            .query(`
+                SELECT e.*, c.club_name, u.full_name as creator_name
+                FROM events e
+                JOIN clubs c ON e.club_id = c.id
+                LEFT JOIN users u ON e.created_by = u.id
+                WHERE e.id = @id
+            `);
+        if (result.recordset.length > 0) {
+            res.json(result.recordset[0]);
+        } else {
+            res.status(404).json({ message: "Không tìm thấy sự kiện" });
+        }
+    } catch (err) { res.status(500).json({ message: "Lỗi lấy chi tiết sự kiện" }); }
 });
 
 // GET /api/events/:id/registrations
@@ -1385,11 +1406,55 @@ app.get("/api/admin/stats", ensureDB, async (req, res) => {
                 (SELECT COUNT(*) FROM users) as totalUsers,
                 (SELECT COUNT(*) FROM clubs WHERE status = 'active') as totalClubs,
                 (SELECT COUNT(*) FROM events WHERE status = 'active') as totalEvents,
-                0 as pendingRequests
+                (SELECT COUNT(*) FROM join_requests WHERE status = 'pending') as pendingRequests
         `);
         res.json(stats.recordset[0]);
     } catch (err) {
         res.status(500).json({ message: "Lỗi lấy thống kê Admin" });
+    }
+});
+
+// 1.1 API Báo cáo theo tháng (12 tháng gần nhất)
+app.get("/api/admin/reports/monthly", ensureDB, async (req, res) => {
+    try {
+        const result = await pool.request().query(`
+            WITH Months AS (
+                SELECT TOP 12 
+                    CAST(DATEADD(MONTH, - (ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) - 1), GETDATE()) AS DATE) as MonthDate
+                FROM sys.objects
+            )
+            SELECT 
+                FORMAT(MonthDate, 'MM/yyyy') as label,
+                (SELECT COUNT(*) FROM clubs WHERE FORMAT(created_at, 'MM/yyyy') = FORMAT(MonthDate, 'MM/yyyy')) as newClubs,
+                (SELECT COUNT(*) FROM events WHERE FORMAT(created_at, 'MM/yyyy') = FORMAT(MonthDate, 'MM/yyyy')) as newEvents
+            FROM Months
+            ORDER BY MonthDate ASC
+        `);
+        res.json(result.recordset);
+    } catch (err) {
+        res.status(500).json({ message: "Lỗi lấy báo cáo tháng" });
+    }
+});
+
+// 1.2 API Báo cáo theo năm (5 năm gần nhất)
+app.get("/api/admin/reports/yearly", ensureDB, async (req, res) => {
+    try {
+        const result = await pool.request().query(`
+            WITH Years AS (
+                SELECT TOP 5 
+                    YEAR(GETDATE()) - (ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) - 1) as YearNum
+                FROM sys.objects
+            )
+            SELECT 
+                CAST(YearNum AS VARCHAR) as label,
+                (SELECT COUNT(*) FROM clubs WHERE YEAR(created_at) = YearNum) as totalClubs,
+                (SELECT COUNT(*) FROM events WHERE YEAR(created_at) = YearNum) as totalEvents
+            FROM Years
+            ORDER BY YearNum ASC
+        `);
+        res.json(result.recordset);
+    } catch (err) {
+        res.status(500).json({ message: "Lỗi lấy báo cáo năm" });
     }
 });
 
@@ -1422,7 +1487,8 @@ app.get("/api/admin/clubs", ensureDB, async (req, res) => {
     try {
         const result = await pool.request().query(`
             SELECT c.*, u.full_name as creator_name, cat.category_name,
-                   (SELECT COUNT(*) FROM club_members cm WHERE cm.club_id = c.id) as member_count
+                   (SELECT COUNT(*) FROM club_members cm WHERE cm.club_id = c.id) as member_count,
+                   (SELECT COUNT(*) FROM events e WHERE e.club_id = c.id) as event_count
             FROM clubs c
             LEFT JOIN users u ON c.created_by = u.id
             LEFT JOIN categories cat ON c.category_id = cat.id
@@ -1439,7 +1505,8 @@ app.get("/api/admin/clubs", ensureDB, async (req, res) => {
 app.get("/api/admin/events", ensureDB, async (req, res) => {
     try {
         const result = await pool.request().query(`
-            SELECT e.*, c.club_name, u.full_name as creator_name
+            SELECT e.*, c.club_name, u.full_name as creator_name,
+                   (SELECT COUNT(*) FROM event_registrations er WHERE er.event_id = e.id) as registration_count
             FROM events e
             JOIN clubs c ON e.club_id = c.id
             LEFT JOIN users u ON e.created_by = u.id

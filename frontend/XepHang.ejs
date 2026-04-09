@@ -1,0 +1,291 @@
+<%- include('partials/Header') %>
+
+<div class="ranking-container">
+    <div class="ranking-header">
+        <h1><i class="fas fa-crown"></i> Bảng Vàng Vinh Danh</h1>
+        <p>Ghi nhận những đóng góp và hoạt động tích cực nhất trên hệ thống</p>
+    </div>
+
+    <!-- 4 Tabs/Categories -->
+    <div class="ranking-tabs">
+        <div class="rank-tab active" data-type="mostActiveClubs" onclick="switchRank(event, 'mostActiveClubs')">
+            <i class="fas fa-bolt"></i> CLB Năng động
+        </div>
+        <div class="rank-tab" data-type="topMembers" onclick="switchRank(event, 'topMembers')">
+            <i class="fas fa-user-graduate"></i> Thành viên ưu tú
+        </div>
+        <div class="rank-tab" data-type="biggestClubs" onclick="switchRank(event, 'biggestClubs')">
+            <i class="fas fa-users"></i> Quy mô CLB
+        </div>
+        <div class="rank-tab" data-type="popularEvents" onclick="switchRank(event, 'popularEvents')">
+            <i class="fas fa-heart"></i> Sự kiện Hot
+        </div>
+    </div>
+
+    <!-- Ranking Content Area -->
+    <div class="ranking-content">
+        <!-- Podium for Top 3 (Dynamic) -->
+        <div class="podium-section" id="podiumArea">
+            <!-- Top 3 cards sẽ được JS chèn vào đây -->
+        </div>
+
+        <!-- Scrollable List for the rest -->
+        <div class="ranking-list-section">
+            <div class="list-header">
+                <span class="rank-num">#</span>
+                <span class="rank-name">Đối tượng</span>
+                <span class="rank-score" id="scoreLabel">Điểm hoạt động</span>
+            </div>
+            <div id="rankingList" class="ranking-items-container">
+                <!-- Các hạng từ 4-10 sẽ vào đây -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    :root {
+        --gold: #FFD700;
+        --silver: #C0C0C0;
+        --bronze: #CD7F32;
+        --primary-gradient: linear-gradient(135deg, #c53030 0%, #991b1b 100%);
+    }
+
+    .ranking-container {
+        max-width: 1200px;
+        margin: 40px auto;
+        padding: 0 20px;
+        min-height: 100vh;
+    }
+
+    .ranking-header {
+        text-align: center;
+        margin-bottom: 40px;
+    }
+
+    .ranking-header h1 {
+        font-size: 42px;
+        background: linear-gradient(to right, #c53030, #2d3748);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        margin-bottom: 10px;
+        font-weight: 800;
+    }
+
+    .ranking-header p {
+        color: #718096;
+        font-size: 18px;
+    }
+
+    .ranking-tabs {
+        display: flex;
+        justify-content: center;
+        gap: 15px;
+        margin-bottom: 50px;
+        flex-wrap: wrap;
+    }
+
+    .rank-tab {
+        padding: 12px 24px;
+        background: white;
+        border-radius: 30px;
+        cursor: pointer;
+        font-weight: 700;
+        color: #4a5568;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        transition: all 0.3s;
+        border: 2px solid transparent;
+    }
+
+    .rank-tab i { margin-right: 8px; }
+
+    .rank-tab.active {
+        background: var(--primary-gradient);
+        color: white;
+        transform: translateY(-3px);
+        box-shadow: 0 10px 15px rgba(197, 48, 48, 0.2);
+    }
+
+    /* Podium Style */
+    .podium-section {
+        display: flex;
+        justify-content: center;
+        align-items: flex-end;
+        gap: 20px;
+        margin-bottom: 60px;
+        padding-top: 40px;
+        min-height: 380px;
+    }
+
+    .podium-card {
+        background: white;
+        border-radius: 20px;
+        padding: 25px;
+        text-align: center;
+        position: relative;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        width: 260px;
+        transition: transform 0.3s;
+    }
+
+    .podium-card:hover { transform: scale(1.05); z-index: 10; }
+
+    .podium-card.rank-1 { height: 350px; border-top: 8px solid var(--gold); order: 2; z-index: 5; }
+    .podium-card.rank-2 { height: 300px; border-top: 8px solid var(--silver); order: 1; }
+    .podium-card.rank-3 { height: 280px; border-top: 8px solid var(--bronze); order: 3; }
+
+    .rank-badge {
+        position: absolute;
+        top: -25px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 900;
+        font-size: 24px;
+        color: white;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+    }
+
+    .rank-1 .rank-badge { background: var(--gold); }
+    .rank-2 .rank-badge { background: var(--silver); }
+    .rank-3 .rank-badge { background: var(--bronze); }
+
+    .podium-avatar {
+        width: 110px;
+        height: 110px;
+        border-radius: 50%;
+        margin: 20px auto 15px;
+        object-fit: cover;
+        border: 4px solid #f7fafc;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+
+    .podium-name {
+        font-weight: 800;
+        font-size: 18px;
+        color: #2d3748;
+        margin-bottom: 8px;
+        display: -webkit-box;
+        -webkit-line-clamp: 1;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    .podium-score {
+        font-size: 28px;
+        font-weight: 900;
+        color: #c53030;
+    }
+
+    .podium-label {
+        font-size: 12px;
+        color: #a0aec0;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    /* List Style */
+    .ranking-list-section {
+        background: white;
+        border-radius: 20px;
+        overflow: hidden;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        margin-bottom: 100px;
+    }
+
+    .list-header {
+        display: grid;
+        grid-template-columns: 80px 1fr 200px;
+        padding: 15px 30px;
+        background: #f8fafc;
+        font-weight: 700;
+        color: #718096;
+        text-transform: uppercase;
+        font-size: 13px;
+        border-bottom: 1px solid #edf2f7;
+    }
+
+    .rank-item {
+        display: grid;
+        grid-template-columns: 80px 1fr 200px;
+        padding: 20px 30px;
+        align-items: center;
+        border-bottom: 1px solid #edf2f7;
+        transition: background 0.2s;
+    }
+
+    .rank-item:hover { background: #fef2f2; }
+
+    .item-rank-num {
+        font-weight: 800;
+        color: #a0aec0;
+        font-size: 18px;
+    }
+
+    .item-info {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+    }
+
+    .item-avatar {
+        width: 50px;
+        height: 50px;
+        border-radius: 12px;
+        object-fit: cover;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+
+    .item-name {
+        font-weight: 700;
+        color: #2d3748;
+    }
+
+    .item-score-val {
+        font-weight: 800;
+        color: #4a5568;
+        font-size: 20px;
+    }
+
+    @media (max-width: 960px) {
+        .podium-section {
+            flex-direction: column;
+            align-items: center;
+            min-height: auto;
+        }
+        .podium-card {
+            width: 100%;
+            height: auto !important;
+            order: unset !important;
+            display: flex;
+            align-items: center;
+            text-align: left;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+        .rank-badge {
+            left: -10px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+        .podium-avatar {
+            margin: 0 20px 0 10px;
+            width: 70px;
+            height: 70px;
+        }
+        .podium-score { font-size: 22px; }
+        .list-header, .rank-item {
+            grid-template-columns: 60px 1fr 100px;
+            padding: 15px;
+        }
+    }
+</style>
+
+<script src="/JS/xephang.js"></script>
+
+<%- include('partials/Footer') %>

@@ -1,5 +1,3 @@
-
-
 .logo-section {
     display: flex;
     align-items: center;
@@ -86,7 +84,7 @@
     background: white;
     border-radius: 24px;
     overflow: hidden;
-    box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.05);
 }
 
 /* Forum Header */
@@ -379,7 +377,7 @@
     background: white;
     border-radius: 24px;
     padding: 24px;
-    box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.05);
 }
 
 .user-stats {
@@ -409,7 +407,7 @@
     background: white;
     border-radius: 24px;
     padding: 20px;
-    box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.05);
 }
 
 .categories-card h3 {
@@ -464,7 +462,7 @@
     background: white;
     border-radius: 24px;
     padding: 20px;
-    box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.05);
 }
 
 .hot-topics h3 {
@@ -507,7 +505,7 @@
     background: white;
     border-radius: 24px;
     padding: 20px;
-    box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.05);
 }
 
 .stats-grid {
@@ -539,7 +537,7 @@
     left: 0;
     right: 0;
     bottom: 0;
-    background: rgba(0,0,0,0.5);
+    background: rgba(0, 0, 0, 0.5);
     align-items: center;
     justify-content: center;
     z-index: 1000;
@@ -558,13 +556,16 @@
     max-width: 90%;
     max-height: 90vh;
     overflow-y: auto;
-    -ms-overflow-style: none; /* IE and Edge */
-    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none;
+    /* IE and Edge */
+    scrollbar-width: none;
+    /* Firefox */
     animation: slideUp 0.3s ease;
 }
 
 .modal-content::-webkit-scrollbar {
-    display: none; /* Chrome, Safari and Opera */
+    display: none;
+    /* Chrome, Safari and Opera */
 }
 
 @keyframes slideUp {
@@ -572,6 +573,7 @@
         transform: translateY(50px);
         opacity: 0;
     }
+
     to {
         transform: translateY(0);
         opacity: 1;
@@ -782,6 +784,10 @@
     gap: 16px;
 }
 
+.avatar-placeholder {
+    border: 1px solid #fff;
+}
+
 /* Responsive */
 @media (max-width: 1024px) {
     .forum-container {
@@ -794,16 +800,20 @@
         flex-direction: column;
         gap: 16px;
     }
+
     .topic-item {
         flex-direction: column;
         align-items: flex-start;
     }
+
     .topic-stats {
         margin-left: 0;
     }
+
     .last-post {
         width: 100%;
     }
+
     .form-row {
         grid-template-columns: 1fr;
     }

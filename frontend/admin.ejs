@@ -41,6 +41,22 @@
             background: var(--bg-body);
             color: var(--text-main);
             overflow-x: hidden;
+            scrollbar-width: none !important; /* Firefox */
+            -ms-overflow-style: none !important; /* IE, Edge */
+        }
+
+        body::-webkit-scrollbar, 
+        .sidebar::-webkit-scrollbar, 
+        .modal-content::-webkit-scrollbar, 
+        div::-webkit-scrollbar {
+            display: none !important; /* Chrome, Safari, Opera */
+            width: 0 !important;
+            height: 0 !important;
+        }
+
+        * {
+            scrollbar-width: none !important;
+            -ms-overflow-style: none !important;
         }
 
         .admin-app {
@@ -1375,29 +1391,122 @@
         </div>
     </div>
 
+    <!-- Club Detail Modal -->
+    <div class="modal" id="clubDetailModal">
+        <div class="modal-content" style="max-width: 800px;">
+            <div class="modal-header">
+                <h2 id="detailClubName">Chi tiết Câu lạc bộ</h2>
+                <button class="close-btn" onclick="closeModal('clubDetailModal')"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="club-profile-header" style="display: flex; gap: 20px; align-items: center; padding: 20px; background: #f8fafc; border-radius: 12px; margin-bottom: 20px;">
+                <img id="detailClubLogo" src="/placeholder-club.png" style="width: 100px; height: 100px; border-radius: 12px; object-fit: cover; border: 3px solid white; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);">
+                <div>
+                    <h3 id="detailClubTitle" style="font-size: 24px; color: #1e293b; margin-bottom: 5px;">CLB Tên</h3>
+                    <p id="detailClubCategory" style="color: #64748b; font-weight: 500;"><i class="fas fa-tag"></i> <span>Chuyên mục</span></p>
+                    <p id="detailClubCreator" style="color: #64748b; font-size: 14px;"><i class="fas fa-user-edit"></i> Người tạo: <span>Tên người tạo</span></p>
+                </div>
+            </div>
+            <div class="grid" style="grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 25px;">
+                <div class="card" style="padding: 15px; text-align: center; background: #fff1f2; border: 1px solid #fecdd3;">
+                    <div style="font-size: 20px; font-weight: 700; color: #e11d48;" id="detailMemberCount">0</div>
+                    <div style="font-size: 12px; color: #9f1239;">Thành viên</div>
+                </div>
+                <div class="card" style="padding: 15px; text-align: center; background: #eff6ff; border: 1px solid #bfdbfe;">
+                    <div style="font-size: 20px; font-weight: 700; color: #2563eb;" id="detailEventCount">0</div>
+                    <div style="font-size: 12px; color: #1e40af;">Sự kiện</div>
+                </div>
+                <div class="card" style="padding: 15px; text-align: center; background: #f0fdf4; border: 1px solid #bbf7d0;">
+                    <div style="font-size: 20px; font-weight: 700; color: #16a34a;" id="detailPostCount">0</div>
+                    <div style="font-size: 12px; color: #166534;">Bài viết</div>
+                </div>
+            </div>
+            
+            <div style="margin-top: 20px;">
+                <h4 style="margin-bottom: 10px; border-bottom: 2px solid #ef4444; display: inline-block;">Danh sách thành viên</h4>
+                <div style="max-height: 250px; overflow-y: auto;">
+                    <table class="table" id="clubMembersTable">
+                        <thead>
+                            <tr>
+                                <th>Thành viên</th>
+                                <th>Vai trò</th>
+                                <th>Ngày tham gia</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Data populated by JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Event Detail Modal -->
+    <div class="modal" id="eventDetailModal">
+        <div class="modal-content" style="max-width: 800px;">
+            <div class="modal-header">
+                <h2 id="detailEventTitleHead">Chi tiết Sự kiện</h2>
+                <button class="close-btn" onclick="closeModal('eventDetailModal')"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="event-profile-header" style="padding: 20px; background: #f8fafc; border-radius: 12px; margin-bottom: 20px;">
+                <h3 id="detailEventName" style="font-size: 24px; color: #1e293b; margin-bottom: 10px;">Tên Sự kiện</h3>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: 14px; color: #64748b;">
+                    <p id="detailEventClub"><i class="fas fa-university"></i> Tổ chức: <span>Tên CLB</span></p>
+                    <p id="detailEventLocation"><i class="fas fa-map-marker-alt"></i> Địa điểm: <span>Địa điểm</span></p>
+                    <p id="detailEventTime"><i class="fas fa-clock"></i> Thời gian: <span>Thời gian</span></p>
+                    <p id="detailEventCreator"><i class="fas fa-user"></i> Người tạo: <span>Tên người tạo</span></p>
+                </div>
+                <div id="detailEventDesc" style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #e2e8f0; font-size: 14px; color: #475569; line-height: 1.6;">
+                    Mô tả sự kiện...
+                </div>
+            </div>
+            
+            <div style="margin-top: 20px;">
+                <h4 style="margin-bottom: 10px; border-bottom: 2px solid #2563eb; display: inline-block;">Danh sách đăng ký (<span id="detailRegCount">0</span>)</h4>
+                <div style="max-height: 300px; overflow-y: auto;">
+                    <table class="table" id="eventRegTable">
+                        <thead>
+                            <tr>
+                                <th>Người dùng</th>
+                                <th>Email</th>
+                                <th>Ngày đăng ký</th>
+                                <th>Trạng thái</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Data populated by JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
     <script>
         // Chart instances
         let monthlyChart, yearlyChart, monthlyDetailChart, yearlyDetailChart;
 
         // Initialize charts
-        function initCharts() {
-            // Monthly Chart
+        async function initCharts() {
+            // Fetch Monthly Data
+            const monthlyData = await fetchAPI('/api/admin/reports/monthly');
             const monthlyCtx = document.getElementById('monthlyChart')?.getContext('2d');
-            if (monthlyCtx) {
+            if (monthlyCtx && monthlyData) {
                 monthlyChart = new Chart(monthlyCtx, {
                     type: 'line',
                     data: {
-                        labels: ['Thg 10', 'Thg 11', 'Thg 12', 'Thg 1', 'Thg 2', 'Thg 3'],
+                        labels: monthlyData.map(d => d.label),
                         datasets: [
                             {
                                 label: 'CLB mới',
-                                data: [3, 5, 2, 8, 6, 8],
+                                data: monthlyData.map(d => d.newClubs),
                                 borderColor: '#c53030',
                                 tension: 0.4
                             },
                             {
                                 label: 'Sự kiện',
-                                data: [25, 30, 20, 45, 55, 60],
+                                data: monthlyData.map(d => d.newEvents),
                                 borderColor: '#2563eb',
                                 tension: 0.4
                             }
@@ -1410,22 +1519,23 @@
                 });
             }
 
-            // Yearly Chart
+            // Fetch Yearly Data
+            const yearlyData = await fetchAPI('/api/admin/reports/yearly');
             const yearlyCtx = document.getElementById('yearlyChart')?.getContext('2d');
-            if (yearlyCtx) {
+            if (yearlyCtx && yearlyData) {
                 yearlyChart = new Chart(yearlyCtx, {
                     type: 'bar',
                     data: {
-                        labels: ['2022', '2023', '2024', '2025', '2026'],
+                        labels: yearlyData.map(d => d.label),
                         datasets: [
                             {
                                 label: 'Số CLB',
-                                data: [25, 32, 38, 42, 48],
+                                data: yearlyData.map(d => d.totalClubs),
                                 backgroundColor: '#c53030'
                             },
                             {
                                 label: 'Số sự kiện',
-                                data: [80, 120, 145, 160, 180],
+                                data: yearlyData.map(d => d.totalEvents),
                                 backgroundColor: '#2563eb'
                             }
                         ]
@@ -1490,6 +1600,10 @@
                 document.getElementById('statTotalUsers').textContent = stats.totalUsers || 0;
                 document.getElementById('statTotalClubs').textContent = stats.totalClubs || 0;
                 document.getElementById('statTotalEvents').textContent = stats.totalEvents || 0;
+                
+                // Cập nhật thẻ yêu cầu đang chờ nếu có
+                const pendingCard = document.querySelector('.card:nth-child(4) .card-value');
+                if (pendingCard) pendingCard.textContent = stats.pendingRequests || 0;
             }
 
             // Load Top Clubs for Dashboard
@@ -1506,11 +1620,11 @@
                                 </div>
                             </td>
                             <td>${club.member_count}</td>
-                            <td>0</td> <!-- Backend needs event count per club -->
+                            <td>${club.event_count || 0}</td>
                             <td><span class="status-badge status-active">Hoạt động</span></td>
                             <td>
                                 <div class="action-buttons">
-                                    <button class="action-btn btn-view" onclick="viewClubDetail('${club.club_name}')"><i class="fas fa-eye"></i></button>
+                                    <button class="action-btn btn-view" onclick="viewClubDetail(${club.id})"><i class="fas fa-eye"></i></button>
                                 </div>
                             </td>
                         </tr>
@@ -1545,6 +1659,7 @@
                         <td>${user.email}</td>
                         <td><span class="status-badge status-active" style="${user.role === 'admin' ? 'background: #fee2e2; color: #ef4444;' : ''}">${user.role}</span></td>
                         <td>${new Date(user.created_at).toLocaleDateString('vi-VN')}</td>
+                        <td><span class="status-badge status-active">Hoạt động</span></td>
                         <td>
                             <div class="action-buttons">
                                 <button class="action-btn btn-view" onclick="viewUserDetail('${user.full_name}')"><i class="fas fa-eye"></i></button>
@@ -1577,11 +1692,13 @@
                         <td>${club.category_name || 'Khác'}</td>
                         <td>${club.creator_name || 'Ẩn danh'}</td>
                         <td>${club.member_count}</td>
+                        <td>${club.event_count || 0}</td>
+                        <td><span class="status-badge status-active">Hoạt động</span></td>
                         <td>
                             <div class="action-buttons">
-                                <button class="action-btn btn-view" onclick="viewClubDetail('${club.club_name}')"><i class="fas fa-eye"></i></button>
-                                <button class="action-btn btn-edit" onclick="editClub('${club.club_name}')"><i class="fas fa-edit"></i></button>
-                                <button class="action-btn btn-delete" onclick="deleteClub('${club.club_name}')"><i class="fas fa-trash"></i></button>
+                                <button class="action-btn btn-view" onclick="viewClubDetail(${club.id})"><i class="fas fa-eye"></i></button>
+                                <button class="action-btn btn-edit" onclick="editClub(${club.id}, '${club.club_name.replace(/'/g, "\\'")}')"><i class="fas fa-edit"></i></button>
+                                <button class="action-btn btn-delete" onclick="deleteClub(${club.id}, '${club.club_name.replace(/'/g, "\\'")}')"><i class="fas fa-trash"></i></button>
                             </div>
                         </td>
                     </tr>
@@ -1599,22 +1716,39 @@
                     tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 20px; color: #64748b;">Không có sự kiện</td></tr>';
                     return;
                 }
-                tbody.innerHTML = events.map(event => `
-                    <tr>
-                        <td>${event.event_name}</td>
-                        <td>${event.club_name}</td>
-                        <td>${new Date(event.start_time).toLocaleDateString('vi-VN')}</td>
-                        <td>${event.location}</td>
-                        <td>0</td>
-                        <td><span class="status-badge status-active">Đang diễn ra</span></td>
-                        <td>
-                            <div class="action-buttons">
-                                <button class="action-btn btn-view"><i class="fas fa-eye"></i></button>
-                                <button class="action-btn btn-delete" onclick="deleteEvent(${event.id})"><i class="fas fa-trash"></i></button>
-                            </div>
-                        </td>
-                    </tr>
-                `).join('');
+                tbody.innerHTML = events.map(event => {
+                    const now = new Date();
+                    const start = new Date(event.start_time);
+                    const end = event.end_time ? new Date(event.end_time) : new Date(start.getTime() + 3600000);
+                    
+                    let statusClass = 'status-inactive';
+                    let statusText = 'Đã kết thúc';
+                    
+                    if (now < start) {
+                        statusClass = 'status-pending';
+                        statusText = 'Sắp diễn ra';
+                    } else if (now >= start && now <= end) {
+                        statusClass = 'status-active';
+                        statusText = 'Đang diễn ra';
+                    }
+
+                    return `
+                        <tr>
+                            <td>${event.event_name}</td>
+                            <td>${event.club_name}</td>
+                            <td>${start.toLocaleDateString('vi-VN')}</td>
+                            <td>${event.location || 'Trực tuyến'}</td>
+                            <td style="text-align: center; font-weight: 700; color: #c53030;">${event.registration_count || 0}</td>
+                            <td><span class="status-badge ${statusClass}">${statusText}</span></td>
+                            <td>
+                                <div class="action-buttons">
+                                    <button class="action-btn btn-view" onclick="viewEventDetail(${event.id})"><i class="fas fa-eye"></i></button>
+                                    <button class="action-btn btn-delete" onclick="deleteEvent(${event.id})"><i class="fas fa-trash"></i></button>
+                                </div>
+                            </td>
+                        </tr>
+                    `;
+                }).join('');
             }
         }
 
@@ -1682,8 +1816,51 @@
             document.getElementById('userDetailModal').classList.add('active');
         }
 
-        function viewClubDetail(name) {
-            alert('Xem chi tiết CLB: ' + name);
+        async function viewClubDetail(clubId) {
+            const club = await fetchAPI(`/api/clubs/${clubId}`);
+            if (!club) return alert('Không tìm thấy thông tin CLB');
+
+            const members = await fetchAPI(`/api/clubs/${clubId}/members`);
+            const stats = await fetchAPI(`/api/clubs/${clubId}/rankings`);
+
+            document.getElementById('detailClubTitle').textContent = club.club_name;
+            document.getElementById('detailClubCategory').querySelector('span').textContent = club.category_name || 'Khác';
+            document.getElementById('detailClubCreator').querySelector('span').textContent = club.creator_name || 'Hệ thống';
+            document.getElementById('detailClubLogo').src = club.logo_url || '/placeholder-club.png';
+            
+            // Populate Stats
+            if (stats && stats.overview) {
+                document.getElementById('detailMemberCount').textContent = stats.overview.totalMembers || 0;
+                document.getElementById('detailEventCount').textContent = stats.overview.totalEvents || 0;
+                document.getElementById('detailPostCount').textContent = stats.overview.totalPosts || 0;
+            } else {
+                document.getElementById('detailMemberCount').textContent = club.member_count || 0;
+                document.getElementById('detailEventCount').textContent = 0;
+                document.getElementById('detailPostCount').textContent = 0;
+            }
+
+            // Populate Members Table
+            const tbody = document.getElementById('clubMembersTable').querySelector('tbody');
+            if (members && members.length > 0) {
+                tbody.innerHTML = members.map(m => `
+                    <tr>
+                        <td>
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <div style="width: 24px; height: 24px; border-radius: 50%; background: #e2e8f0; display: flex; align-items: center; justify-content: center; overflow: hidden; font-size: 10px;">
+                                    ${m.avatar ? `<img src="${m.avatar}" style="width: 100%; height: 100%; object-fit: cover;">` : (m.name ? m.name[0] : 'U')}
+                                </div>
+                                <span style="font-size: 13px;">${m.name}</span>
+                            </div>
+                        </td>
+                        <td><span class="status-badge ${m.role === 'leader' ? 'status-active' : 'status-pending'}" style="font-size: 10px; padding: 2px 6px;">${m.role}</span></td>
+                        <td style="font-size: 12px; color: #64748b;">${m.joined_at ? new Date(m.joined_at).toLocaleDateString('vi-VN') : 'Mới tham gia'}</td>
+                    </tr>
+                `).join('');
+            } else {
+                tbody.innerHTML = '<tr><td colspan="3" style="text-align: center; color: #94a3b8;">Chưa có thành viên</td></tr>';
+            }
+
+            document.getElementById('clubDetailModal').classList.add('active');
         }
 
         function editUser(name) {
@@ -1700,10 +1877,44 @@
             }
         }
 
-        function deleteClub(name) {
-            if (confirm('Bạn có chắc muốn xóa CLB ' + name + '?')) {
-                alert('Đã xóa CLB');
+        async function viewEventDetail(eventId) {
+            const event = await fetchAPI(`/api/events/${eventId}`);
+            if (!event) return alert('Không tìm thấy thông tin sự kiện');
+
+            const regs = await fetchAPI(`/api/events/${eventId}/registrations`);
+
+            document.getElementById('detailEventName').textContent = event.event_name;
+            document.getElementById('detailEventClub').querySelector('span').textContent = event.club_name;
+            document.getElementById('detailEventLocation').querySelector('span').textContent = event.location || 'Trực tuyến';
+            document.getElementById('detailEventTime').querySelector('span').textContent = `${new Date(event.start_time).toLocaleString('vi-VN')}`;
+            document.getElementById('detailEventCreator').querySelector('span').textContent = event.creator_name || 'Hệ thống';
+            document.getElementById('detailEventDesc').textContent = event.description || 'Không có mô tả';
+            
+            document.getElementById('detailRegCount').textContent = regs ? regs.length : 0;
+
+            // Populate Reg Table
+            const tbody = document.getElementById('eventRegTable').querySelector('tbody');
+            if (regs && regs.length > 0) {
+                tbody.innerHTML = regs.map(r => `
+                    <tr>
+                        <td>
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <div style="width: 24px; height: 24px; border-radius: 50%; background: #e2e8f0; display: flex; align-items: center; justify-content: center; font-size: 10px;">
+                                    ${r.full_name ? r.full_name[0] : 'U'}
+                                </div>
+                                <span style="font-size: 13px;">${r.full_name}</span>
+                            </div>
+                        </td>
+                        <td style="font-size: 12px;">${r.email}</td>
+                        <td style="font-size: 12px; color: #64748b;">${new Date(r.registered_at).toLocaleDateString('vi-VN')}</td>
+                        <td><span class="status-badge status-active" style="font-size: 10px; padding: 2px 6px;">Đã duyệt</span></td>
+                    </tr>
+                `).join('');
+            } else {
+                tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; color: #94a3b8;">Chưa có người đăng ký</td></tr>';
             }
+
+            document.getElementById('eventDetailModal').classList.add('active');
         }
 
         function approveItem(name) {
