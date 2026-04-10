@@ -145,6 +145,9 @@ BEGIN
         end_time DATETIME,
         club_id INT NOT NULL FOREIGN KEY REFERENCES clubs(id) ON DELETE CASCADE,
         created_by INT FOREIGN KEY REFERENCES users(id),
+        likes INT DEFAULT 0,
+        views INT DEFAULT 0,
+        comments INT DEFAULT 0,
         image NVARCHAR(MAX),
         status NVARCHAR(50) DEFAULT 'active',
         created_at DATETIME DEFAULT GETDATE()
@@ -160,6 +163,30 @@ BEGIN
         user_id INT NOT NULL FOREIGN KEY REFERENCES users(id) ON DELETE CASCADE,
         status NVARCHAR(50) DEFAULT 'registered', -- pending, approved, rejected
         registered_at DATETIME DEFAULT GETDATE()
+    );
+END
+
+-- 12.1 Tạo bảng Event_Likes (Lượt thích sự kiện)
+IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'event_likes')
+BEGIN
+    CREATE TABLE event_likes (
+        id INT IDENTITY(1,1) PRIMARY KEY,
+        event_id INT NOT NULL FOREIGN KEY REFERENCES events(id) ON DELETE CASCADE,
+        user_id INT NOT NULL FOREIGN KEY REFERENCES users(id),
+        created_at DATETIME DEFAULT GETDATE(),
+        CONSTRAINT uq_event_like UNIQUE (event_id, user_id)
+    );
+END
+
+-- 12.2 Tạo bảng Event_Comments (Bình luận sự kiện)
+IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'event_comments')
+BEGIN
+    CREATE TABLE event_comments (
+        id INT IDENTITY(1,1) PRIMARY KEY,
+        event_id INT NOT NULL FOREIGN KEY REFERENCES events(id) ON DELETE CASCADE,
+        user_id INT NOT NULL FOREIGN KEY REFERENCES users(id),
+        content NVARCHAR(MAX) NOT NULL,
+        created_at DATETIME DEFAULT GETDATE()
     );
 END
 

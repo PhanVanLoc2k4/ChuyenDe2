@@ -18,7 +18,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         document.getElementById('clubHero').style.display = 'none';
         document.getElementById('clubDashboardContent').style.display = 'none';
         document.getElementById('noClubSelectedView').style.display = 'block';
-        
+
         // Ẩn các tab quản trị khác nếu chưa chọn CLB
         document.querySelectorAll('.nav-item').forEach(item => {
             if (item.dataset.tab !== 'feed') item.style.display = 'none';
@@ -36,14 +36,14 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Chế độ: Đã chọn CLB cụ thể
     // Ẩn view chọn CLB
     document.getElementById('noClubSelectedView').style.display = 'none';
-    
+
     // Tải thông tin CLB trước khi hiện UI
     const loaded = await loadClubInfo();
-    
+
     if (loaded) {
         document.getElementById('clubHero').style.display = 'flex';
         document.getElementById('clubDashboardContent').style.display = 'block';
-        switchTab('feed'); 
+        switchTab('feed');
         setupFormListeners();
     } else {
         // Nếu load thất bại (ID sai), quay lại trang CLB
@@ -90,14 +90,14 @@ async function loadClubInfo() {
     try {
         const response = await fetch(`/api/clubs/${clubId}`);
         if (!response.ok) return false;
-        
+
         clubData = await response.json();
-        
+
         document.getElementById('clubNameDisplay').textContent = clubData.club_name;
         document.getElementById('clubDescDisplay').textContent = clubData.description;
         document.getElementById('clubCategory').innerHTML = `<i class="fas fa-tag"></i> ${clubData.category_name}`;
         document.getElementById('clubLeaderName').innerHTML = `<i class="fas fa-crown"></i> Trưởng CLB: ${clubData.creator_name}`;
-        
+
         if (clubData.logo_url) {
             document.getElementById('clubLogoLarge').innerHTML = `<img src="${clubData.logo_url}" alt="logo">`;
         } else {
@@ -128,7 +128,7 @@ async function loadClubInfo() {
             const members = await membersResp.json();
             document.getElementById('clubMemberCount').innerHTML = `<i class="fas fa-user-friends"></i> ${members.length} thành viên`;
         }
-        
+
         return true;
     } catch (err) {
         console.error("Lỗi load CLB:", err);
@@ -168,14 +168,14 @@ function loadSettingsData() {
 // 2.6 Tải dữ liệu Thống kê & Xếp hạng
 async function loadClubStatistics(period = currentStatsPeriod) {
     if (!clubId) return;
-    
+
     try {
         const response = await fetch(`/api/clubs/${clubId}/rankings?period=${period}`);
         if (!response.ok) return;
-        
+
         const data = await response.json();
         console.log("Stats data received:", data);
-        
+
         if (!data || !data.overview) {
             console.warn("Overview data is missing!");
             return;
@@ -185,7 +185,7 @@ async function loadClubStatistics(period = currentStatsPeriod) {
         document.getElementById('statTotalEvents').textContent = data.overview.totalEvents ?? 0;
         document.getElementById('statTotalPosts').textContent = data.overview.totalPosts ?? 0;
         document.getElementById('statTotalMembers').textContent = data.overview.totalMembers ?? 0;
-        
+
         // Hiển thị số thành viên mới
         const newMembersBadge = document.getElementById('newMembersBadge');
         if (data.overview.newMembers > 0 && currentStatsPeriod !== 'all') {
@@ -195,13 +195,13 @@ async function loadClubStatistics(period = currentStatsPeriod) {
         } else {
             newMembersBadge.style.display = 'none';
         }
-        
+
         // Render Bảng xếp hạng Sự kiện
         renderRankingList('eventRankingsList', data.eventRankings || [], 'sự kiện');
-        
+
         // Render Bảng xếp hạng Bài đăng
         renderRankingList('postRankingsList', data.postRankings || [], 'bài viết');
-        
+
     } catch (err) {
         console.error("Lỗi load stats:", err);
     }
@@ -209,7 +209,7 @@ async function loadClubStatistics(period = currentStatsPeriod) {
 
 function changeStatsPeriod(period) {
     currentStatsPeriod = period;
-    
+
     // UI update for all buttons
     ['btnMonth', 'btnYear', 'btnAll'].forEach(id => {
         const btn = document.getElementById(id);
@@ -219,7 +219,7 @@ function changeStatsPeriod(period) {
             btn.style.color = '#64748b';
         }
     });
-    
+
     let activeBtnId = 'btnMonth';
     if (period === 'year') activeBtnId = 'btnYear';
     else if (period === 'all') activeBtnId = 'btnAll';
@@ -230,25 +230,25 @@ function changeStatsPeriod(period) {
         activeBtn.style.background = 'white';
         activeBtn.style.color = '#2563eb';
     }
-    
+
     loadClubStatistics(period);
 }
 
 function renderRankingList(containerId, list, unit) {
     const container = document.getElementById(containerId);
     if (!container) return;
-    
+
     if (!list || list.length === 0) {
         container.innerHTML = `<div style="text-align:center; color:#94a3b8; padding:20px; font-size:14px;">Chưa có dữ liệu xếp hạng.</div>`;
         return;
     }
-    
+
     container.innerHTML = list.map((item, index) => {
         const medalColor = index === 0 ? '#fbbf24' : (index === 1 ? '#94a3b8' : (index === 2 ? '#b45309' : '#e2e8f0'));
         const medalIcon = index < 3 ? `<i class="fas fa-crown" style="color: ${medalColor}; font-size: 14px;"></i>` : `<span style="color: #64748b; font-weight:700;">${index + 1}</span>`;
-        
-        const avatar = item.avatar ? `<img src="${item.avatar}" style="width: 36px; height: 36px; border-radius: 50%; object-fit: cover; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">` : 
-                                     `<div style="width: 36px; height: 36px; border-radius: 50%; background: #f1f5f9; display: flex; align-items: center; justify-content: center; font-weight: bold; color: #475569; font-size: 13px;">${item.full_name.charAt(0)}</div>`;
+
+        const avatar = item.avatar ? `<img src="${item.avatar}" style="width: 36px; height: 36px; border-radius: 50%; object-fit: cover; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">` :
+            `<div style="width: 36px; height: 36px; border-radius: 50%; background: #f1f5f9; display: flex; align-items: center; justify-content: center; font-weight: bold; color: #475569; font-size: 13px;">${item.full_name.charAt(0)}</div>`;
 
         return `
             <div style="display: flex; align-items: center; justify-content: space-between; background: white; padding: 12px 16px; border-radius: 12px; border: 1px solid #f1f5f9; transition: 0.2s;">
@@ -282,7 +282,7 @@ function handleSearch(event) {
 async function loadPosts() {
     const list = document.getElementById('postsList');
     list.innerHTML = '<div class="loading-placeholder">Đang tải bài viết...</div>';
-    
+
     try {
         let url = `/api/posts?club_id=${clubId}`;
         if (currentSearchQuery) {
@@ -291,11 +291,11 @@ async function loadPosts() {
         if (currentUser) {
             url += `&user_id=${currentUser.user_id || currentUser.id}`;
         }
-        
+
         const response = await fetch(url);
         const posts = await response.json();
         window.currentPostsData = posts; // Cache for edit
-        
+
         if (posts.length === 0) {
             list.innerHTML = '<p style="text-align:center; padding: 40px; color: #64748b;">Chưa có bài viết nào trong CLB này, hoặc không có kết quả phù hợp.</p>';
             return;
@@ -305,7 +305,7 @@ async function loadPosts() {
             const isLiked = post.user_liked === 1;
             const heartClass = isLiked ? 'fas fa-heart' : 'far fa-heart';
             const heartColor = isLiked ? 'color: #ef4444;' : '';
-            
+
             const isLeader = currentUser && clubData && Number(currentUser.id) === Number(clubData.created_by);
             const isAuthor = currentUser && post.author_name === currentUser.full_name;
             const canManage = isLeader || isAuthor;
@@ -324,13 +324,12 @@ async function loadPosts() {
 
             return `
             <div class="premium-post-card" id="post-${post.id}">
-                ${manageHtml}
                 <div class="post-header">
                     <div class="user-info-side">
                         <div class="user-avatar-wrapper">
-                            ${post.author_avatar ? 
-                                `<img src="${post.author_avatar}" class="avatar-img">` : 
-                                `<div class="avatar-placeholder">${(post.author_name || 'U').charAt(0)}</div>`}
+                            ${post.author_avatar ?
+                    `<img src="${post.author_avatar}" class="avatar-img">` :
+                    `<div class="avatar-placeholder">${(post.author_name || 'U').charAt(0)}</div>`}
                         </div>
                         <div class="user-meta">
                             <span class="user-name">${post.author_name || 'Thành viên'}</span>
@@ -409,60 +408,118 @@ async function loadComments(postId) {
     const list = document.getElementById(`comments-list-${postId}`);
     try {
         const response = await fetch(`/api/posts/${postId}/comments`);
-        const comments = await response.json();
-        
-        if (comments.length === 0) {
+        const allComments = await response.json();
+
+        if (allComments.length === 0) {
             list.innerHTML = '<div style="font-size:13px; color:#94a3b8; text-align:center; padding: 10px;">Chưa có bình luận nào. Hãy là người đầu tiên!</div>';
             return;
         }
 
-        list.innerHTML = comments.map(c => `
-            <div style="display: flex; gap: 10px; margin-bottom: 12px;">
-                <div class="user-avatar" style="width: 30px; height: 30px; flex-shrink: 0; background: #cbd5e1; color: white; display: flex; justify-content: center; align-items: center; border-radius: 50%; font-size: 12px; font-weight: 600;">
-                    ${c.author_avatar ? `<img src="${c.author_avatar}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">` : (c.author_name || 'U').charAt(0)}
-                </div>
-                <div style="background: #f8fafc; padding: 10px 14px; border-radius: 16px; border-top-left-radius: 4px; flex: 1;">
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
-                        <span style="font-weight: 600; font-size: 13px; color: #1e293b;">${c.author_name}</span>
-                        <span style="font-size: 11px; color: #94a3b8;">${new Date(c.created_at).toLocaleDateString('vi-VN')}</span>
+        // Group comments into parents and children
+        const parents = allComments.filter(c => !c.parent_id);
+        const children = allComments.filter(c => c.parent_id);
+
+        list.innerHTML = parents.map(p => {
+            const replies = children.filter(c => c.parent_id === p.id);
+            const repliesHtml = replies.map(r => `
+                <div style="display: flex; gap: 10px; margin-top: 10px; margin-left: 42px;">
+                    <div class="comment-user-avatar" style="width: 28px; height: 28px; flex-shrink: 0; border-radius: 50%; overflow: hidden; background: #e2e8f0; display: flex; align-items: center; justify-content: center; font-size: 11px;">
+                        ${r.author_avatar ? `<img src="${r.author_avatar}" style="width:100%;height:100%;object-fit:cover;">` : (r.author_name || 'U').charAt(0)}
                     </div>
-                    <div style="font-size: 14px; color: #334155; line-height: 1.4;">${c.content}</div>
+                    <div style="background: #f1f5f9; padding: 8px 12px; border-radius: 12px; border-top-left-radius: 4px; flex: 1;">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 2px;">
+                            <span style="font-weight: 600; font-size: 12px; color: #1e293b;">${r.author_name}</span>
+                            <span style="font-size: 10px; color: #94a3b8;">${new Date(r.created_at).toLocaleDateString('vi-VN')}</span>
+                        </div>
+                        <div style="font-size: 13px; color: #334155; line-height: 1.4;">${r.content}</div>
+                    </div>
+                </div>
+            `).join('');
+
+            return `
+            <div style="margin-bottom: 16px;">
+                <div style="display: flex; gap: 10px;">
+                    <div class="comment-user-avatar" style="width: 32px; height: 32px; flex-shrink: 0; border-radius: 50%; overflow: hidden; background: #f1f5f9; display: flex; align-items: center; justify-content: center;">
+                        ${p.author_avatar ? `<img src="${p.author_avatar}" style="width:100%;height:100%;object-fit:cover;">` : (p.author_name || 'U').charAt(0)}
+                    </div>
+                    <div style="flex: 1;">
+                        <div style="background: #f8fafc; padding: 10px 14px; border-radius: 16px; border-top-left-radius: 4px;">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                                <span style="font-weight: 600; font-size: 13px; color: #1e293b;">${p.author_name}</span>
+                                <span style="font-size: 11px; color: #94a3b8;">${new Date(p.created_at).toLocaleDateString('vi-VN')}</span>
+                            </div>
+                            <div style="font-size: 14px; color: #334155; line-height: 1.4;">${p.content}</div>
+                        </div>
+                        <div style="display: flex; gap: 15px; margin-top: 4px; margin-left: 10px;">
+                             <button onclick="toggleReplyInput(${p.id}, ${postId}, 'post')" style="background:none; border:none; color:#64748b; font-size:12px; font-weight:600; cursor:pointer; padding:0; transition:0.2s;" onmouseover="this.style.color='#2563eb'" onmouseout="this.style.color='#64748b'">Trả lời</button>
+                        </div>
+                        <div id="reply-input-container-post-${p.id}" style="display: none; margin-top: 10px; margin-left: 10px;">
+                            <div style="display: flex; gap: 8px; align-items: center;">
+                                <input type="text" id="reply-input-post-${p.id}" placeholder="Viết phản hồi..." 
+                                       style="flex:1; padding: 8px 12px; border-radius: 20px; border: 1px solid #e2e8f0; font-size: 13px; outline: none;"
+                                       onkeyup="if(event.key === 'Enter') submitComment(${postId}, ${p.id})">
+                                <button onclick="submitComment(${postId}, ${p.id})" style="background:#2563eb; color:white; border:none; width:30px; height:30px; border-radius:50%; cursor:pointer; display:flex; align-items:center; justify-content:center;">
+                                    <i class="fas fa-paper-plane" style="font-size: 12px;"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="replies-list" id="replies-list-${p.id}">
+                            ${repliesHtml}
+                        </div>
+                    </div>
                 </div>
             </div>
-        `).join('');
+            `;
+        }).join('');
     } catch (err) {
+        console.error(err);
         list.innerHTML = '<div style="font-size:13px; color:#c53030; text-align:center;">Lỗi tải bình luận.</div>';
     }
 }
 
-async function submitComment(postId) {
+function toggleReplyInput(commentId, postId, type) {
+    const container = document.getElementById(`reply-input-container-${type}-${commentId}`);
+    if (container.style.display === 'none') {
+        container.style.display = 'block';
+        document.getElementById(`reply-input-${type}-${commentId}`).focus();
+    } else {
+        container.style.display = 'none';
+    }
+}
+
+async function submitComment(postId, parentId = null) {
     if (!currentUser) {
         alert("Vui lòng đăng nhập để bình luận.");
         return;
     }
-    
-    const input = document.getElementById(`comment-input-${postId}`);
+
+    const inputId = parentId ? `reply-input-post-${parentId}` : `comment-input-${postId}`;
+    const input = document.getElementById(inputId);
     const content = input.value.trim();
     if (!content) return;
-    
+
     try {
         const response = await fetch(`/api/posts/${postId}/comments`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 user_id: currentUser.id || currentUser.user_id,
-                content: content
+                content: content,
+                parent_id: parentId
             })
         });
-        
+
         if (response.ok) {
             input.value = '';
+            if (parentId) {
+                document.getElementById(`reply-input-container-post-${parentId}`).style.display = 'none';
+            }
             loadComments(postId); // Refresh comments list
-            
-            // Optimsic update for comment count
+
+            // Update comment count
             const countSpan = document.getElementById(`comment-count-${postId}`);
-            if(countSpan) countSpan.textContent = parseInt(countSpan.textContent) + 1;
-            
+            if (countSpan) countSpan.textContent = parseInt(countSpan.textContent) + 1;
+
         } else {
             alert('Lỗi đăng bình luận');
         }
@@ -477,18 +534,18 @@ async function likePost(postId) {
         return;
     }
     try {
-        const response = await fetch(`/api/posts/like/${postId}`, { 
+        const response = await fetch(`/api/posts/like/${postId}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ user_id: currentUser.id || currentUser.user_id })
         });
         const result = await response.json();
-        
+
         if (result.success) {
             const heartIcon = document.getElementById(`heart-icon-${postId}`);
             const countSpan = document.getElementById(`like-count-${postId}`);
             let currentLikes = parseInt(countSpan.textContent);
-            
+
             if (result.liked) {
                 heartIcon.classList.remove('far');
                 heartIcon.classList.add('fas');
@@ -516,7 +573,7 @@ async function loadEvents() {
     try {
         let fetchUrl = `/api/events?club_id=${clubId}`;
         if (currentUser) {
-            fetchUrl += `&user_id=${currentUser.id}`;
+            fetchUrl += `&user_id=${currentUser.user_id || currentUser.id}`;
         }
         const response = await fetch(fetchUrl);
         const events = await response.json();
@@ -557,14 +614,14 @@ async function loadEvents() {
                                 <span style="display: block; font-size: 24px; font-weight: 800; color: #1a2639;">${new Date(ev.start_time).getDate()}</span>
                             </div>
                             <div style="display: flex; gap: 10px;">
-                                ${!isLeader ? 
-                                    (ev.is_registered 
-                                        ? `<button onclick="cancelEventRegistration(${ev.id}, event)" class="btn-registered">
+                                ${!isLeader ?
+                    (ev.is_registered
+                        ? `<button onclick="cancelEventRegistration(${ev.id}, event)" class="btn-registered">
                                                 <i class="fas fa-check-circle icon-default"></i><i class="fas fa-times icon-hover"></i>
                                                 <span class="text-default">Đã đăng ký</span><span class="text-hover">Hủy tham gia</span>
-                                           </button>` 
-                                        : `<button class="btn-action btn-approve" onclick="registerForEvent(${ev.id}, event)">Đăng ký tham gia</button>`) 
-                                    : `<span style="font-size: 12px; color: #c53030; font-weight: bold; background: #fef2f2; padding: 5px 10px; border-radius: 8px; margin-right: 25px;"><i class="fas fa-users"></i> DS Đăng ký</span>`}
+                                           </button>`
+                        : `<button class="btn-action btn-approve" onclick="registerForEvent(${ev.id}, event)">Đăng ký tham gia</button>`)
+                    : `<span style="font-size: 12px; color: #c53030; font-weight: bold; background: #fef2f2; padding: 5px 10px; border-radius: 8px; margin-right: 25px;"><i class="fas fa-users"></i> DS Đăng ký</span>`}
                             </div>
                         </div>
                         <h3 class="post-title" style="padding-right: 30px;">${ev.event_name}</h3>
@@ -676,7 +733,7 @@ async function loadMembers() {
 
         tbody.innerHTML = members.map(m => {
             const isMe = currentUser && (Number(m.user_id) === Number(currentUser.id || currentUser.user_id));
-            
+
             return `
             <tr>
                 <td>
@@ -750,7 +807,7 @@ async function promoteMember(memberRecordId, newRole) {
 
 async function kickMember(memberRecordId, memberName) {
     if (!confirm(`Bạn có chắc chắn muốn loại thành viên "${memberName}" ra khỏi câu lạc bộ không?`)) return;
-    
+
     try {
         const response = await fetch(`/api/clubs/members/${memberRecordId}`, {
             method: 'DELETE'
@@ -775,11 +832,11 @@ async function registerForEvent(eventId, eventObj) {
         const response = await fetch('/api/events/register', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ event_id: eventId, user_id: currentUser.id })
+            body: JSON.stringify({ event_id: eventId, user_id: (currentUser.user_id || currentUser.id) })
         });
         const result = await response.json();
         alert(result.message);
-        if(response.ok) {
+        if (response.ok) {
             loadEvents();
         }
     } catch (err) { alert("Lỗi đăng ký sự kiện."); }
@@ -793,7 +850,7 @@ async function cancelEventRegistration(eventId, eventObj) {
         const response = await fetch('/api/events/register', {
             method: 'DELETE',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ event_id: eventId, user_id: currentUser.id })
+            body: JSON.stringify({ event_id: eventId, user_id: (currentUser.user_id || currentUser.id) })
         });
         const result = await response.json();
         alert(result.message);
@@ -816,10 +873,10 @@ function togglePostDropdown(event, typeId) {
     event.stopPropagation();
     const dropdown = document.getElementById(`dropdown-${typeId}`);
     const isVisible = dropdown.style.display === 'block';
-    
+
     // Hide all first
     document.querySelectorAll('.action-dropdown').forEach(d => d.style.display = 'none');
-    
+
     if (!isVisible) dropdown.style.display = 'block';
 }
 
@@ -840,16 +897,16 @@ function openEditPost(id) {
 }
 
 async function deletePost(id) {
-    if(!confirm("Bạn có chắc chắn muốn xóa bài viết này cùng tất cả bình luận/lượt thích của nó không?")) return;
+    if (!confirm("Bạn có chắc chắn muốn xóa bài viết này cùng tất cả bình luận/lượt thích của nó không?")) return;
     try {
         const response = await fetch(`/api/posts/${id}`, { method: 'DELETE' });
-        if(response.ok) {
+        if (response.ok) {
             alert("Xóa thành công.");
             loadPosts();
         } else {
             alert("Lỗi khi xóa bài viết.");
         }
-    } catch(err) { console.error(err); }
+    } catch (err) { console.error(err); }
 }
 
 function openEditEvent(id) {
@@ -863,26 +920,26 @@ function openEditEvent(id) {
     // Format cho type datetime-local (bỏ đuôi Z và giây)
     const st = new Date(ev.start_time);
     st.setMinutes(st.getMinutes() - st.getTimezoneOffset());
-    document.getElementById('editEventStart').value = st.toISOString().slice(0,16);
+    document.getElementById('editEventStart').value = st.toISOString().slice(0, 16);
 
     const et = new Date(ev.end_time);
     et.setMinutes(et.getMinutes() - et.getTimezoneOffset());
-    document.getElementById('editEventEnd').value = et.toISOString().slice(0,16);
-    
+    document.getElementById('editEventEnd').value = et.toISOString().slice(0, 16);
+
     openModal('editEventModal');
 }
 
 async function deleteEvent(id) {
-    if(!confirm("Xóa sự kiện này sẽ tự động xóa tất cả đăng ký tham gia. Tiếp tục?")) return;
+    if (!confirm("Xóa sự kiện này sẽ tự động xóa tất cả đăng ký tham gia. Tiếp tục?")) return;
     try {
         const response = await fetch(`/api/events/${id}`, { method: 'DELETE' });
-        if(response.ok) {
+        if (response.ok) {
             alert("Xóa thành công.");
             loadEvents();
         } else {
             alert("Lỗi khi xóa sự kiện.");
         }
-    } catch(err) { console.error(err); }
+    } catch (err) { console.error(err); }
 }
 
 async function openEventRegistrations(id) {
@@ -895,8 +952,8 @@ async function openEventRegistrations(id) {
     try {
         const response = await fetch(`/api/events/${id}/registrations`);
         const users = await response.json();
-        
-        if(users.length === 0) {
+
+        if (users.length === 0) {
             headerCount.innerText = "Chưa có lượt đăng ký nào";
             container.innerHTML = `
                 <div style="text-align:center; padding: 50px 20px; background: white; border-radius: 16px; border: 1px dashed #cbd5e1;">
@@ -910,7 +967,7 @@ async function openEventRegistrations(id) {
         }
 
         headerCount.innerText = `Tổng cộng: ${users.length} học sinh đã tham gia`;
-        
+
         container.innerHTML = '<div style="display: flex; flex-direction: column; gap: 12px;">' + users.map(u => `
             <div style="display: flex; justify-content: space-between; align-items: center; padding: 18px; border-radius: 12px; border: 1px solid #e2e8f0; background: white; transition: 0.2s;" onmouseover="this.style.boxShadow='0 4px 15px rgba(0,0,0,0.05)'; this.style.borderColor='#cbd5e1';" onmouseout="this.style.boxShadow='none'; this.style.borderColor='#e2e8f0';">
                 <div style="display: flex; align-items: center; gap: 16px;">
@@ -924,11 +981,11 @@ async function openEventRegistrations(id) {
                 </div>
                 <div style="text-align: right; background: #f8fafc; padding: 10px 15px; border-radius: 8px;">
                     <div style="font-size: 11px; color: #94a3b8; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;"><i class="fas fa-clock"></i> Cập nhật lúc</div>
-                    <div style="font-size: 14px; font-weight: 700; color: #334155; margin-top: 4px;">${new Date(u.registered_at).toLocaleString('vi-VN', {hour: '2-digit', minute:'2-digit', day: '2-digit', month: '2-digit', year: 'numeric'})}</div>
+                    <div style="font-size: 14px; font-weight: 700; color: #334155; margin-top: 4px;">${new Date(u.registered_at).toLocaleString('vi-VN', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit', year: 'numeric' })}</div>
                 </div>
             </div>
         `).join('') + '</div>';
-    } catch(err) {
+    } catch (err) {
         headerCount.innerText = "Lỗi kết nối";
         container.innerHTML = '<div style="text-align:center; padding: 40px; color: #ef4444;"><i class="fas fa-exclamation-circle fa-2x"></i><p style="margin-top: 15px;">Lỗi tải dữ liệu. Vui lòng thử lại sau.</p></div>';
     }
@@ -939,7 +996,7 @@ function setupFormListeners() {
     document.getElementById('postForm').onsubmit = async (e) => {
         e.preventDefault();
         if (!currentUser) return alert("Vui lòng đăng nhập!");
-        
+
         const imageFile = document.getElementById('postImage').files[0];
         const imageBase64 = imageFile ? await toBase64(imageFile) : '';
 
@@ -970,24 +1027,24 @@ function setupFormListeners() {
             }
         } catch (err) { alert("Lỗi đăng bài."); }
     };
-    
+
     // Form Edit Bài
     document.getElementById('editPostForm').onsubmit = async (e) => {
         e.preventDefault();
         const id = document.getElementById('editPostId').value;
         const post = window.currentPostsData.find(p => p.id == id);
-        if(!post) return;
-        
+        if (!post) return;
+
         const imageFile = document.getElementById('editPostImage').files[0];
         const imageBase64 = imageFile ? await toBase64(imageFile) : post.image; // Keep old if not changed
-        
+
         const data = {
             title: document.getElementById('editPostTitle').value,
             content: document.getElementById('editPostContent').value,
             type: document.getElementById('editPostType').value,
             image: imageBase64
         };
-        
+
         try {
             const resp = await fetch(`/api/posts/${id}`, {
                 method: 'PUT',
@@ -1006,7 +1063,7 @@ function setupFormListeners() {
     // Form Tạo sự kiện
     document.getElementById('eventForm').onsubmit = async (e) => {
         e.preventDefault();
-        
+
         const imageFile = document.getElementById('eventImage').files[0];
         const imageBase64 = imageFile ? await toBase64(imageFile) : '';
 
@@ -1035,14 +1092,14 @@ function setupFormListeners() {
             e.target.reset();
         } catch (err) { alert("Lỗi tạo sự kiện."); }
     };
-    
+
     // Form Edit sự kiện
     document.getElementById('editEventForm').onsubmit = async (e) => {
         e.preventDefault();
         const id = document.getElementById('editEventId').value;
         const ev = window.currentEventsData.find(evt => evt.id == id);
-        if(!ev) return;
-        
+        if (!ev) return;
+
         const imageFile = document.getElementById('editEventImage').files[0];
         const imageBase64 = imageFile ? await toBase64(imageFile) : ev.image;
 
@@ -1109,7 +1166,7 @@ async function saveClubSettings(e) {
         });
 
         const result = await response.json();
-        
+
         if (response.ok) {
             alert(result.message);
             location.reload(); // Load lại trang để cập nhật Header của CLB
@@ -1118,7 +1175,7 @@ async function saveClubSettings(e) {
             submitBtn.innerHTML = originalText;
             submitBtn.disabled = false;
         }
-    } catch(err) {
+    } catch (err) {
         alert("Lỗi cập nhật Cài đặt CLB.");
         submitBtn.innerHTML = originalText;
         submitBtn.disabled = false;
@@ -1135,13 +1192,13 @@ window.onclick = (event) => {
 async function likeEvent(eventId) {
     if (!currentUser) return alert("Vui lòng đăng nhập!");
     try {
-        const response = await fetch(`/api/events/like/${eventId}`, { 
+        const response = await fetch(`/api/events/like/${eventId}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ user_id: currentUser.id })
+            body: JSON.stringify({ user_id: (currentUser.user_id || currentUser.id) })
         });
         const result = await response.json();
-        
+
         if (result.success) {
             const heartIcon = document.getElementById(`event-heart-icon-${eventId}`);
             const countSpan = document.getElementById(`event-like-count-${eventId}`);
@@ -1173,29 +1230,71 @@ async function loadEventComments(eventId) {
     const container = document.getElementById(`event-comments-list-${eventId}`);
     try {
         const res = await fetch(`/api/events/${eventId}/comments`);
-        const comments = await res.json();
-        
-        if (comments.length === 0) {
+        const allComments = await res.json();
+
+        if (allComments.length === 0) {
             container.innerHTML = '<div style="padding: 15px; color: #a0aec0; text-align: center; font-size: 13px;">Chưa có câu hỏi hay bình luận nào.</div>';
             return;
         }
 
-        container.innerHTML = comments.map(c => `
-            <div class="comment-item">
-                <div class="comment-user-avatar">${c.author_avatar ? `<img src="${c.author_avatar}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">` : (c.author_name ? c.author_name[0] : '?')}</div>
-                <div class="comment-content-wrapper" style="background:#f8fafc; padding:10px; border-radius:12px; flex:1">
-                    <div class="comment-user-name" style="font-weight:700; font-size:13px; color:#1e293b">${c.author_name}</div>
-                    <div class="comment-text" style="font-size:13.5px; color:#475569; margin:3px 0">${c.content}</div>
-                    <div class="comment-time" style="font-size:11px; color:#94a3b8">${new Date(c.created_at).toLocaleString('vi-VN')}</div>
+        const parents = allComments.filter(c => !c.parent_id);
+        const children = allComments.filter(c => c.parent_id);
+
+        container.innerHTML = parents.map(p => {
+             const replies = children.filter(c => c.parent_id === p.id);
+             const repliesHtml = replies.map(r => `
+                <div class="comment-item reply-item" style="display: flex; gap: 10px; margin-top: 10px; margin-left: 42px; padding: 4px 0;">
+                    <div class="comment-user-avatar" style="width: 28px; height: 28px; flex-shrink: 0; border-radius: 50%; overflow: hidden; background: #f1f5f9; display: flex; align-items: center; justify-content: center; font-size: 11px;">
+                        ${r.author_avatar ? `<img src="${r.author_avatar}" style="width:100%;height:100%;object-fit:cover;display:block;">` : (r.author_name ? r.author_name[0] : '?')}
+                    </div>
+                    <div class="comment-content-wrapper" style="background:#f1f5f9; padding:8px 12px; border-radius:10px; flex:1">
+                        <div class="comment-user-name" style="font-weight:700; font-size:12px; color:#1e293b">${r.author_name}</div>
+                        <div class="comment-text" style="font-size:13px; color:#475569; margin:2px 0; line-height: 1.4;">${r.content}</div>
+                        <div class="comment-time" style="font-size:10px; color:#94a3b8">${new Date(r.created_at).toLocaleString('vi-VN')}</div>
+                    </div>
+                </div>
+            `).join('');
+
+            return `
+            <div class="comment-group" style="margin-bottom: 20px;">
+                <div class="comment-item" style="display: flex; gap: 12px; padding: 8px 0;">
+                    <div class="comment-user-avatar" style="width: 32px; height: 32px; flex-shrink: 0; border-radius: 50%; overflow: hidden; background: #f1f5f9; display: flex; align-items: center; justify-content: center;">
+                        ${p.author_avatar ? `<img src="${p.author_avatar}" style="width:100%;height:100%;object-fit:cover;display:block;">` : (p.author_name ? p.author_name[0] : '?')}
+                    </div>
+                    <div class="comment-content-wrapper" style="flex:1">
+                        <div style="background:#f8fafc; padding:10px 14px; border-radius:12px;">
+                            <div class="comment-user-name" style="font-weight:700; font-size:13px; color:#1e293b">${p.author_name}</div>
+                            <div class="comment-text" style="font-size:14px; color:#475569; margin:3px 0; line-height: 1.4;">${p.content}</div>
+                            <div class="comment-time" style="font-size:11px; color:#94a3b8">${new Date(p.created_at).toLocaleString('vi-VN')}</div>
+                        </div>
+                        <div style="display: flex; gap: 15px; margin-top: 4px; margin-left: 10px;">
+                             <button onclick="toggleReplyInput(${p.id}, ${eventId}, 'event')" style="background:none; border:none; color:#64748b; font-size:12px; font-weight:600; cursor:pointer; padding:0; transition:0.2s;" onmouseover="this.style.color='#3b82f6'" onmouseout="this.style.color='#64748b'">Trả lời</button>
+                        </div>
+                        <div id="reply-input-container-event-${p.id}" style="display: none; margin-top: 10px; margin-left: 10px;">
+                            <div style="display: flex; gap: 8px; align-items: center;">
+                                <input type="text" id="reply-input-event-${p.id}" placeholder="Trả lời câu hỏi..." 
+                                       style="flex:1; padding: 8px 12px; border-radius: 20px; border: 1px solid #e2e8f0; font-size: 13px; outline: none;"
+                                       onkeyup="if(event.key === 'Enter') submitEventComment(${eventId}, ${p.id})">
+                                <button onclick="submitEventComment(${eventId}, ${p.id})" style="background:#3b82f6; color:white; border:none; width:30px; height:30px; border-radius:50%; cursor:pointer; display:flex; align-items:center; justify-content:center;">
+                                    <i class="fas fa-paper-plane" style="font-size: 12px;"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="replies-list" id="event-replies-list-${p.id}">
+                            ${repliesHtml}
+                        </div>
+                    </div>
                 </div>
             </div>
-        `).join('');
+            `;
+        }).join('');
     } catch (e) { container.innerHTML = 'Lỗi tải bình luận.'; }
 }
 
-async function submitEventComment(eventId) {
+async function submitEventComment(eventId, parentId = null) {
     if (!currentUser) return alert("Vui lòng đăng nhập!");
-    const input = document.getElementById(`event-comment-input-${eventId}`);
+    const inputId = parentId ? `reply-input-event-${parentId}` : `event-comment-input-${eventId}`;
+    const input = document.getElementById(inputId);
     if (!input) return;
     const content = input.value.trim();
     if (!content) return;
@@ -1204,13 +1303,17 @@ async function submitEventComment(eventId) {
         const res = await fetch(`/api/events/${eventId}/comments`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ 
-                user_id: currentUser.id,
-                content: content 
+            body: JSON.stringify({
+                user_id: (currentUser.user_id || currentUser.id),
+                content: content,
+                parent_id: parentId
             })
         });
         if (res.ok) {
             input.value = '';
+            if (parentId) {
+                document.getElementById(`reply-input-container-event-${parentId}`).style.display = 'none';
+            }
             await loadEventComments(eventId);
         }
     } catch (e) { alert("Lỗi gửi bình luận."); }

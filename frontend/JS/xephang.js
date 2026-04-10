@@ -2,13 +2,19 @@ let allRankings = {};
 
 async function loadRankings() {
     try {
+        console.log("🚀 Loading rankings from API...");
         const response = await fetch('/api/rankings');
+        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+        
         allRankings = await response.json();
+        console.log("📥 Received rankings data:", allRankings);
         
         // Mặc định hiển thị tab CLB Năng động
         renderRanking('mostActiveClubs');
     } catch (err) {
         console.error("Lỗi tải bảng xếp hạng:", err);
+        const rankingList = document.getElementById('rankingList');
+        if (rankingList) rankingList.innerHTML = `<div style="padding: 20px; color: #c53030;">Lỗi: ${err.message}</div>`;
     }
 }
 
@@ -31,17 +37,20 @@ function renderRanking(type) {
     
     top3.forEach((item, index) => {
         const rank = index + 1;
-        const name = item.club_name || item.full_name || item.event_name;
-        const avatar = item.logo_url || item.avatar || item.image || '/assets/default-avatar.png';
-        const score = item.activity_score || item.contribution_score || item.member_count || item.likes;
+        const name = item.club_name || item.full_name || item.event_name || 'N/A';
+        const avatar = item.logo_url || item.avatar || item.image || '';
+        const score = item.activity_score || item.contribution_score || item.member_count || item.likes || 0;
         const unit = getUnit(type);
+
+        const avatarHtml = avatar ? `<img src="${avatar}" class="podium-avatar">` : 
+            `<div class="podium-avatar" style="background:#f8fafc; display:flex; align-items:center; justify-content:center; color:#cbd5e1; font-size:40px;"><i class="fas fa-crown"></i></div>`;
 
         podiumArea.innerHTML += `
             <div class="podium-card rank-${rank}">
                 <div class="rank-badge">${rank}</div>
-                <img src="${avatar}" class="podium-avatar" onerror="this.src='/assets/default-club.png'">
+                ${avatarHtml}
                 <div class="podium-name">${name}</div>
-                <div class="podium-score">${score}</div>
+                <div class="podium-score">${formatNumber(score)}</div>
                 <div class="podium-label">${unit}</div>
             </div>
         `;
@@ -58,21 +67,29 @@ function renderRanking(type) {
 
     rest.forEach((item, index) => {
         const rank = index + 4;
-        const name = item.club_name || item.full_name || item.event_name;
-        const avatar = item.logo_url || item.avatar || item.image || '/assets/default-avatar.png';
-        const score = item.activity_score || item.contribution_score || item.member_count || item.likes;
+        const name = item.club_name || item.full_name || item.event_name || 'N/A';
+        const avatar = item.logo_url || item.avatar || item.image || '';
+        const score = item.activity_score || item.contribution_score || item.member_count || item.likes || 0;
         
+        const avatarHtml = avatar ? `<img src="${avatar}" class="item-avatar">` : 
+            `<div class="item-avatar" style="background:#f1f5f9; display:flex; align-items:center; justify-content:center; color:#94a3b8; font-size:18px;"><i class="fas fa-image"></i></div>`;
+
         rankingList.innerHTML += `
             <div class="rank-item">
                 <div class="item-rank-num">${rank}</div>
                 <div class="item-info">
-                    <img src="${avatar}" class="item-avatar" onerror="this.src='/assets/default-club.png'">
+                    ${avatarHtml}
                     <div class="item-name">${name}</div>
                 </div>
-                <div class="item-score-val">${score}</div>
+                <div class="item-score-val">${formatNumber(score)}</div>
             </div>
         `;
     });
+}
+
+function formatNumber(num) {
+    if (num >= 1000) return (num / 1000).toFixed(1) + 'k';
+    return num;
 }
 
 function getUnit(type) {

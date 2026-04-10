@@ -77,11 +77,17 @@ async function checkSchema() {
                     post_id INT NOT NULL FOREIGN KEY REFERENCES posts(id) ON DELETE CASCADE,
                     user_id INT NOT NULL FOREIGN KEY REFERENCES users(id),
                     content NVARCHAR(MAX) NOT NULL,
-                    created_at DATETIME DEFAULT GETDATE()
+                    created_at DATETIME DEFAULT GETDATE(),
+                    parent_id INT NULL FOREIGN KEY REFERENCES comments(id)
                 )
             END
+            ELSE
+            BEGIN
+                IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('comments') AND name = 'parent_id')
+                    ALTER TABLE comments ADD parent_id INT NULL FOREIGN KEY REFERENCES comments(id);
+            END
         `);
-        console.log("  + Checked comments table");
+        console.log("  + Checked comments table with parent_id support");
 
         // 5. Tạo bảng post_likes nếu chưa có
         await pool.request().query(`
@@ -98,18 +104,59 @@ async function checkSchema() {
         `);
         console.log("  + Checked post_likes table");
         
-        // 6. Kiểm tra và thêm cột image cho bảng events
+        // 6. Kiểm tra và thêm cột cho bảng events
         await pool.request().query(`
             IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('events') AND name = 'image')
-            BEGIN
                 ALTER TABLE events ADD image NVARCHAR(MAX);
+            ELSE
+                ALTER TABLE events ALTER COLUMN image NVARCHAR(MAX);
+
+            IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('events') AND name = 'likes')
+                ALTER TABLE events ADD likes INT DEFAULT 0;
+            
+            IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('events') AND name = 'views')
+                ALTER TABLE events ADD views INT DEFAULT 0;
+
+            IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('events') AND name = 'comments')
+                ALTER TABLE events ADD comments INT DEFAULT 0;
+        `);
+        console.log("  + Checked event table for image, likes, views, comments columns");
+
+        // 6.1 Tạo bảng event_comments nếu chưa có
+        await pool.request().query(`
+            IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'event_comments')
+            BEGIN
+                CREATE TABLE event_comments (
+                    id INT IDENTITY(1,1) PRIMARY KEY,
+                    event_id INT NOT NULL FOREIGN KEY REFERENCES events(id) ON DELETE CASCADE,
+                    user_id INT NOT NULL FOREIGN KEY REFERENCES users(id),
+                    content NVARCHAR(MAX) NOT NULL,
+                    created_at DATETIME DEFAULT GETDATE(),
+                    parent_id INT NULL FOREIGN KEY REFERENCES event_comments(id)
+                )
             END
             ELSE
             BEGIN
-                ALTER TABLE events ALTER COLUMN image NVARCHAR(MAX);
+                IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('event_comments') AND name = 'parent_id')
+                    ALTER TABLE event_comments ADD parent_id INT NULL FOREIGN KEY REFERENCES event_comments(id);
             END
         `);
-        console.log("  + Checked event table for image column");
+        console.log("  + Checked event_comments table with parent_id support");
+
+        // 6.2 Tạo bảng event_likes nếu chưa có
+        await pool.request().query(`
+            IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'event_likes')
+            BEGIN
+                CREATE TABLE event_likes (
+                    id INT IDENTITY(1,1) PRIMARY KEY,
+                    event_id INT NOT NULL FOREIGN KEY REFERENCES events(id) ON DELETE CASCADE,
+                    user_id INT NOT NULL FOREIGN KEY REFERENCES users(id),
+                    created_at DATETIME DEFAULT GETDATE(),
+                    CONSTRAINT uq_event_like UNIQUE (event_id, user_id)
+                )
+            END
+        `);
+        console.log("  + Checked event_likes table");
 
         await pool.request().query(`
             IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('club_members') AND name = 'joined_at')
@@ -700,6 +747,76 @@ app.get("/api/clubs/:id/rankings", ensureDB, async (req, res) => {
     }
 });
 
+// 2.6 API Bảng xếp hạng toàn hệ thống (Dành cho trang XepHang.ejs)
+app.get("/api/rankings", ensureDB, async (req, res) => {
+    try {
+        // 1. CLB Năng động nhất (Dựa trên Posts và Events trong 30 ngày qua)
+        const activeClubsQuery = `
+            SELECT TOP 10 c.id, c.club_name, c.logo_url,
+                   (ISNULL(pCount.total, 0) * 5 + ISNULL(eCount.total, 0) * 10) as activity_score
+            FROM clubs c
+            LEFT JOIN (
+                SELECT club_id, COUNT(*) as total 
+                FROM posts 
+                GROUP BY club_id
+            ) pCount ON c.id = pCount.club_id
+            LEFT JOIN (
+                SELECT club_id, COUNT(*) as total 
+                FROM events 
+                GROUP BY club_id
+            ) eCount ON c.id = eCount.club_id
+            WHERE (ISNULL(pCount.total, 0) > 0 OR ISNULL(eCount.total, 0) > 0)
+            ORDER BY activity_score DESC
+        `;
+        const activeClubsResult = await pool.request().query(activeClubsQuery);
+        const activeClubs = activeClubsResult.recordset;
+
+        // 2. Thành viên ưu tú (Dựa trên tổng bài viết đã đăng)
+        const topMembersQuery = `
+            SELECT TOP 10 u.id, u.full_name, u.avatar, COUNT(p.id) as contribution_score
+            FROM users u
+            JOIN posts p ON u.id = p.user_id
+            GROUP BY u.id, u.full_name, u.avatar
+            ORDER BY contribution_score DESC
+        `;
+        const topMembersResult = await pool.request().query(topMembersQuery);
+        const topMembers = topMembersResult.recordset;
+
+        // 3. Quy mô CLB (Dựa trên số lượng thành viên active)
+        const biggestClubsQuery = `
+            SELECT TOP 10 c.id, c.club_name, c.logo_url, COUNT(cm.id) as member_count
+            FROM clubs c
+            JOIN club_members cm ON c.id = cm.club_id
+            WHERE cm.status = 'active'
+            GROUP BY c.id, c.club_name, c.logo_url
+            ORDER BY member_count DESC
+        `;
+        const biggestClubsResult = await pool.request().query(biggestClubsQuery);
+        const biggestClubs = biggestClubsResult.recordset;
+
+        // 4. Sự kiện Hot (Dựa trên lượt thích)
+        const popularEventsQuery = `
+            SELECT TOP 10 e.id, e.event_name, e.image, e.likes
+            FROM events e
+            ORDER BY likes DESC
+        `;
+        const popularEventsResult = await pool.request().query(popularEventsQuery);
+        const popularEvents = popularEventsResult.recordset;
+
+        console.log(`[Global Rankings] MostActive: ${activeClubs.length}, TopMembers: ${topMembers.length}, BiggestClubs: ${biggestClubs.length}, PopularEvents: ${popularEvents.length}`);
+
+        res.json({
+            mostActiveClubs: activeClubs,
+            topMembers: topMembers,
+            biggestClubs: biggestClubs,
+            popularEvents: popularEvents
+        });
+    } catch (err) {
+        console.error("Lỗi API Global Rankings:", err);
+        res.status(500).json({ message: "Lỗi tải bảng xếp hạng hệ thống" });
+    }
+});
+
 // 3. API Lấy danh sách yêu cầu tham gia đang chờ duyệt
 app.get("/api/clubs/:id/requests", ensureDB, async (req, res) => {
     try {
@@ -858,13 +975,17 @@ app.get("/api/events", ensureDB, async (req, res) => {
     try {
         const request = pool.request();
         let query = `
-            SELECT e.id, e.event_name, e.description, e.location, e.start_time, e.end_time, e.image, c.club_name, c.id as club_id
+            SELECT e.id, e.event_name, e.description, e.location, e.start_time, e.end_time, e.image, 
+                   e.likes, e.views, e.comments,
+                   (SELECT COUNT(*) FROM event_registrations er WHERE er.event_id = e.id) as participant_count,
+                   c.club_name, c.id as club_id
         `;
         if (userId) {
             query += `, (CASE WHEN EXISTS (SELECT 1 FROM event_registrations er WHERE er.event_id = e.id AND er.user_id = @uid) THEN 1 ELSE 0 END) as is_registered `;
+            query += `, (CASE WHEN EXISTS (SELECT 1 FROM event_likes el WHERE el.event_id = e.id AND el.user_id = @uid) THEN 1 ELSE 0 END) as user_liked `;
             request.input("uid", sql.Int, userId);
         } else {
-            query += `, 0 as is_registered `;
+            query += `, 0 as is_registered, 0 as user_liked `;
         }
         
         query += ` FROM events e JOIN clubs c ON e.club_id = c.id `;
@@ -979,16 +1100,32 @@ app.put("/api/events/:id", ensureDB, async (req, res) => {
 });
 
 app.get("/api/events/:id", ensureDB, async (req, res) => {
+    const userId = req.query.user_id;
     try {
-        const result = await pool.request()
-            .input("id", sql.Int, req.params.id)
-            .query(`
-                SELECT e.*, c.club_name, u.full_name as creator_name
-                FROM events e
-                JOIN clubs c ON e.club_id = c.id
-                LEFT JOIN users u ON e.created_by = u.id
-                WHERE e.id = @id
-            `);
+        const request = pool.request();
+        request.input("id", sql.Int, req.params.id);
+        
+        let query = `
+            SELECT e.*, c.club_name, u.full_name as creator_name,
+                   (SELECT COUNT(*) FROM event_registrations er WHERE er.event_id = e.id) as participant_count
+        `;
+        
+        if (userId) {
+            query += `, (CASE WHEN EXISTS (SELECT 1 FROM event_registrations er WHERE er.event_id = e.id AND er.user_id = @uid) THEN 1 ELSE 0 END) as is_registered `;
+            query += `, (CASE WHEN EXISTS (SELECT 1 FROM event_likes el WHERE el.event_id = e.id AND el.user_id = @uid) THEN 1 ELSE 0 END) as user_liked `;
+            request.input("uid", sql.Int, userId);
+        } else {
+            query += `, 0 as is_registered, 0 as user_liked `;
+        }
+
+        query += `
+            FROM events e
+            JOIN clubs c ON e.club_id = c.id
+            LEFT JOIN users u ON e.created_by = u.id
+            WHERE e.id = @id
+        `;
+        
+        const result = await request.query(query);
         if (result.recordset.length > 0) {
             res.json(result.recordset[0]);
         } else {
@@ -1019,11 +1156,97 @@ app.delete("/api/events/:id", ensureDB, async (req, res) => {
     try {
         const reqE = pool.request();
         reqE.input("eid", sql.Int, req.params.id);
-        // Cascade delete registrations manually if FK doesn't have CASCADE
+        
+        // Manually clean up associated data
         await reqE.query("DELETE FROM event_registrations WHERE event_id = @eid");
+        await reqE.query("DELETE FROM event_likes WHERE event_id = @eid");
+        await reqE.query("DELETE FROM event_comments WHERE event_id = @eid");
+        
         await reqE.query("DELETE FROM events WHERE id = @eid");
         res.json({ message: "Xóa sự kiện thành công!" });
     } catch (err) { res.status(500).json({ message: "Lỗi xóa sự kiện" }); }
+});
+
+// ================= EVENT INTERACTION API (LIKE/VIEW/COMMENT) =================
+app.post("/api/events/like/:id", ensureDB, async (req, res) => {
+    const { user_id } = req.body;
+    const event_id = req.params.id;
+    
+    if (!user_id) return res.status(401).json({ message: "Vui lòng đăng nhập" });
+
+    try {
+        const check = await pool.request()
+            .input("eid", sql.Int, event_id)
+            .input("uid", sql.Int, user_id)
+            .query("SELECT id FROM event_likes WHERE event_id = @eid AND user_id = @uid");
+
+        if (check.recordset.length > 0) {
+            // Already liked -> Unlike
+            await pool.request()
+                .input("eid", sql.Int, event_id)
+                .input("uid", sql.Int, user_id)
+                .query("DELETE FROM event_likes WHERE event_id = @eid AND user_id = @uid");
+            await pool.request().input("id", sql.Int, event_id).query(`UPDATE events SET likes = CASE WHEN likes > 0 THEN likes - 1 ELSE 0 END WHERE id = @id`);
+            return res.json({ success: true, liked: false });
+        } else {
+            // Not liked -> Like
+            await pool.request()
+                .input("eid", sql.Int, event_id)
+                .input("uid", sql.Int, user_id)
+                .query("INSERT INTO event_likes (event_id, user_id) VALUES (@eid, @uid)");
+            await pool.request().input("id", sql.Int, event_id).query(`UPDATE events SET likes = likes + 1 WHERE id = @id`);
+            return res.json({ success: true, liked: true });
+        }
+    } catch (err) { 
+        console.error("Event Like error:", err);
+        res.status(500).json({ message: "Like error" }); 
+    }
+});
+
+app.post("/api/events/view/:id", ensureDB, async (req, res) => {
+    try {
+        await pool.request().input("id", sql.Int, req.params.id).query(`UPDATE events SET views = views + 1 WHERE id = @id`);
+        res.json({ success: true });
+    } catch (err) { res.status(500).json({ message: "View error" }); }
+});
+
+app.get("/api/events/:eventId/comments", ensureDB, async (req, res) => {
+    try {
+        const result = await pool.request()
+            .input("eid", sql.Int, req.params.eventId)
+            .query(`
+                SELECT ec.id, ec.content, ec.created_at, ec.parent_id, u.full_name as author_name, u.avatar as author_avatar
+                FROM event_comments ec
+                LEFT JOIN users u ON ec.user_id = u.id
+                WHERE ec.event_id = @eid
+                ORDER BY ec.created_at ASC
+            `);
+        res.json(result.recordset);
+    } catch (err) {
+        res.status(500).json({ message: "Lỗi load comments sự kiện" });
+    }
+});
+
+app.post("/api/events/:eventId/comments", ensureDB, async (req, res) => {
+    const { user_id, content, parent_id } = req.body;
+    const event_id = req.params.eventId;
+    try {
+        await pool.request()
+            .input("eid", sql.Int, event_id)
+            .input("uid", sql.Int, user_id)
+            .input("content", sql.NVarChar, content)
+            .input("pid", sql.Int, parent_id || null)
+            .query(`INSERT INTO event_comments (event_id, user_id, content, created_at, parent_id) VALUES (@eid, @uid, @content, GETDATE(), @pid)`);
+        
+        // Tăng số lượng comment của event
+        await pool.request()
+            .input("eid", sql.Int, event_id)
+            .query("UPDATE events SET comments = comments + 1 WHERE id = @eid");
+            
+        res.json({ message: "Bình luận sự kiện thành công!" });
+    } catch (err) {
+        res.status(500).json({ message: "Lỗi đăng bình luận sự kiện" });
+    }
 });
 
 // ================= POSTS API =================
@@ -1210,11 +1433,11 @@ app.get("/api/posts/:postId/comments", ensureDB, async (req, res) => {
         const result = await pool.request()
             .input("pid", sql.Int, req.params.postId)
             .query(`
-                SELECT c.id, c.content, c.created_at, u.full_name as author_name, u.avatar as author_avatar
+                SELECT c.id, c.content, c.created_at, c.parent_id, u.full_name as author_name, u.avatar as author_avatar
                 FROM comments c
                 LEFT JOIN users u ON c.user_id = u.id
                 WHERE c.post_id = @pid
-                ORDER BY c.created_at DESC
+                ORDER BY c.created_at ASC
             `);
         res.json(result.recordset);
     } catch (err) {
@@ -1223,14 +1446,15 @@ app.get("/api/posts/:postId/comments", ensureDB, async (req, res) => {
 });
 
 app.post("/api/posts/:postId/comments", ensureDB, async (req, res) => {
-    const { user_id, content } = req.body;
+    const { user_id, content, parent_id } = req.body;
     const post_id = req.params.postId;
     try {
         await pool.request()
             .input("pid", sql.Int, post_id)
             .input("uid", sql.Int, user_id)
             .input("content", sql.NVarChar, content)
-            .query(`INSERT INTO comments (post_id, user_id, content, created_at) VALUES (@pid, @uid, @content, GETDATE())`);
+            .input("parent", sql.Int, parent_id || null)
+            .query(`INSERT INTO comments (post_id, user_id, content, created_at, parent_id) VALUES (@pid, @uid, @content, GETDATE(), @parent)`);
         
         // Tăng số lượng comment của post
         await pool.request()

@@ -55,6 +55,16 @@
     gap: 32px;
 }
 
+/* Tab Visibility Logic */
+.tab-pane {
+    display: none;
+    animation: fadeIn 0.3s ease;
+}
+
+.tab-pane.active {
+    display: block;
+}
+
 .nav-links li {
     padding: 16px 0;
     font-weight: 500;
