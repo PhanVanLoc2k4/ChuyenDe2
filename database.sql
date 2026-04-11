@@ -198,6 +198,7 @@ BEGIN
         club_id INT NOT NULL FOREIGN KEY REFERENCES clubs(id) ON DELETE CASCADE,
         user_id INT NOT NULL FOREIGN KEY REFERENCES users(id) ON DELETE CASCADE,
         status NVARCHAR(50) DEFAULT 'pending', -- pending, approved, rejected
+        reason NVARCHAR(MAX), -- Lý do gia nhập hoặc từ chối
         requested_at DATETIME DEFAULT GETDATE()
     );
 END

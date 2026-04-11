@@ -1,0 +1,216 @@
+const { getPool, sql } = require("../config/database");
+const { createNotification } = require("../services/notificationService");
+
+// 1. Lấy danh sách sự kiện
+const getAllEvents = async (req, res) => {
+    const clubId = req.query.club_id;
+    const userId = req.query.user_id;
+    const pool = getPool();
+    try {
+        const request = pool.request();
+        let query = `
+            SELECT e.id, e.event_name, e.description, e.location, e.start_time, e.end_time, e.image, 
+                   e.likes, e.views, e.comments,
+                   (SELECT COUNT(*) FROM event_registrations er WHERE er.event_id = e.id) as participant_count,
+                   c.club_name, c.id as club_id
+        `;
+        if (userId) {
+            query += `, (CASE WHEN EXISTS (SELECT 1 FROM event_registrations er WHERE er.event_id = e.id AND er.user_id = @uid) THEN 1 ELSE 0 END) as is_registered `;
+            query += `, (CASE WHEN EXISTS (SELECT 1 FROM event_likes el WHERE el.event_id = e.id AND el.user_id = @uid) THEN 1 ELSE 0 END) as user_liked `;
+            request.input("uid", sql.Int, userId);
+        } else {
+            query += `, 0 as is_registered, 0 as user_liked `;
+        }
+        
+        query += ` FROM events e JOIN clubs c ON e.club_id = c.id `;
+        
+        if (clubId) {
+            query += ` WHERE e.club_id = @cid`;
+            request.input("cid", sql.Int, clubId);
+        }
+        query += ` ORDER BY e.start_time ASC`;
+        const result = await request.query(query);
+        res.json(result.recordset);
+    } catch (err) {
+        res.status(500).send(err.message);
+    }
+};
+
+// 2. Tạo sự kiện mới
+const createEvent = async (req, res) => {
+    const { event_name, description, location, start_time, end_time, club_id, created_by, image } = req.body;
+    const pool = getPool();
+    try {
+        const result = await pool.request()
+            .input("name", sql.NVarChar, event_name)
+            .input("desc", sql.NVarChar, description)
+            .input("loc", sql.NVarChar, location)
+            .input("st", sql.DateTime, start_time)
+            .input("et", sql.DateTime, end_time)
+            .input("cid", sql.Int, club_id)
+            .input("uid", sql.Int, created_by)
+            .input("img", sql.NVarChar(sql.MAX), image)
+            .query(`INSERT INTO events (event_name, description, location, start_time, end_time, club_id, created_by, created_at, image, status) 
+                    OUTPUT INSERTED.id
+                    VALUES (@name, @desc, @loc, @st, @et, @cid, @uid, GETDATE(), @img, 'active')`);
+        
+        const eventId = result.recordset[0].id;
+
+        // Gửi thông báo
+        try {
+            const clubRes = await pool.request().input("cid", sql.Int, club_id).query("SELECT club_name, created_by FROM clubs WHERE id = @cid");
+            const clubData = clubRes.recordset[0];
+            const clubName = clubData?.club_name || "CLB";
+            const creatorId = clubData?.created_by;
+            
+            const members = await pool.request().input("cid", sql.Int, club_id).query("SELECT user_id FROM club_members WHERE club_id = @cid AND status = 'active'");
+            
+            const recipientIds = new Set(members.recordset.map(m => m.user_id));
+            if (creatorId && creatorId !== parseInt(created_by)) recipientIds.add(creatorId);
+
+            for (const rid of recipientIds) {
+                if (rid !== parseInt(created_by)) {
+                    await createNotification(rid, "Sự kiện mới!", `"${clubName}" vừa tạo sự kiện mới: ${event_name}`, "event", `/DienDan?id=${club_id}`);
+                }
+            }
+        } catch (notifErr) { console.error("Lỗi gửi thông báo sự kiện:", notifErr); }
+
+        res.json({ message: "Tạo sự kiện thành công!", eventId });
+    } catch (err) { 
+        console.error("Lỗi POST Event:", err);
+        res.status(500).json({ message: "Lỗi tạo sự kiện" }); 
+    }
+};
+
+// 3. Lấy chi tiết sự kiện
+const getEventDetail = async (req, res) => {
+    const userId = req.query.user_id;
+    const pool = getPool();
+    try {
+        const request = pool.request();
+        request.input("id", sql.Int, req.params.id);
+        
+        let query = `
+            SELECT e.*, c.club_name, u.full_name as creator_name,
+                   (SELECT COUNT(*) FROM event_registrations er WHERE er.event_id = e.id) as participant_count
+        `;
+        
+        if (userId) {
+            query += `, (CASE WHEN EXISTS (SELECT 1 FROM event_registrations er WHERE er.event_id = e.id AND er.user_id = @uid) THEN 1 ELSE 0 END) as is_registered `;
+            query += `, (CASE WHEN EXISTS (SELECT 1 FROM event_likes el WHERE el.event_id = e.id AND el.user_id = @uid) THEN 1 ELSE 0 END) as user_liked `;
+            request.input("uid", sql.Int, userId);
+        } else {
+            query += `, 0 as is_registered, 0 as user_liked `;
+        }
+
+        query += `
+            FROM events e
+            JOIN clubs c ON e.club_id = c.id
+            LEFT JOIN users u ON e.created_by = u.id
+            WHERE e.id = @id
+        `;
+        
+        const result = await request.query(query);
+        if (result.recordset.length > 0) {
+            res.json(result.recordset[0]);
+        } else {
+            res.status(404).json({ message: "Không tìm thấy sự kiện" });
+        }
+    } catch (err) { res.status(500).json({ message: "Lỗi lấy chi tiết sự kiện" }); }
+};
+
+// 4. Đăng ký tham gia sự kiện
+const registerEvent = async (req, res) => {
+    const { event_id, user_id } = req.body;
+    const pool = getPool();
+    try {
+        const check = await pool.request()
+            .input("e", sql.Int, event_id)
+            .input("u", sql.Int, user_id)
+            .query("SELECT id FROM event_registrations WHERE event_id = @e AND user_id = @u");
+        
+        if (check.recordset.length > 0) return res.status(400).json({ message: "Bạn đã đăng ký sự kiện này rồi!" });
+        
+        await pool.request()
+            .input("e", sql.Int, event_id)
+            .input("u", sql.Int, user_id)
+            .query("INSERT INTO event_registrations (event_id, user_id, status, registered_at) VALUES (@e, @u, 'pending', GETDATE())");
+        res.json({ message: "Đăng ký sự kiện thành công! Vui lòng chờ duyệt." });
+    } catch (err) { res.status(500).json({ message: "Lỗi đăng ký sự kiện" }); }
+};
+
+// 5. Hủy đăng ký sự kiện
+const unregisterEvent = async (req, res) => {
+    const { event_id, user_id } = req.body;
+    const pool = getPool();
+    try {
+        await pool.request()
+            .input("e", sql.Int, event_id)
+            .input("u", sql.Int, user_id)
+            .query("DELETE FROM event_registrations WHERE event_id = @e AND user_id = @u");
+        res.json({ message: "Đã hủy đăng ký tham gia sự kiện." });
+    } catch (err) { res.status(500).json({ message: "Lỗi hủy đăng ký" }); }
+};
+
+// 6. Like sự kiện
+const likeEvent = async (req, res) => {
+    const { user_id } = req.body;
+    const event_id = req.params.id;
+    const pool = getPool();
+    
+    if (!user_id) return res.status(401).json({ message: "Vui lòng đăng nhập" });
+
+    try {
+        const check = await pool.request()
+            .input("eid", sql.Int, event_id)
+            .input("uid", sql.Int, user_id)
+            .query("SELECT id FROM event_likes WHERE event_id = @eid AND user_id = @uid");
+
+        if (check.recordset.length > 0) {
+            await pool.request()
+                .input("eid", sql.Int, event_id)
+                .input("uid", sql.Int, user_id)
+                .query("DELETE FROM event_likes WHERE event_id = @eid AND user_id = @uid");
+            await pool.request().input("id", sql.Int, event_id).query(`UPDATE events SET likes = CASE WHEN likes > 0 THEN likes - 1 ELSE 0 END WHERE id = @id`);
+            return res.json({ success: true, liked: false });
+        } else {
+            await pool.request()
+                .input("eid", sql.Int, event_id)
+                .input("uid", sql.Int, user_id)
+                .query("INSERT INTO event_likes (event_id, user_id) VALUES (@eid, @uid)");
+            await pool.request().input("id", sql.Int, event_id).query(`UPDATE events SET likes = likes + 1 WHERE id = @id`);
+            return res.json({ success: true, liked: true });
+        }
+    } catch (err) { 
+        res.status(500).json({ message: "Like error" }); 
+    }
+};
+
+// 7. Lấy danh sách đăng ký
+const getEventRegistrations = async (req, res) => {
+    const pool = getPool();
+    try {
+        const result = await pool.request()
+            .input("eid", sql.Int, req.params.id)
+            .query(`
+                SELECT u.id, u.full_name, u.email, er.registered_at, er.status
+                FROM event_registrations er
+                JOIN users u ON er.user_id = u.id
+                WHERE er.event_id = @eid
+                ORDER BY er.registered_at DESC
+            `);
+        res.json(result.recordset);
+    } catch(err) {
+        res.status(500).json({message: "Lỗi lấy danh sách đăng ký"});
+    }
+};
+
+module.exports = {
+    getAllEvents,
+    createEvent,
+    getEventDetail,
+    registerEvent,
+    unregisterEvent,
+    likeEvent,
+    getEventRegistrations
+};

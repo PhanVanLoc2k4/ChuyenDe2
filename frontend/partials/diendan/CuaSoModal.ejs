@@ -1,0 +1,163 @@
+<!-- Modal: Tao bai viet moi -->
+<div class="modal" id="createPostModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>Tạo bài viết mới</h2>
+            <button class="close-btn" onclick="closeModal('createPostModal')">&times;</button>
+        </div>
+        <form id="postForm" class="no-scrollbar">
+            <div class="form-group">
+                <label>Tiêu đề bài viết</label>
+                <input type="text" id="postTitle" placeholder="Nhập tiêu đề..." required>
+            </div>
+            <div class="form-group">
+                <label>Loại bài viết</label>
+                <select id="postType">
+                    <option value="thảo luận">Thảo luận</option>
+                    <option value="thông báo">Thông báo</option>
+                    <option value="chia sẻ">Chia sẻ tài liệu</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Nội dung</label>
+                <textarea id="postContent" rows="5" placeholder="Bạn đang nghĩ gì?..." required></textarea>
+            </div>
+            <div class="form-group">
+                <label>Ảnh đính kèm</label>
+                <input type="file" id="postImage" accept="image/*">
+            </div>
+            <button type="submit" class="btn-submit">Đăng bài ngay</button>
+        </form>
+    </div>
+</div>
+
+<!-- Modal: Tao su kien -->
+<div class="modal" id="createEventModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>Hành động Trưởng CLB: Tạo sự kiện mới</h2>
+            <button class="close-btn" onclick="closeModal('createEventModal')">&times;</button>
+        </div>
+        <form id="eventForm" class="no-scrollbar">
+            <div class="form-group">
+                <label>Tên sự kiện</label>
+                <input type="text" id="eventName" placeholder="VD: Workshop Lập trình Web" required>
+            </div>
+            <div class="form-group">
+                <label>Mô tả sự kiện</label>
+                <textarea id="eventDesc" rows="3" placeholder="Chi tiết hoạt động..." required></textarea>
+            </div>
+            <div class="form-group">
+                <label>Địa điểm</label>
+                <input type="text" id="eventLoc" placeholder="Phòng học, Sân trường, Online..." required>
+            </div>
+            <div class="form-row" style="display: flex; gap: 15px;">
+                <div class="form-group" style="flex: 1;">
+                    <label>Bắt đầu</label>
+                    <input type="datetime-local" id="eventStart" required>
+                </div>
+                <div class="form-group" style="flex: 1;">
+                    <label>Kết thúc</label>
+                    <input type="datetime-local" id="eventEnd" required>
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Ảnh đại diện Sự kiện (tùy chọn)</label>
+                <input type="file" id="eventImage" accept="image/*">
+            </div>
+            <button type="submit" class="btn-submit">Công bố sự kiện</button>
+        </form>
+    </div>
+</div>
+
+<!-- Modal: Sua bai viet -->
+<div class="modal" id="editPostModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>Chỉnh sửa bài viết</h2>
+            <button class="close-btn" onclick="closeModal('editPostModal')">&times;</button>
+        </div>
+        <form id="editPostForm" class="no-scrollbar">
+            <input type="hidden" id="editPostId">
+            <div class="form-group">
+                <label>Tiêu đề bài viết</label>
+                <input type="text" id="editPostTitle" required>
+            </div>
+            <div class="form-group">
+                <label>Loại bài viết</label>
+                <select id="editPostType">
+                    <option value="thảo luận">Thảo luận</option>
+                    <option value="thông báo">Thông báo</option>
+                    <option value="chia sẻ">Chia sẻ tài liệu</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Nội dung</label>
+                <textarea id="editPostContent" rows="5" required></textarea>
+            </div>
+            <div class="form-group">
+                <label>Ảnh đính kèm mới (tùy chọn)</label>
+                <input type="file" id="editPostImage" accept="image/*">
+            </div>
+            <button type="submit" class="btn-submit">Cập nhật bài viết</button>
+        </form>
+    </div>
+</div>
+
+<!-- Modal: Sua su kien -->
+<div class="modal" id="editEventModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>Chỉnh sửa sự kiện</h2>
+            <button class="close-btn" onclick="closeModal('editEventModal')">&times;</button>
+        </div>
+        <form id="editEventForm" class="no-scrollbar">
+            <input type="hidden" id="editEventId">
+            <div class="form-group">
+                <label>Tên sự kiện</label>
+                <input type="text" id="editEventName" required>
+            </div>
+            <div class="form-group">
+                <label>Mô tả sự kiện</label>
+                <textarea id="editEventDesc" rows="3" required></textarea>
+            </div>
+            <div class="form-group">
+                <label>Địa điểm</label>
+                <input type="text" id="editEventLoc" required>
+            </div>
+            <div class="form-row" style="display: flex; gap: 15px;">
+                <div class="form-group" style="flex: 1;">
+                    <label>Bắt đầu</label>
+                    <input type="datetime-local" id="editEventStart" required>
+                </div>
+                <div class="form-group" style="flex: 1;">
+                    <label>Kết thúc</label>
+                    <input type="datetime-local" id="editEventEnd" required>
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Ảnh đại diện Sự kiện (tùy chọn)</label>
+                <input type="file" id="editEventImage" accept="image/*">
+            </div>
+            <button type="submit" class="btn-submit">Cập nhật sự kiện</button>
+        </form>
+    </div>
+</div>
+
+<!-- Modal: Xem danh sach ghi danh -->
+<div class="modal" id="eventRegistrationsModal">
+    <div class="modal-content" style="max-width: 600px; padding: 0; overflow: hidden; background: #f8fafc;">
+        <div class="modal-header" style="background: white; padding: 25px 30px; border-bottom: 1px solid #e2e8f0; margin: 0;">
+            <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                <div>
+                    <h2 style="margin: 0; font-size: 20px; color: #0f172a;"><i class="fas fa-clipboard-list" style="color: #2563eb; margin-right: 8px;"></i> Danh sách ghi danh</h2>
+                    <p id="registrationsCount" style="margin: 5px 0 0 0; font-size: 13px; color: #64748b;"></p>
+                </div>
+                <button class="close-btn" onclick="closeModal('eventRegistrationsModal')">&times;</button>
+            </div>
+        </div>
+        <div id="registrationsContainer" class="no-scrollbar" style="max-height: 450px; overflow-y: auto; padding: 25px 30px; -ms-overflow-style: none; scrollbar-width: none;">
+            <!-- Data here -->
+        </div>
+    </div>
+</div>

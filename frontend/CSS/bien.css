@@ -1,0 +1,143 @@
+/* 
+   BIEN.CSS - HỆ THỐNG THIẾT KẾ ĐỒNG NHẤT (DESIGN SYSTEM)
+   CLB CONNECT PLATFORM 2026 
+*/
+
+:root {
+    /* Palettes */
+    --primary-color: #c53030;
+    --primary-hover: #9b2222;
+    --secondary-color: #1a2639;
+    --accent-color: #2563eb;
+    --success-color: #16a34a;
+    --warning-color: #eab308;
+    --danger-color: #dc3545;
+    
+    /* Backgrounds */
+    --bg-page: #f8fafc;
+    --bg-card: #ffffff;
+    --bg-glass: rgba(255, 255, 255, 0.85);
+    
+    /* Texts */
+    --text-main: #1e293b;
+    --text-muted: #64748b;
+    --text-light: #f1f5f9;
+    
+    /* Shadows & Borders */
+    --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
+    --shadow-md: 0 4px 15px -3px rgba(0,0,0,0.1);
+    --shadow-lg: 0 10px 25px -5px rgba(0,0,0,0.15);
+    --border-radius: 12px;
+    --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Base Reset & Typography */
+body {
+    background-color: var(--bg-page);
+    color: var(--text-main);
+    font-family: 'Inter', sans-serif;
+}
+
+h1, h2, h3, h4 {
+    font-family: 'Playfair Display', serif;
+    color: var(--secondary-color);
+}
+
+/* Premium Components */
+
+/* 1. Buttons */
+.nut-bam-premium {
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    border: none;
+    outline: none;
+}
+
+.nut-chinh {
+    background: var(--primary-color);
+    color: white;
+}
+
+.nut-chinh:hover {
+    background: var(--primary-hover);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(197, 48, 48, 0.3);
+}
+
+.nut-phu {
+    background: var(--bg-card);
+    color: var(--secondary-color);
+    border: 1px solid #e2e8f0;
+}
+
+.nut-phu:hover {
+    background: #f1f5f9;
+}
+
+/* 2. Modal Glassmorphism */
+.khung-modal {
+    background: var(--bg-glass);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255,255,255,0.3);
+    border-radius: 16px;
+    box-shadow: var(--shadow-lg);
+}
+
+/* 3. Global Toast Notifications */
+#thong-bao-toast {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 10000;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.toast-item {
+    background: white;
+    min-width: 300px;
+    padding: 15px 20px;
+    border-radius: 10px;
+    box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    border-left: 5px solid var(--primary-color);
+    transform: translateX(120%);
+    transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.toast-item.active {
+    transform: translateX(0);
+}
+
+.toast-item.success { border-left-color: var(--success-color); }
+.toast-item.warning { border-left-color: var(--warning-color); }
+.toast-item.info { border-left-color: var(--accent-color); }
+
+.toast-icon { font-size: 20px; }
+.toast-content { flex: 1; }
+.toast-title { font-weight: 700; font-size: 14px; margin-bottom: 2px; }
+.toast-msg { font-size: 13px; color: var(--text-muted); }
+
+/* 4. Loading Skeleton */
+.khung-cho {
+    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+    background-size: 200% 100%;
+    animation: loading-shimmer 1.5s infinite;
+    border-radius: 8px;
+}
+
+@keyframes loading-shimmer {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}

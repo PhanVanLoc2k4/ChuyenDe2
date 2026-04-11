@@ -436,6 +436,8 @@
 </style>
 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link rel="stylesheet" href="CSS/bien.css">
+<script src="/socket.io/socket.io.js"></script>
 
 <header class="newspaper-header">
     <div class="header-top">
@@ -508,6 +510,9 @@
         </ul>
     </div>
 </header>
+
+<!-- Toast Container -->
+<div id="thong-bao-toast"></div>
 
 <script>
     document.addEventListener("DOMContentLoaded", function() {
@@ -636,9 +641,56 @@
                     } catch (err) { console.error(err); }
                 };
 
-                // Initial load and periodic refresh
+                // --- Real-time Socket.io ---
+                const socket = io();
+
+                socket.on('connect', () => {
+                    console.log("📡 Socket connected:", socket.id);
+                    socket.emit("register", user.id);
+                });
+
+                socket.on("new_notification", (data) => {
+                    console.log("⚡ Real-time notification received:", data);
+                    showToast(data.title, data.message, data.type);
+                    loadNotifications(user.id); 
+                });
+
+                socket.on('disconnect', () => {
+                    console.log("🔌 Socket disconnected");
+                });
+
+                function showToast(title, message, type = 'info') {
+                    const toastContainer = document.getElementById('thong-bao-toast');
+                    if (!toastContainer) return;
+
+                    const toast = document.createElement('div');
+                    toast.className = `toast-item ${type}`;
+                    
+                    let icon = 'fa-bell';
+                    if (type === 'membership') icon = 'fa-user-check';
+                    else if (type === 'success') icon = 'fa-check-circle';
+                    
+                    toast.innerHTML = `
+                        <div class="toast-icon">
+                            <i class="fas ${icon}"></i>
+                        </div>
+                        <div class="toast-content">
+                            <div class="toast-title">${title}</div>
+                            <div class="toast-msg">${message}</div>
+                        </div>
+                    `;
+                    
+                    toastContainer.appendChild(toast);
+                    setTimeout(() => toast.classList.add('active'), 100);
+                    
+                    setTimeout(() => {
+                        toast.classList.remove('active');
+                        setTimeout(() => toast.remove(), 500);
+                    }, 5000);
+                }
+
+                // Initial load
                 loadNotifications(user.id);
-                setInterval(() => loadNotifications(user.id), 60000);
 
                 // Đóng menu nếu click ra ngoài vùng user-info hoặc noti-btn
                 window.onclick = function(event) {

@@ -1,0 +1,28 @@
+<!-- Sidebar Navigation -->
+<aside class="dashboard-sidebar">
+    <div class="sidebar-nav">
+        <div class="nav-item active" data-tab="feed" onclick="switchTab('feed')">
+            <i class="fas fa-newspaper"></i> <span>Bản tin CLB</span>
+        </div>
+        <div class="nav-item" data-tab="events" onclick="switchTab('events')">
+            <i class="fas fa-calendar-alt"></i> <span>Sự kiện</span>
+        </div>
+        <div class="nav-item" data-tab="members" id="navMembers" onclick="switchTab('members')">
+            <i class="fas fa-user-shield"></i> <span>Thành viên & Duyệt</span>
+        </div>
+        <div class="nav-item" data-tab="stats" onclick="switchTab('stats')">
+            <i class="fas fa-chart-line"></i> <span>Thống kê & Xếp hạng</span>
+        </div>
+        <div class="nav-item" data-tab="settings" id="navSettings" onclick="switchTab('settings')" style="display: none;">
+            <i class="fas fa-cog"></i> <span>Cài đặt CLB</span>
+        </div>
+    </div>
+
+    <!-- Mini widgets -->
+    <div class="sidebar-widget">
+        <h3><i class="fas fa-star" style="color: #fbbf24;"></i> Thành tích gần đây</h3>
+        <div id="recentAchievements">
+            <p style="font-size: 13px; color: #64748b; padding: 10px;">Chưa có thành tích mới.</p>
+        </div>
+    </div>
+</aside>
