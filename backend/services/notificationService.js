@@ -19,9 +19,13 @@ async function createNotification(userId, title, message, type, link = "") {
         
         // --- REAL-TIME: Gửi qua Socket ---
         const { sendToUser } = require("./socketService");
-        sendToUser(uId, "new_notification", { title, message, type, link, created_at: new Date() });
-
-        console.log(`✅ Notification created & emitted successfully for User ${uId}`);
+        const emitted = sendToUser(uId, "new_notification", { title, message, type, link, created_at: new Date() });
+        
+        if (emitted) {
+            console.log(`✅ Socket emission successful for User ${uId}`);
+        } else {
+            console.log(`⚠️ User ${uId} not online. Notification stored in DB.`);
+        }
     } catch (err) { 
         console.error(`❌ Error creating notification for User ${userId}:`, err.message); 
     }

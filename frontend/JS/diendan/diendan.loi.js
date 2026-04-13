@@ -42,7 +42,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         document.getElementById('clubHero').style.display = 'flex';
         document.getElementById('clubDashboardContent').style.display = 'block';
         switchTab('feed');
-        if (typeof setupFormListeners === 'function') setupFormListeners();
+        // setupFormListeners removed to avoid duplicate handlers from diendan.bieumau.js
     } else {
         alert(`Không tìm thấy thông tin Câu lạc bộ (ID: ${clubId}). Vui lòng kiểm tra lại.`);
         window.location.href = "/clb";
@@ -120,32 +120,33 @@ async function loadClubInfo() {
             document.getElementById('clubHero').style.backgroundPosition = 'center';
         }
 
-        // Kiểm tra quyền Trưởng CLB
-        const isLeader = currentUser && clubData && Number(currentUser.id) === Number(clubData.created_by);
-        const isAdmin = currentUser && (currentUser.role === 'admin' || currentUser.role_name === 'admin');
-        
-        // Luôn hiện Cài đặt cho thành viên, nhưng Phân quyền chỉ cho Leader & Admin
-        const tabCaiDat = document.getElementById('navSettings');
-        if (isLeader || isAdmin) {
-            tabCaiDat.style.display = 'flex';
-        } else {
-            tabCaiDat.style.display = 'flex'; // Hiện tại đang để flex cho tất cả, giữ nguyên hoặc có thể đổi tùy yêu cầu
-        }
-        
-        if (isLeader || isAdmin) {
-            document.getElementById('navMembers').style.display = 'flex';
-            document.getElementById('btnCreateEvent').style.display = 'flex';
-        } else {
-            document.getElementById('navMembers').style.display = 'none';
-            document.getElementById('btnCreateEvent').style.display = 'none';
-        }
-
-        // Lấy số lượng thành viên sơ bộ
+        // Lấy danh sách thành viên để kiểm tra quyền
         const membersResp = await fetch(`/api/clubs/${clubId}/members`);
+        let isMember = false;
         if (membersResp.ok) {
             const members = await membersResp.json();
             document.getElementById('clubMemberCount').innerHTML = `<i class="fas fa-user-friends"></i> ${members.length} thành viên`;
+            isMember = currentUser && members.some(m => Number(m.id) === Number(currentUser.id || currentUser.user_id));
         }
+
+        const isAdmin = currentUser && (currentUser.role === 'admin' || currentUser.role_name === 'admin');
+        const isLeader = currentUser && clubData && Number(currentUser.id) === Number(clubData.created_by);
+        
+        // Hiển thị các nút chức năng dựa trên quyền
+        const canPost = isMember || isLeader || isAdmin;
+        const canManage = isLeader || isAdmin;
+
+        const btnCreatePost = document.getElementById('btnCreatePost');
+        if (btnCreatePost) btnCreatePost.style.display = canPost ? 'flex' : 'none';
+
+        const btnCreateEvent = document.getElementById('btnCreateEvent');
+        if (btnCreateEvent) btnCreateEvent.style.display = canManage ? 'flex' : 'none';
+
+        const navMembers = document.getElementById('navMembers');
+        if (navMembers) navMembers.style.display = canManage ? 'flex' : 'none';
+
+        const navSettings = document.getElementById('navSettings');
+        if (navSettings) navSettings.style.display = canManage ? 'flex' : 'none';
 
         return true;
     } catch (err) {
@@ -179,15 +180,21 @@ window.onclick = (event) => {
 };
 
 function togglePostDropdown(event, typeId) {
-    event.stopPropagation();
+    if (event) event.stopPropagation();
     const dropdown = document.getElementById(`dropdown-${typeId}`);
-    const isVisible = dropdown.style.display === 'block';
-    document.querySelectorAll('.action-dropdown').forEach(d => d.style.display = 'none');
-    if (!isVisible) dropdown.style.display = 'block';
+    
+    // Close other dropdowns
+    document.querySelectorAll('.mgmt-dropdown').forEach(d => {
+        if (d !== dropdown) d.classList.remove('show');
+    });
+    
+    if (dropdown) {
+        dropdown.classList.toggle('show');
+    }
 }
 
 document.addEventListener('click', () => {
-    document.querySelectorAll('.action-dropdown').forEach(d => d.style.display = 'none');
+    document.querySelectorAll('.mgmt-dropdown').forEach(d => d.classList.remove('show'));
 });
 
 const toBase64 = file => new Promise((resolve, reject) => {

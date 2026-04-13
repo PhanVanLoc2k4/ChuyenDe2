@@ -12,7 +12,12 @@ const getAllEvents = async (req, res) => {
             SELECT e.id, e.event_name, e.description, e.location, e.start_time, e.end_time, e.image, 
                    e.likes, e.views, e.comments,
                    (SELECT COUNT(*) FROM event_registrations er WHERE er.event_id = e.id) as participant_count,
-                   c.club_name, c.id as club_id
+                   c.club_name, c.id as club_id,
+                   (CASE WHEN EXISTS (
+                       SELECT 1 FROM user_roles ur 
+                       JOIN roles r ON ur.role_id = r.id 
+                       WHERE ur.user_id = e.created_by AND r.role_name = 'admin'
+                   ) THEN 1 ELSE 0 END) as is_admin_event
         `;
         if (userId) {
             query += `, (CASE WHEN EXISTS (SELECT 1 FROM event_registrations er WHERE er.event_id = e.id AND er.user_id = @uid) THEN 1 ELSE 0 END) as is_registered `;
@@ -22,13 +27,13 @@ const getAllEvents = async (req, res) => {
             query += `, 0 as is_registered, 0 as user_liked `;
         }
         
-        query += ` FROM events e JOIN clubs c ON e.club_id = c.id `;
+        query += ` FROM events e LEFT JOIN clubs c ON e.club_id = c.id `;
         
         if (clubId) {
             query += ` WHERE e.club_id = @cid`;
             request.input("cid", sql.Int, clubId);
         }
-        query += ` ORDER BY e.start_time ASC`;
+        query += ` ORDER BY is_admin_event DESC, e.created_at DESC`;
         const result = await request.query(query);
         res.json(result.recordset);
     } catch (err) {
@@ -38,7 +43,16 @@ const getAllEvents = async (req, res) => {
 
 // 2. Tạo sự kiện mới
 const createEvent = async (req, res) => {
-    const { event_name, description, location, start_time, end_time, club_id, created_by, image } = req.body;
+    console.log("[POST /api/events] Body:", req.body);
+    let { event_name, description, location, start_time, end_time, club_id, created_by, image } = req.body;
+    
+    // Fix FK Violation: Convert 0 or empty strings to null for School Events
+    if (club_id === 0 || club_id === "0" || club_id === "" || club_id === undefined) {
+        club_id = null;
+    }
+
+    console.log(`[POST /api/events] Received event: "${event_name}" for Club ID: ${club_id}`);
+    
     const pool = getPool();
     try {
         const result = await pool.request()
@@ -56,22 +70,41 @@ const createEvent = async (req, res) => {
         
         const eventId = result.recordset[0].id;
 
-        // Gửi thông báo
+        // Gửi thông báo (chỉ nếu có club_id)
         try {
-            const clubRes = await pool.request().input("cid", sql.Int, club_id).query("SELECT club_name, created_by FROM clubs WHERE id = @cid");
-            const clubData = clubRes.recordset[0];
-            const clubName = clubData?.club_name || "CLB";
-            const creatorId = clubData?.created_by;
-            
-            const members = await pool.request().input("cid", sql.Int, club_id).query("SELECT user_id FROM club_members WHERE club_id = @cid AND status = 'active'");
-            
-            const recipientIds = new Set(members.recordset.map(m => m.user_id));
-            if (creatorId && creatorId !== parseInt(created_by)) recipientIds.add(creatorId);
+            if (club_id) {
+                const clubRes = await pool.request().input("cid", sql.Int, club_id).query("SELECT club_name, created_by FROM clubs WHERE id = @cid");
+                const clubData = clubRes.recordset[0];
+                const clubName = clubData?.club_name || "CLB";
+                const creatorId = clubData?.created_by;
+                
+                const members = await pool.request().input("cid", sql.Int, club_id).query("SELECT user_id FROM club_members WHERE club_id = @cid AND status = 'active'");
+                
+                const recipientIds = new Set(members.recordset.map(m => m.user_id));
+                if (creatorId && creatorId !== parseInt(created_by)) recipientIds.add(creatorId);
 
-            for (const rid of recipientIds) {
-                if (rid !== parseInt(created_by)) {
-                    await createNotification(rid, "Sự kiện mới!", `"${clubName}" vừa tạo sự kiện mới: ${event_name}`, "event", `/DienDan?id=${club_id}`);
+                for (const rid of recipientIds) {
+                    if (rid !== parseInt(created_by)) {
+                        await createNotification(rid, "Sự kiện mới!", `"${clubName}" vừa tạo sự kiện mới: ${event_name}`, "event", `/DienDan?id=${club_id}`);
+                    }
                 }
+            } else {
+                // Đây là sự kiện của Trường (không CLB) -> Thông báo toàn hệ thống (Chạy ngầm để không block phản hồi API)
+                const allUsers = await pool.request().query("SELECT id FROM users WHERE status = 'active' OR status IS NULL");
+                const userCount = allUsers.recordset.length;
+                console.log(`📢 [BROADCAST] Found ${userCount} active users to notify about school event.`);
+
+                // Chạy ngầm tiến trình gửi để không block res.json
+                setImmediate(async () => {
+                    for (const u of allUsers.recordset) {
+                        try {
+                            if (Number(u.id) !== Number(created_by)) {
+                                await createNotification(u.id, "Thông báo Nhà trường", `Trường vừa tạo sự kiện mới: ${event_name}`, "event", `/TinTuc?eventId=${eventId}`);
+                            }
+                        } catch (e) { console.error(`Failed to notify user ${u.id}:`, e); }
+                    }
+                    console.log(`✅ [BROADCAST] Finished notifying all users.`);
+                });
             }
         } catch (notifErr) { console.error("Lỗi gửi thông báo sự kiện:", notifErr); }
 
@@ -105,7 +138,7 @@ const getEventDetail = async (req, res) => {
 
         query += `
             FROM events e
-            JOIN clubs c ON e.club_id = c.id
+            LEFT JOIN clubs c ON e.club_id = c.id
             LEFT JOIN users u ON e.created_by = u.id
             WHERE e.id = @id
         `;
@@ -207,8 +240,12 @@ const getEventRegistrations = async (req, res) => {
 
 // 8. Cập nhật sự kiện
 const updateEvent = async (req, res) => {
+    console.log("[PUT /api/events] Body:", req.body);
     const { event_name, description, location, start_time, end_time, image, user_id } = req.body;
     const event_id = req.params.id;
+
+    console.log(`[PUT /api/events/${event_id}] Update request from User: ${user_id}`);
+
     const pool = getPool();
     try {
         const check = await pool.request().input("id", sql.Int, event_id).query("SELECT created_by FROM events WHERE id = @id");
@@ -234,6 +271,19 @@ const updateEvent = async (req, res) => {
             .query(`UPDATE events SET event_name = @name, description = @desc, location = @loc, 
                     start_time = @st, end_time = @et, image = @img WHERE id = @id`);
         
+        // Thêm thông báo nếu là sự kiện Nhà trường (club_id IS NULL)
+        const eventData = check.recordset[0];
+        if (!eventData.club_id) {
+            const allUsers = await pool.request().query("SELECT id FROM users WHERE status = 'active' OR status IS NULL");
+            setImmediate(async () => {
+                for (const u of allUsers.recordset) {
+                    if (Number(u.id) !== Number(user_id)) {
+                        await createNotification(u.id, "Cập nhật Nhà trường", `Sự kiện "${event_name}" vừa được cập nhật thông tin mới.`, "event", `/TinTuc?eventId=${event_id}`);
+                    }
+                }
+            });
+        }
+
         res.json({ message: "Cập nhật sự kiện thành công!" });
     } catch (err) { res.status(500).json({ message: "Lỗi cập nhật sự kiện" }); }
 };

@@ -24,13 +24,17 @@ async function loadEvents() {
 
         list.innerHTML = events.map(ev => {
             const mgmtHtml = canManageEvent ? `
-                <div style="position: absolute; top: 15px; right: 15px; z-index: 20;">
-                    <button onclick="togglePostDropdown(event, 'event-${ev.id}')" style="background:none; border:none; cursor:pointer; color:#94a3b8; font-size: 18px; padding: 5px; border-radius: 50%; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; transition: 0.2s;" onmouseover="this.style.background='#f1f5f9'" onmouseout="this.style.background='none'">
+                <div class="mgmt-container" style="position: absolute; top: 15px; right: 15px;">
+                    <button onclick="togglePostDropdown(event, 'event-${ev.id}')" class="mgmt-btn">
                         <i class="fas fa-ellipsis-v"></i>
                     </button>
-                    <div id="dropdown-event-${ev.id}" class="action-dropdown" style="display: none; position: absolute; right: 0; top: 35px; background: white; box-shadow: 0 4px 15px rgba(0,0,0,0.1); border-radius: 12px; overflow: hidden; min-width: 140px; border: 1px solid #e2e8f0;">
-                        <button onclick="event.stopPropagation(); openEditEvent(${ev.id})" style="display: block; width: 100%; text-align: left; padding: 12px 16px; background: none; border: none; cursor: pointer; color: #475569; font-size: 13px; transition: 0.2s; font-weight: 500;" onmouseover="this.style.background='#f8fafc'"><i class="fas fa-edit" style="width: 20px; color: #94a3b8;"></i> Sửa sự kiện</button>
-                        <button onclick="event.stopPropagation(); deleteEvent(${ev.id})" style="display: block; width: 100%; text-align: left; padding: 12px 16px; background: none; border: none; cursor: pointer; color: #ef4444; font-size: 13px; transition: 0.2s; font-weight: 500;" onmouseover="this.style.background='#fee2e2'"><i class="fas fa-trash" style="width: 20px; color: #ef4444;"></i> Xóa sự kiện</button>
+                    <div id="dropdown-event-${ev.id}" class="mgmt-dropdown">
+                        <button onclick="event.stopPropagation(); openEditEvent(${ev.id})" class="mgmt-item">
+                            <i class="fas fa-edit"></i> Chỉnh sửa
+                        </button>
+                        <button onclick="event.stopPropagation(); deleteEvent(${ev.id})" class="mgmt-item danger">
+                            <i class="fas fa-trash"></i> Xóa sự kiện
+                        </button>
                     </div>
                 </div>
             ` : "";
@@ -60,6 +64,14 @@ async function loadEvents() {
                     : `<span style="font-size: 12px; color: #c53030; font-weight: bold; background: #fef2f2; padding: 5px 10px; border-radius: 8px; margin-right: 25px;"><i class="fas fa-users"></i> DS Đăng ký</span>`}
                             </div>
                         </div>
+                        ${ev.is_admin_event ? `
+                        <div style="display: flex; align-items: center; gap: 5px; margin-bottom: 8px;">
+                            <span style="background: linear-gradient(135deg, #1e293b 0%, #334155 100%); color: white; font-size: 11px; font-weight: 800; padding: 4px 10px; border-radius: 6px; text-transform: uppercase; letter-spacing: 0.5px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); display: flex; align-items: center; gap: 5px;">
+                                <i class="fas fa-certificate" style="color: #fbbf24;"></i> NHÀ TRƯỜNG
+                            </span>
+                            <span style="background: rgba(16, 185, 129, 0.1); color: #059669; font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 6px; text-transform: uppercase;">ƯU TIÊN</span>
+                        </div>
+                        ` : ""}
                         <h3 class="post-title" style="padding-right: 30px;">${ev.event_name}</h3>
                         <p style="color: #64748b; font-size: 14px; margin-bottom: 10px;">
                             <i class="fas fa-map-marker-alt"></i> ${ev.location}
@@ -143,6 +155,48 @@ async function cancelEventRegistration(eventId, eventObj) {
     } catch (err) { alert("Lỗi hủy đăng ký sự kiện."); }
 }
 
+async function submitCreateEvent(event) {
+    if (event) event.preventDefault();
+    if (!currentUser) return alert("Vui lòng đăng nhập!");
+    
+    const name = document.getElementById('eventName').value;
+    const desc = document.getElementById('eventDesc').value;
+    const loc = document.getElementById('eventLoc').value;
+    const stTime = document.getElementById('eventStart').value;
+    const edTime = document.getElementById('eventEnd').value;
+    const imageFile = document.getElementById('eventImage').files[0];
+    
+    let imageBase64 = null;
+    if (imageFile) imageBase64 = await toBase64(imageFile);
+    
+    try {
+        const response = await fetch('/api/events', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                event_name: name,
+                description: desc,
+                location: loc,
+                start_time: stTime,
+                end_time: edTime,
+                club_id: (clubId && clubId !== 0) ? Number(clubId) : null,
+                created_by: (currentUser.user_id || currentUser.id),
+                image: imageBase64 || ""
+            })
+        });
+        
+        const res = await response.json();
+        alert(res.message);
+        
+        if (response.ok) {
+            closeModal('createEventModal');
+            document.getElementById('eventForm').reset();
+            loadEvents();
+            if (typeof loadClubStatistics === 'function') loadClubStatistics();
+        }
+    } catch (err) { console.error(err); alert("Lỗi tạo sự kiện."); }
+}
+
 async function likeEvent(eventId) {
     if (!currentUser) return alert("Vui lòng đăng nhập!");
     try {
@@ -191,7 +245,8 @@ function openEditEvent(id) {
 async function deleteEvent(id) {
     if (!confirm("Xóa sự kiện này sẽ tự động xóa tất cả đăng ký tham gia. Tiếp tục?")) return;
     try {
-        const response = await fetch(`/api/events/${id}`, { method: 'DELETE' });
+        const userId = currentUser.id || currentUser.user_id;
+        const response = await fetch(`/api/events/${id}?user_id=${userId}`, { method: 'DELETE' });
         if (response.ok) {
             alert("Xóa thành công.");
             loadEvents();
@@ -266,4 +321,51 @@ async function submitAttendance(registrationId, status, eventId) {
             if (typeof loadPosts === 'function') loadPosts(); // Optional: update stats
         } else alert("Lỗi: " + result.message);
     } catch (err) { alert("Lỗi hệ thống khi điểm danh."); }
+}
+
+async function submitEditEvent(event) {
+    if (event) event.preventDefault();
+    const id = document.getElementById('editEventId').value;
+    const name = document.getElementById('editEventName').value;
+    const desc = document.getElementById('editEventDesc').value;
+    const loc = document.getElementById('editEventLoc').value;
+    const stTime = document.getElementById('editEventStart').value;
+    const edTime = document.getElementById('editEventEnd').value;
+    const imageFile = document.getElementById('editEventImage').files[0];
+
+    let imageBase64 = null;
+    if (imageFile) {
+        imageBase64 = await toBase64(imageFile);
+    } else {
+        const ev = window.currentEventsData.find(e => e.id == id);
+        imageBase64 = ev ? ev.image : null;
+    }
+
+    try {
+        const response = await fetch(`/api/events/${id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                event_name: name,
+                description: desc,
+                location: loc,
+                start_time: stTime,
+                end_time: edTime,
+                image: imageBase64,
+                user_id: (currentUser.user_id || currentUser.id)
+            })
+        });
+
+        if (response.ok) {
+            alert("Cập nhật sự kiện thành công!");
+            closeModal('editEventModal');
+            loadEvents();
+        } else {
+            const data = await response.json();
+            alert("Lỗi: " + (data.message || "Không thể cập nhật sự kiện."));
+        }
+    } catch (err) {
+        console.error(err);
+        alert("Lỗi hệ thống khi cập nhật.");
+    }
 }

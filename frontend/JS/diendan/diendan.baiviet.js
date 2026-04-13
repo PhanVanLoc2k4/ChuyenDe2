@@ -42,13 +42,13 @@ async function loadPosts() {
             const canManage = isLeader || isAuthor || isAdmin;
 
             const manageHtml = canManage ? `
-                <div class="post-manage-menu">
-                    <button onclick="togglePostDropdown(event, 'post-${post.id}')" class="manage-btn">
+                <div class="mgmt-container">
+                    <button onclick="togglePostDropdown(event, 'post-${post.id}')" class="mgmt-btn">
                         <i class="fas fa-ellipsis-v"></i>
                     </button>
-                    <div id="dropdown-post-${post.id}" class="action-dropdown">
-                        <button onclick="openEditPost(${post.id})" class="dropdown-item"><i class="fas fa-edit"></i> Sửa bài</button>
-                        <button onclick="deletePost(${post.id})" class="dropdown-item delete"><i class="fas fa-trash"></i> Xóa bài</button>
+                    <div id="dropdown-post-${post.id}" class="mgmt-dropdown">
+                        <button onclick="openEditPost(${post.id})" class="mgmt-item"><i class="fas fa-edit"></i> Chỉnh sửa</button>
+                        <button onclick="deletePost(${post.id})" class="mgmt-item danger"><i class="fas fa-trash"></i> Xóa bài viết</button>
                     </div>
                 </div>
             ` : "";
@@ -168,6 +168,45 @@ function openEditPost(id) {
     openModal('editPostModal');
 }
 
+async function submitCreatePost(event) {
+    if (event) event.preventDefault();
+    if (!currentUser) return alert("Vui lòng đăng nhập!");
+    
+    const title = document.getElementById('postTitle').value;
+    const content = document.getElementById('postContent').value;
+    const type = document.getElementById('postType').value;
+    const imageFile = document.getElementById('postImage').files[0];
+    
+    let imageBase64 = null;
+    if (imageFile) imageBase64 = await toBase64(imageFile);
+    
+    try {
+        const response = await fetch('/api/posts', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                title,
+                content,
+                type,
+                image: imageBase64 || "",
+                club_id: Number(clubId),
+                user_id: (currentUser.user_id || currentUser.id)
+            })
+        });
+        
+        if (response.ok) {
+            alert("Đăng bài thành công!");
+            closeModal('createPostModal');
+            document.getElementById('postForm').reset();
+            loadPosts();
+            if (typeof loadClubStatistics === 'function') loadClubStatistics();
+        } else {
+            const data = await response.json();
+            alert("Lỗi: " + data.message);
+        }
+    } catch (err) { console.error(err); alert("Lỗi khi đăng bài."); }
+}
+
 async function deletePost(id) {
     if (!confirm("Bạn có chắc chắn muốn xóa bài viết này không?")) return;
     try {
@@ -181,4 +220,47 @@ async function deletePost(id) {
             alert("Lỗi: " + (res.message || "Không thể xóa bài viết."));
         }
     } catch (err) { console.error(err); }
+}
+
+async function submitEditPost(event) {
+    if (event) event.preventDefault();
+    const id = document.getElementById('editPostId').value;
+    const title = document.getElementById('editPostTitle').value;
+    const content = document.getElementById('editPostContent').value;
+    const type = document.getElementById('editPostType').value;
+    const imageFile = document.getElementById('editPostImage').files[0];
+
+    let imageBase64 = null;
+    if (imageFile) {
+        imageBase64 = await toBase64(imageFile);
+    } else {
+        const post = window.currentPostsData.find(p => p.id == id);
+        imageBase64 = post ? post.image : null;
+    }
+
+    try {
+        const response = await fetch(`/api/posts/${id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                title,
+                content,
+                type,
+                image: imageBase64,
+                user_id: (currentUser.user_id || currentUser.id)
+            })
+        });
+
+        if (response.ok) {
+            alert("Cập nhật bài viết thành công!");
+            closeModal('editPostModal');
+            loadPosts();
+        } else {
+            const data = await response.json();
+            alert("Lỗi: " + (data.message || "Không thể cập nhật bài viết."));
+        }
+    } catch (err) {
+        console.error(err);
+        alert("Lỗi hệ thống khi cập nhật.");
+    }
 }

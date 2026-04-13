@@ -141,3 +141,113 @@ h1, h2, h3, h4 {
     0% { background-position: 200% 0; }
     100% { background-position: -200% 0; }
 }
+
+/* --- PREMIUM MANAGEMENT MENU COMPONENT --- */
+/* Unified styles for the "three-dot" ellipsis menu across News Feed and Club Forum */
+
+.mgmt-container {
+    position: relative;
+    display: inline-block;
+    z-index: 50;
+    margin-left: auto; /* Push to right in flex headers */
+}
+
+.mgmt-btn {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    border: none;
+    background: transparent;
+    color: var(--text-muted);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: var(--transition);
+    font-size: 18px;
+}
+
+.mgmt-btn:hover {
+    background: rgba(197, 48, 48, 0.08);
+    color: var(--primary-color);
+    transform: scale(1.1);
+}
+
+.mgmt-dropdown {
+    display: none; /* Controlled by JS toggle */
+    position: absolute;
+    top: 45px;
+    right: 0;
+    min-width: 180px;
+    background: rgba(255, 255, 255, 0.96);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-radius: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.05);
+    z-index: 1000;
+    overflow: hidden;
+    transform-origin: top right;
+    animation: mgmtDropdownAppear 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes mgmtDropdownAppear {
+    from {
+        opacity: 0;
+        transform: scale(0.9) translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+.mgmt-dropdown.show {
+    display: block !important;
+}
+
+.mgmt-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    padding: 14px 20px;
+    border: none;
+    background: transparent;
+    color: var(--text-main);
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    text-align: left;
+    transition: all 0.2s;
+}
+
+.mgmt-item i {
+    width: 18px;
+    font-size: 16px;
+    color: var(--text-muted);
+    transition: transform 0.2s;
+}
+
+.mgmt-item:hover {
+    background: #f8fafc;
+    color: var(--primary-color);
+}
+
+.mgmt-item:hover i {
+    color: var(--primary-color);
+    transform: translateX(3px);
+}
+
+/* Danger state for Delete actions */
+.mgmt-item.danger {
+    color: var(--danger-color);
+}
+
+.mgmt-item.danger i {
+    color: var(--danger-color);
+}
+
+.mgmt-item.danger:hover {
+    background: #fff5f5;
+}

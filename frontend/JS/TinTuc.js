@@ -142,13 +142,13 @@ function renderPostHTML(post) {
     }
     
     const manageHtml = canManage ? `
-        <div class="post-manage-menu">
-            <button onclick="togglePostDropdown(event, 'post-${post.id}')" class="manage-btn">
+        <div class="mgmt-container">
+            <button onclick="togglePostDropdown(event, 'post-${post.id}')" class="mgmt-btn">
                 <i class="fas fa-ellipsis-v"></i>
             </button>
-            <div id="dropdown-post-${post.id}" class="action-dropdown">
-                <button onclick="openEditPost(${post.id})" class="dropdown-item"><i class="fas fa-edit"></i> Sửa bài</button>
-                <button onclick="deletePost(${post.id})" class="dropdown-item delete"><i class="fas fa-trash"></i> Xóa bài</button>
+            <div id="dropdown-post-${post.id}" class="mgmt-dropdown">
+                <button onclick="openEditPost(${post.id})" class="mgmt-item"><i class="fas fa-edit"></i> Chỉnh sửa</button>
+                <button onclick="deletePost(${post.id})" class="mgmt-item danger"><i class="fas fa-trash"></i> Xóa bài viết</button>
             </div>
         </div>
     ` : "";
@@ -240,10 +240,10 @@ function renderEventHTML(ev) {
     return `
     <div class="post-card event-post ${statusClass}" id="event-${ev.id}">
         <div class="post-header">
-            <div class="club-avatar">${(ev.club_name || 'C').charAt(0)}</div>
+            <div class="club-avatar">${ev.club_name ? ev.club_name.charAt(0) : '🏢'}</div>
             <div class="post-author-info">
                 <div class="post-author">
-                    ${ev.club_name || 'CLB Cộng đồng'}
+                    ${ev.club_name || '🏢 NHÀ TRƯỜNG'}
                     <span class="event-badge">Sự kiện</span>
                 </div>
                 <div class="post-time">
@@ -252,6 +252,19 @@ function renderEventHTML(ev) {
                 </div>
             </div>
             <div class="event-status-mini ${statusClass}">${statusText}</div>
+            
+            <!-- Dropdown quản lý sự kiện -->
+            ${(currentUser && (currentUser.role === 'admin' || currentUser.role_name === 'admin' || Number(ev.created_by) === Number(currentUser.user_id || currentUser.id))) ? `
+            <div class="mgmt-container">
+                <button class="mgmt-btn" onclick="togglePostDropdown(event, 'event-${ev.id}')">
+                    <i class="fas fa-ellipsis-v"></i>
+                </button>
+                <div id="dropdown-event-${ev.id}" class="mgmt-dropdown">
+                    <button onclick="openEditEvent(${ev.id})" class="mgmt-item"><i class="fas fa-edit"></i> Chỉnh sửa</button>
+                    <button onclick="deleteEvent(${ev.id})" class="mgmt-item danger"><i class="fas fa-trash"></i> Xóa sự kiện</button>
+                </div>
+            </div>
+            ` : ''}
         </div>
 
         <div class="event-highlight">
@@ -617,90 +630,98 @@ async function submitComment(postId, parentId = null) {
     }
 }
 
-// --- POST MANAGEMENT ---
-
+// --- MANAGEMENT FUNCTIONS (Unified) ---
 function togglePostDropdown(event, typeId) {
-    event.stopPropagation();
+    if (event) event.stopPropagation();
     const dropdown = document.getElementById(`dropdown-${typeId}`);
-    const isVisible = dropdown.style.display === 'block';
     
-    // Hide all first
-    document.querySelectorAll('.action-dropdown').forEach(d => d.style.display = 'none');
+    // Close other dropdowns
+    document.querySelectorAll('.mgmt-dropdown').forEach(d => {
+        if (d !== dropdown) d.classList.remove('show');
+    });
     
-    if (!isVisible) dropdown.style.display = 'block';
+    if (dropdown) {
+        dropdown.classList.toggle('show');
+    }
 }
 
-// Click outside to close dropdowns
+// Click anywhere to close dropdowns
 document.addEventListener('click', () => {
-    document.querySelectorAll('.action-dropdown').forEach(d => d.style.display = 'none');
+    document.querySelectorAll('.mgmt-dropdown').forEach(d => d.classList.remove('show'));
 });
 
-function openEditPost(id) {
-    // Search in allFeedItems
-    const post = allFeedItems.find(p => p.id === id && p.feedType === 'post');
+// --- POST MANAGEMENT ---
+function openEditPost(postId) {
+    const post = allFeedItems.find(p => p.id === postId && p.feedType === 'post');
     if (!post) return;
     
     document.getElementById('editPostId').value = post.id;
-    document.getElementById('editPostTitle').value = post.title || '';
-    document.getElementById('editPostType').value = post.type || 'Cộng đồng';
-    document.getElementById('editPostContent').value = post.content || '';
-    document.getElementById('editPostImageName').textContent = 'Chọn ảnh khác...';
+    document.getElementById('editPostTitle').value = post.title || "";
+    document.getElementById('editPostContent').value = post.content || "";
+    document.getElementById('editPostType').value = post.type || "Cộng đồng";
+    document.getElementById('editPostImageName').textContent = post.image ? "Đã có ảnh (Click để thay đổi)" : "Chọn ảnh tải lên";
     
-    document.getElementById('editPostModal').classList.add('active');
+    openModal('editPostModal');
 }
 
-async function deletePost(id) {
-    if(!confirm("Bạn có chắc chắn muốn xóa bài viết này cùng tất cả bình luận/lượt thích của nó không?")) return;
+async function deletePost(postId) {
+    if (!confirm("Bạn có chắc chắn muốn xóa bài viết này không?")) return;
+    const uid = currentUser ? (currentUser.user_id || currentUser.id) : null;
+    
     try {
-        const response = await fetch(`/api/posts/${id}`, { method: 'DELETE' });
-        if(response.ok) {
-            alert("Xóa thành công.");
-            loadFeed(); // Refresh feed
+        const res = await fetch(`/api/posts/${postId}?user_id=${uid}`, { method: 'DELETE' });
+        if (res.ok) {
+            alert("Đã xóa bài viết thành công!");
+            loadFeed();
         } else {
             alert("Lỗi khi xóa bài viết.");
         }
-    } catch(err) { console.error(err); }
+    } catch (err) {
+        console.error(err);
+        alert("Lỗi kết nối server.");
+    }
 }
 
 async function submitEditPost(event) {
     event.preventDefault();
-    if (!currentUser) return alert("Hết phiên làm việc, vui lòng đăng nhập!");
-    
     const id = document.getElementById('editPostId').value;
     const title = document.getElementById('editPostTitle').value;
-    const type = document.getElementById('editPostType').value;
     const content = document.getElementById('editPostContent').value;
-    const imageInput = document.getElementById('editPostImage');
+    const type = document.getElementById('editPostType').value;
+    const imageFile = document.getElementById('editPostImage').files[0];
     
-    let base64Image = null;
-    if (imageInput.files && imageInput.files[0]) {
-        base64Image = await toBase64(imageInput.files[0]);
+    let imageBase64 = null;
+    if (imageFile) {
+        imageBase64 = await toBase64(imageFile);
+    } else {
+        const post = allFeedItems.find(p => p.id == id);
+        imageBase64 = post ? post.image : null;
     }
-
+    
     try {
         const res = await fetch(`/api/posts/${id}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                user_id: currentUser.id,
-                title,
-                type,
-                content,
-                image: base64Image
+            body: JSON.stringify({ 
+                title, 
+                content, 
+                type, 
+                image: imageBase64,
+                user_id: (currentUser.user_id || currentUser.id)
             })
         });
-
+        
         if (res.ok) {
-            alert("Cập nhật thành công!");
+            alert("Cập nhật bài viết thành công!");
             closeModal('editPostModal');
             loadFeed();
         } else {
-            const data = await res.json();
-            alert(data.message || "Lỗi cập nhật!");
+            const errData = await res.json();
+            alert("Lỗi: " + (errData.message || "Không xác định"));
         }
     } catch (err) {
         console.error(err);
-        alert("Lỗi hệ thống!");
+        alert("Lỗi hệ thống.");
     }
 }
 
@@ -718,7 +739,7 @@ function showEventDetail(eventId) {
     
     document.getElementById('detailEventTitle').textContent = "Chi tiết sự kiện";
     document.getElementById('detailEventName').textContent = ev.event_name;
-    document.getElementById('detailEventClub').textContent = ev.club_name || "CLB Công Đồng";
+    document.getElementById('detailEventClub').textContent = ev.club_name || "🏢 NHÀ TRƯỜNG";
     document.getElementById('detailDateTime').textContent = `${new Date(ev.start_time).toLocaleTimeString('vi-VN')} - ${new Date(ev.start_time).toLocaleDateString('vi-VN')}`;
     document.getElementById('detailLocation').textContent = ev.location;
     document.getElementById('detailDescription').textContent = ev.description;
@@ -903,17 +924,42 @@ async function createPost() {
 async function loadClubsForForms() {
     if (!currentUser) return;
     try {
+        const isAdmin = currentUser.role === 'admin' || currentUser.role_name === 'admin';
         const uid = currentUser.user_id || currentUser.id;
-        const response = await fetch(`/api/user/clubs/${uid}`);
-        const clubs = await response.json();
+        
+        // Admin được phép chọn bất kỳ CLB nào, member chỉ chọn CLB đã tham gia
+        const endpoint = isAdmin ? '/api/clubs' : `/api/user/clubs/${uid}`;
+        const response = await fetch(endpoint);
+        let clubs = await response.json();
+        
+        // Sắp xếp: Ưu tiên Nhà trường hoặc Ban giám hiệu lên đầu nếu là Admin
+        if (isAdmin) {
+            clubs.sort((a, b) => {
+                const keywords = ['nhà trường', 'ban giám hiệu', 'hệ thống', 'thông báo'];
+                const aName = (a.name || a.club_name || "").toLowerCase();
+                const bName = (b.name || b.club_name || "").toLowerCase();
+                
+                const aIsOfficial = keywords.some(k => aName.includes(k));
+                const bIsOfficial = keywords.some(k => bName.includes(k));
+                
+                if (aIsOfficial && !bIsOfficial) return -1;
+                if (!aIsOfficial && bIsOfficial) return 1;
+                return aName.localeCompare(bName);
+            });
+        }
         
         const eventSelect = document.getElementById('eventClub');
         const postSelect = document.getElementById('postClub');
         
-        const optionsHtml = '<option value="">🌎 Công khai</option>' + clubs.map(c => `<option value="${c.id}">♣️ ${c.name}</option>`).join('');
+        const optionsHtml = '<option value="">🌎 Công khai</option>' + clubs.map(c => `<option value="${c.id}">♣️ ${c.name || c.club_name}</option>`).join('');
         
         if (eventSelect) {
-            eventSelect.innerHTML = '<option value="">Chọn CLB tổ chức</option>' + clubs.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+            let eventOptions = '<option value="">Chọn đơn vị tổ chức</option>';
+            if (isAdmin) {
+                eventOptions += '<option value="">🏢 Sự kiện của Trường (Công khai)</option>';
+            }
+            eventOptions += clubs.map(c => `<option value="${c.id}">${c.name || c.club_name}</option>`).join('');
+            eventSelect.innerHTML = eventOptions;
         }
         if (postSelect) {
             postSelect.innerHTML = optionsHtml;
@@ -935,7 +981,8 @@ function previewEventImage(input) {
 async function createEventSubmit() {
     if (!currentUser) return alert("Cần đăng nhập!");
     const clubId = document.getElementById('eventClub').value;
-    if (!clubId) return alert("Chọn CLB tổ chức!");
+    const isAdmin = currentUser && (currentUser.role === 'admin' || currentUser.role_name === 'admin');
+    if (!clubId && !isAdmin) return alert("Vui lòng chọn CLB tổ chức!");
 
     const eventName = document.getElementById('eventName').value;
     const loc = document.getElementById('eventLocation').value;
@@ -948,8 +995,8 @@ async function createEventSubmit() {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                club_id: clubId,
-                user_id: (currentUser.user_id || currentUser.id), // Add user_id if needed by backend
+                club_id: clubId ? Number(clubId) : null,
+                created_by: (currentUser.user_id || currentUser.id),
                 event_name: eventName,
                 description: desc,
                 location: loc,
@@ -977,94 +1024,83 @@ const toBase64 = file => new Promise((resolve, reject) => {
     reader.onerror = error => reject(error);
 });
 
-// Dropdown Toggle
-function togglePostDropdown(event, id) {
-    if (event) event.stopPropagation();
-    const dropdown = document.getElementById(`dropdown-${id}`);
+/* End of Management Block 1... and redundant block 2 removed */
+
+// MANAGEMENT FOR EVENTS
+function openEditEvent(eventId) {
+    const ev = allFeedItems.find(i => i.id === eventId && i.feedType === 'event');
+    if (!ev) return;
+
+    document.getElementById('editEventId').value = ev.id;
+    document.getElementById('editEventName').value = ev.event_name;
+    document.getElementById('editEventLocation').value = ev.location;
+    document.getElementById('editEventDescription').value = ev.description;
     
-    // Đóng tất cả các dropdown khác trước khi mở
-    document.querySelectorAll('.action-dropdown').forEach(d => {
-        if (d !== dropdown) d.style.display = 'none';
-    });
+    // Parse start_time/end_time
+    const st = new Date(ev.start_time);
+    const et = new Date(ev.end_time);
     
-    if (dropdown) {
-        dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
-    }
+    document.getElementById('editEventStartDate').value = st.toISOString().split('T')[0];
+    document.getElementById('editEventStartTime').value = st.toTimeString().split(' ')[0].substring(0, 5);
+    document.getElementById('editEventEndDate').value = et.toISOString().split('T')[0];
+    document.getElementById('editEventEndTime').value = et.toTimeString().split(' ')[0].substring(0, 5);
+    
+    document.getElementById('editEventImageName').textContent = ev.image ? "Đã có ảnh (Click để thay đổi)" : "Chọn ảnh mới";
+    openModal('editEventModal');
 }
 
-// Window Click to close dropdowns
-window.addEventListener('click', () => {
-    document.querySelectorAll('.action-dropdown').forEach(d => {
-        d.style.display = 'none';
-    });
-});
+async function submitEditEvent() {
+    const id = document.getElementById('editEventId').value;
+    const name = document.getElementById('editEventName').value;
+    const loc = document.getElementById('editEventLocation').value;
+    const desc = document.getElementById('editEventDescription').value;
+    const stTime = document.getElementById('editEventStartDate').value + 'T' + document.getElementById('editEventStartTime').value;
+    const edTime = document.getElementById('editEventEndDate').value + 'T' + document.getElementById('editEventEndTime').value;
+    const imageFile = document.getElementById('editEventImage').files[0];
 
-// Delete Post
-async function deletePost(postId) {
-    if (!confirm("Bạn có chắc chắn muốn xóa bài viết này không?")) return;
-    
-    try {
-        const res = await fetch(`/api/posts/${postId}`, { method: 'DELETE' });
-        if (res.ok) {
-            alert("Đã xóa bài viết thành công!");
-            loadFeed();
-        } else {
-            alert("Lỗi khi xóa bài viết.");
-        }
-    } catch (err) {
-        console.error(err);
-        alert("Lỗi kết nối server.");
-    }
-}
-
-// Open Edit Post
-function openEditPost(postId) {
-    const post = allFeedItems.find(p => p.id === postId && p.feedType === 'post');
-    if (!post) return;
-    
-    document.getElementById('editPostId').value = post.id;
-    document.getElementById('editPostTitle').value = post.title || "";
-    document.getElementById('editPostContent').value = post.content || "";
-    document.getElementById('editPostType').value = post.type || "Cộng đồng";
-    document.getElementById('editPostImageName').textContent = post.image ? "Đã có ảnh (Click để thay đổi)" : "Chọn ảnh tải lên";
-    
-    openModal('editPostModal');
-}
-
-// Submit Edit Post
-async function submitEditPost(event) {
-    event.preventDefault();
-    const id = document.getElementById('editPostId').value;
-    const title = document.getElementById('editPostTitle').value;
-    const content = document.getElementById('editPostContent').value;
-    const type = document.getElementById('editPostType').value;
-    const imageFile = document.getElementById('editPostImage').files[0];
-    
     let imageBase64 = null;
     if (imageFile) {
         imageBase64 = await toBase64(imageFile);
     } else {
-        // Giữ nguyên ảnh cũ nếu ko thay đổi
-        const post = allFeedItems.find(p => p.id == id);
-        imageBase64 = post ? post.image : null;
+        const ev = allFeedItems.find(i => i.id == id && i.feedType === 'event');
+        imageBase64 = ev ? ev.image : null;
     }
-    
+
     try {
-        const res = await fetch(`/api/posts/${id}`, {
+        const res = await fetch(`/api/events/${id}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ title, content, type, image: imageBase64 })
+            body: JSON.stringify({
+                event_name: name,
+                description: desc,
+                location: loc,
+                start_time: stTime,
+                end_time: edTime,
+                image: imageBase64,
+                user_id: (currentUser.user_id || currentUser.id)
+            })
         });
-        
+
         if (res.ok) {
-            alert("Cập nhật thành công!");
-            closeModal('editPostModal');
+            alert("Cập nhật sự kiện thành công!");
+            closeModal('editEventModal');
             loadFeed();
         } else {
-            alert("Lỗi khi cập nhật bài viết.");
+            const data = await res.json();
+            alert("Lỗi: " + (data.message || "Không thể cập nhật"));
         }
-    } catch (err) {
-        console.error(err);
-        alert("Lỗi hệ thống.");
-    }
+    } catch (err) { console.error(err); }
+}
+
+async function deleteEvent(eventId) {
+    if (!confirm("Bạn có chắc chắn muốn xóa sự kiện này?")) return;
+    const uid = currentUser ? (currentUser.user_id || currentUser.id) : null;
+
+    try {
+        const res = await fetch(`/api/events/${eventId}?user_id=${uid}`, { method: 'DELETE' });
+        if (res.ok) {
+            alert("Đã xóa sự kiện!");
+            loadFeed();
+        } else alert("Lỗi khi xóa sự kiện.");
+    } catch (err) { console.error(err); }
 }

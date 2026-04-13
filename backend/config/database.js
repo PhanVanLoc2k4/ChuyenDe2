@@ -24,6 +24,7 @@ async function checkSchema(pool) {
         await pool.request().query("ALTER TABLE posts ALTER COLUMN image NVARCHAR(MAX)");
         await pool.request().query("ALTER TABLE clubs ALTER COLUMN logo_url NVARCHAR(MAX)");
         await pool.request().query("ALTER TABLE clubs ALTER COLUMN cover_url NVARCHAR(MAX)");
+        await pool.request().query("ALTER TABLE events ALTER COLUMN club_id INT NULL");
         
         // Thêm cột user_id vào posts nếu chưa có
         await pool.request().query(`

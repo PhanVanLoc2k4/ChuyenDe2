@@ -51,6 +51,7 @@ const getAllPosts = async (req, res) => {
 
 // 2. Đăng bài viết mới
 const createPost = async (req, res) => {
+    console.log("[POST /api/posts] Body:", req.body);
     const { title, content, type, club_id, user_id, image } = req.body;
     const pool = getPool();
     try {
@@ -86,6 +87,24 @@ const createPost = async (req, res) => {
                     }
                 }
             } catch (notifErr) { console.error("Lỗi gửi thông báo bài viết:", notifErr); }
+        } else {
+            // Bài đăng công khai (Nhà trường) -> Thông báo toàn hệ thống (Chạy ngầm)
+            try {
+                const allUsers = await pool.request().query("SELECT id FROM users WHERE status = 'active' OR status IS NULL");
+                const userCount = allUsers.recordset.length;
+                console.log(`📢 [BROADCAST] Found ${userCount} active users to notify about public post.`);
+
+                setImmediate(async () => {
+                    for (const u of allUsers.recordset) {
+                        try {
+                            if (Number(u.id) !== Number(user_id)) {
+                                await createNotification(u.id, "Thông báo Nhà trường", `Nhà trường vừa đăng tin mới: ${title}`, "post", `/TinTuc?postId=${postId}`);
+                            }
+                        } catch (e) { console.error(`Failed to notify user ${u.id}:`, e); }
+                    }
+                    console.log(`✅ [BROADCAST] Finished notifying all users for post.`);
+                });
+            } catch (notifErr) { console.error("Lỗi chuẩn bị thông báo tin tức:", notifErr); }
         }
 
         res.json({ message: "Đăng bài thành công!", postId });
@@ -170,12 +189,13 @@ const createComment = async (req, res) => {
 
 // 6. Cập nhật bài viết
 const updatePost = async (req, res) => {
+    console.log("[PUT /api/posts] Body:", req.body);
     const { title, content, type, image, user_id } = req.body;
     const post_id = req.params.id;
     const pool = getPool();
     try {
         // Kiểm tra quyền (Tác giả bài viết hoặc Admin)
-        const check = await pool.request().input("id", sql.Int, post_id).query("SELECT user_id FROM posts WHERE id = @id");
+        const check = await pool.request().input("id", sql.Int, post_id).query("SELECT user_id, club_id FROM posts WHERE id = @id");
         if (check.recordset.length === 0) return res.status(404).json({ message: "Không tìm thấy bài viết" });
         
         const roleCheck = await pool.request()
@@ -195,6 +215,19 @@ const updatePost = async (req, res) => {
             .input("img", sql.NVarChar(sql.MAX), image)
             .query("UPDATE posts SET title = @t, content = @c, type = @ty, image = @img WHERE id = @id");
         
+        // Thông báo nếu là tin tức Nhà trường (club_id IS NULL)
+        const postData = check.recordset[0];
+        if (!postData.club_id) {
+            const allUsers = await pool.request().query("SELECT id FROM users WHERE status = 'active' OR status IS NULL");
+            setImmediate(async () => {
+                for (const u of allUsers.recordset) {
+                    if (Number(u.id) !== Number(user_id)) {
+                         await createNotification(u.id, "Cập nhật Nhà trường", `Tin tức "${title}" vừa có nội dung mới.`, "post", `/TinTuc?postId=${post_id}`);
+                    }
+                }
+            });
+        }
+
         res.json({ message: "Cập nhật thành công!" });
     } catch (err) { res.status(500).json({ message: "Lỗi cập nhật bài viết" }); }
 };

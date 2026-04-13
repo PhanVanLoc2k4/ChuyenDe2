@@ -5,7 +5,7 @@
             <h2>Tạo bài viết mới</h2>
             <button class="close-btn" onclick="closeModal('createPostModal')">&times;</button>
         </div>
-        <form id="postForm" class="no-scrollbar">
+        <form id="postForm" class="no-scrollbar" onsubmit="submitCreatePost(event)">
             <div class="form-group">
                 <label>Tiêu đề bài viết</label>
                 <input type="text" id="postTitle" placeholder="Nhập tiêu đề..." required>
@@ -38,7 +38,7 @@
             <h2>Hành động Trưởng CLB: Tạo sự kiện mới</h2>
             <button class="close-btn" onclick="closeModal('createEventModal')">&times;</button>
         </div>
-        <form id="eventForm" class="no-scrollbar">
+        <form id="eventForm" class="no-scrollbar" onsubmit="submitCreateEvent(event)">
             <div class="form-group">
                 <label>Tên sự kiện</label>
                 <input type="text" id="eventName" placeholder="VD: Workshop Lập trình Web" required>
@@ -77,7 +77,7 @@
             <h2>Chỉnh sửa bài viết</h2>
             <button class="close-btn" onclick="closeModal('editPostModal')">&times;</button>
         </div>
-        <form id="editPostForm" class="no-scrollbar">
+        <form id="editPostForm" class="no-scrollbar" onsubmit="submitEditPost(event)">
             <input type="hidden" id="editPostId">
             <div class="form-group">
                 <label>Tiêu đề bài viết</label>
@@ -111,7 +111,7 @@
             <h2>Chỉnh sửa sự kiện</h2>
             <button class="close-btn" onclick="closeModal('editEventModal')">&times;</button>
         </div>
-        <form id="editEventForm" class="no-scrollbar">
+        <form id="editEventForm" class="no-scrollbar" onsubmit="submitEditEvent(event)">
             <input type="hidden" id="editEventId">
             <div class="form-group">
                 <label>Tên sự kiện</label>
