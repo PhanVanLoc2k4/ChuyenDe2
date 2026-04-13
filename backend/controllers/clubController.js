@@ -73,7 +73,21 @@ const createClub = async (req, res) => {
                 .query(`
                     DECLARE @new_club_id INT = (SELECT id FROM clubs WHERE club_code = @code);
                     INSERT INTO club_members (club_id, user_id, status, role)
-                    VALUES (@new_club_id, @uid, 'active', 'leader')
+                    VALUES (@new_club_id, @uid, 'active', 'leader');
+
+                    -- Cập nhật vai trò hệ thống thành 'leader' (ID: 2) nếu không phải là admin (3) hoặc leader (2)
+                    IF EXISTS (SELECT 1 FROM user_roles WHERE user_id = @uid)
+                    BEGIN
+                        -- Chỉ cập nhật nếu vai trò hiện tại không phải là leader hoặc admin
+                        UPDATE user_roles 
+                        SET role_id = 2 
+                        WHERE user_id = @uid AND role_id NOT IN (2, 3);
+                    END
+                    ELSE
+                    BEGIN
+                        -- Nếu chưa có vai trò nào thì thêm vai trò leader
+                        INSERT INTO user_roles (user_id, role_id) VALUES (@uid, 2);
+                    END
                 `);
         } catch (err) {
             console.error("Lỗi thêm leader:", err);

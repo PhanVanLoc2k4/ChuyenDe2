@@ -76,6 +76,10 @@ const login = async (req, res) => {
         const user = result.recordset[0];
         if (!user) return res.status(404).json({ message: "Email không tồn tại!" });
 
+        if (user.status === 'locked') {
+            return res.status(403).json({ message: "Tài khoản của bạn đã bị khóa bởi quản trị viên. Vui lòng liên hệ hỗ trợ!" });
+        }
+
         const match = await bcrypt.compare(password, user.password);
         if (!match) return res.status(401).json({ message: "Mật khẩu không chính xác!" });
 

@@ -38,9 +38,14 @@ router.get("/TinTuc", (req, res) => {
     res.render("TinTuc", { title: "TinTuc" });
 });
 
+// Trang Kết nối Nhà trường
+router.get("/KetNoi", (req, res) => {
+    res.render("KetNoi", { title: "Kết nối Nhà trường" });
+});
+
 // Trang admin
 router.get("/admin", (req, res) => {
-    res.render("admin", { title: "Diễn đàn" });
+    res.render("admin", { title: "Quản trị hệ thống" });
 });
 
 // Trang thông tin cá nhân

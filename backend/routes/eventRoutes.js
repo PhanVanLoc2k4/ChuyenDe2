@@ -9,5 +9,7 @@ router.post("/register", eventController.registerEvent);
 router.delete("/register", eventController.unregisterEvent);
 router.post("/like/:id", eventController.likeEvent);
 router.get("/:id/registrations", eventController.getEventRegistrations);
+router.put("/:id", eventController.updateEvent); // Mới: Cập nhật sự kiện
+router.delete("/:id", eventController.deleteEvent); // Mới: Xóa sự kiện
 
 module.exports = router;

@@ -193,7 +193,7 @@ const getEventRegistrations = async (req, res) => {
         const result = await pool.request()
             .input("eid", sql.Int, req.params.id)
             .query(`
-                SELECT u.id, u.full_name, u.email, er.registered_at, er.status
+                SELECT u.id, u.full_name, u.email, er.registered_at, er.status, er.attendance, er.id as registration_id
                 FROM event_registrations er
                 JOIN users u ON er.user_id = u.id
                 WHERE er.event_id = @eid
@@ -205,6 +205,73 @@ const getEventRegistrations = async (req, res) => {
     }
 };
 
+// 8. Cập nhật sự kiện
+const updateEvent = async (req, res) => {
+    const { event_name, description, location, start_time, end_time, image, user_id } = req.body;
+    const event_id = req.params.id;
+    const pool = getPool();
+    try {
+        const check = await pool.request().input("id", sql.Int, event_id).query("SELECT created_by FROM events WHERE id = @id");
+        if (check.recordset.length === 0) return res.status(404).json({ message: "Không tìm thấy sự kiện" });
+
+        const roleCheck = await pool.request()
+            .input("uid", sql.Int, user_id)
+            .query("SELECT r.role_name FROM user_roles ur JOIN roles r ON ur.role_id = r.id WHERE ur.user_id = @uid");
+        const isAdmin = roleCheck.recordset.some(r => r.role_name === 'admin');
+
+        if (Number(check.recordset[0].created_by) !== Number(user_id) && !isAdmin) {
+            return res.status(403).json({ message: "Bạn không có quyền sửa sự kiện này" });
+        }
+
+        await pool.request()
+            .input("id", sql.Int, event_id)
+            .input("name", sql.NVarChar, event_name)
+            .input("desc", sql.NVarChar, description)
+            .input("loc", sql.NVarChar, location)
+            .input("st", sql.DateTime, start_time)
+            .input("et", sql.DateTime, end_time)
+            .input("img", sql.NVarChar(sql.MAX), image)
+            .query(`UPDATE events SET event_name = @name, description = @desc, location = @loc, 
+                    start_time = @st, end_time = @et, image = @img WHERE id = @id`);
+        
+        res.json({ message: "Cập nhật sự kiện thành công!" });
+    } catch (err) { res.status(500).json({ message: "Lỗi cập nhật sự kiện" }); }
+};
+
+// 9. Xóa sự kiện
+const deleteEvent = async (req, res) => {
+    const event_id = req.params.id;
+    const user_id = req.query.user_id;
+    const pool = getPool();
+    try {
+        const check = await pool.request().input("id", sql.Int, event_id).query("SELECT created_by, club_id FROM events WHERE id = @id");
+        if (check.recordset.length === 0) return res.status(404).json({ message: "Không tìm thấy sự kiện" });
+
+        const event = check.recordset[0];
+        
+        const clubCheck = await pool.request().input("cid", sql.Int, event.club_id).query("SELECT created_by FROM clubs WHERE id = @cid");
+        const roleCheck = await pool.request()
+            .input("uid", sql.Int, user_id)
+            .query("SELECT r.role_name FROM user_roles ur JOIN roles r ON ur.role_id = r.id WHERE ur.user_id = @uid");
+            
+        const isAdmin = roleCheck.recordset.some(r => r.role_name === 'admin');
+        const isLeader = clubCheck.recordset.length > 0 && Number(clubCheck.recordset[0].created_by) === Number(user_id);
+        const isAuthor = Number(event.created_by) === Number(user_id);
+
+        if (!isAuthor && !isLeader && !isAdmin) {
+            return res.status(403).json({ message: "Bạn không có quyền xóa sự kiện này" });
+        }
+
+        // Xóa các lượt đăng ký, like, comment trước
+        await pool.request().input("eid", sql.Int, event_id).query("DELETE FROM event_registrations WHERE event_id = @eid");
+        await pool.request().input("eid", sql.Int, event_id).query("DELETE FROM event_likes WHERE event_id = @eid");
+        // (Nếu có bảng event_comments thì xóa ở đây)
+
+        await pool.request().input("id", sql.Int, event_id).query("DELETE FROM events WHERE id = @id");
+        res.json({ message: "Xóa sự kiện thành công" });
+    } catch (err) { res.status(500).json({ message: "Lỗi xóa sự kiện" }); }
+};
+
 module.exports = {
     getAllEvents,
     createEvent,
@@ -212,5 +279,7 @@ module.exports = {
     registerEvent,
     unregisterEvent,
     likeEvent,
-    getEventRegistrations
+    getEventRegistrations,
+    updateEvent,
+    deleteEvent
 };

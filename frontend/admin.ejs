@@ -4,19 +4,21 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Dashboard - Quản lý hệ thống CLB & Sự kiện</title>
+    <link rel="stylesheet" href="/CSS/bien.css?v=3">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@400;500;600;700;800&family=Playfair+Display:wght@700;800&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root {
-            --primary: #c53030;
+            --primary: var(--primary-color);
             --primary-light: #f56565;
-            --primary-dark: #9b2c2c;
-            --bg-body: #f8fafc;
-            --bg-sidebar: #0f172a;
+            --primary-dark: var(--primary-hover);
+            --bg-body: var(--bg-page);
+            --bg-sidebar: var(--secondary-color);
             --sidebar-width: 280px;
+            --header-offset: 145px; /* Chiều cao xấp xỉ của newspaper header */
             --sidebar-collapsed: 80px;
-            --card-bg: #ffffff;
+            --card-bg: var(--bg-card);
             --text-main: #1e293b;
             --text-muted: #64748b;
             --border-color: #e2e8f0;
@@ -70,13 +72,15 @@
             background: var(--bg-sidebar);
             color: white;
             position: fixed;
-            height: 100vh;
+            top: var(--header-offset);
+            height: calc(100vh - var(--header-offset));
             overflow-y: auto;
             transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-            z-index: 1000;
+            z-index: 90;
             display: flex;
             flex-direction: column;
             border-right: 1px solid rgba(255,255,255,0.05);
+            box-shadow: 4px 0 15px rgba(0,0,0,0.1);
         }
 
         .sidebar::-webkit-scrollbar {
@@ -212,7 +216,9 @@
             flex: 1;
             margin-left: var(--sidebar-width);
             padding: 40px;
+            margin-top: 0;
             transition: all 0.4s ease;
+            min-height: calc(100vh - var(--header-offset));
         }
 
         /* Premium Header */
@@ -500,6 +506,14 @@
             color: var(--text-main);
         }
 
+        /* Compact tables inside Modals */
+        .modal td {
+            padding: 12px 15px;
+        }
+        .modal th {
+            padding: 10px 15px;
+        }
+
         td:first-child {
             border-left: 1px solid var(--border-color);
             border-radius: 15px 0 0 15px;
@@ -583,10 +597,12 @@
             bottom: 0;
             background: rgba(15, 23, 42, 0.6);
             backdrop-filter: blur(8px);
-            align-items: center;
+            display: none; /* Default hidden */
+            align-items: flex-start; /* Start from top to avoid cutting header */
             justify-content: center;
             z-index: 2000;
-            padding: 20px;
+            padding: 40px 20px;
+            overflow-y: auto; /* Allow modal container to scroll */
             opacity: 0;
             transition: opacity 0.3s ease;
         }
@@ -599,15 +615,16 @@
         .modal-content {
             background: white;
             border-radius: var(--radius-xl);
-            padding: 40px;
-            width: 550px;
+            padding: 30px 40px;
+            width: 800px;
             max-width: 100%;
-            max-height: 90vh;
+            max-height: 85vh; /* Keep within screen */
             overflow-y: auto;
             position: relative;
             box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
             transform: translateY(20px);
             transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            margin-bottom: 40px;
         }
 
         .modal.active .modal-content {
@@ -618,7 +635,12 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 30px;
+            margin-bottom: 25px;
+            position: sticky; /* Keep header visible */
+            top: -30px;
+            background: white;
+            z-index: 10;
+            padding: 10px 0;
         }
 
         .modal-header h2 {
@@ -684,6 +706,55 @@
         .modal-form textarea {
             height: 120px;
             resize: vertical;
+        }
+
+        /* Support Reply Specific */
+        #adminReplyForm .form-group {
+            margin-bottom: 20px;
+        }
+        #adminReplyForm label {
+            display: block;
+            font-weight: 700;
+            margin-bottom: 8px;
+            font-size: 13px;
+            color: var(--text-main);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .form-control-mod {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            background: #f8fafc;
+            outline: none;
+        }
+        .form-control-mod:focus {
+            border-color: var(--primary);
+            background: white;
+            box-shadow: 0 0 0 4px rgba(197, 48, 48, 0.1);
+        }
+        .btn-submit-mod {
+            width: 100%;
+            padding: 14px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        .btn-submit-mod:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(197, 48, 48, 0.2);
         }
 
         .modal-actions {
@@ -905,13 +976,11 @@
     </style>
 </head>
 <body>
+    <%- include('partials/Header') %>
     <div class="admin-app">
         <!-- Sidebar -->
         <div class="sidebar">
-            <div class="logo">
-                <h2>CLB Connect</h2>
-                <p>Hệ thống Quản trị</p>
-            </div>
+            <!-- Logo removed for platform consistency, Header already has it -->
 
             <div class="admin-info">
                 <div class="admin-avatar">
@@ -940,10 +1009,47 @@
                 <a href="#" class="nav-item" onclick="showPage('settings')">
                     <i class="fas fa-cog"></i> <span>Cài đặt</span>
                 </a>
+                <a href="#" class="nav-item" onclick="showPage('points')">
+                    <i class="fas fa-star"></i> <span>Điểm rèn luyện</span>
+                </a>
+                <a href="#" class="nav-item" onclick="showPage('support')">
+                    <i class="fas fa-headset"></i> <span>Hỗ trợ & Kết nối</span>
+                </a>
             </div>
         </div>
 
-        <!-- Main Content -->
+        <!-- Support Reply Modal -->
+    <div class="modal" id="supportReplyModal">
+        <div class="modal-content" style="max-width: 600px;">
+            <div class="modal-header">
+                <h2>Phản hồi Yêu cầu</h2>
+                <button class="close-btn" onclick="closeModal('supportReplyModal')"><i class="fas fa-times"></i></button>
+            </div>
+            <div id="supportDetailView" style="margin-bottom: 25px; padding: 20px; background: #f8fafc; border-radius: 16px; border: 1px dashed #cbd5e1;">
+                <p style="font-size: 13px; color: #64748b; margin-bottom: 5px;" id="replySenderInfo">Người gửi: SV123 - Nguyễn Văn A</p>
+                <h4 id="replySubject" style="margin-bottom: 10px; color: #1e293b;">Tiêu đề yêu cầu</h4>
+                <p id="replyMessage" style="font-size: 14px; color: #475569; line-height: 1.6;">Nội dung yêu cầu chi tiết...</p>
+            </div>
+            <form id="adminReplyForm">
+                <input type="hidden" id="replyRequestId">
+                <div class="form-group">
+                    <label>Nội dung phản hồi</label>
+                    <textarea id="adminReplyContent" class="form-control-mod" style="min-height: 120px;" placeholder="Nhập nội dung phản hồi cho sinh viên..." required></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Trạng thái mới</label>
+                    <select id="adminReplyStatus" class="form-control-mod">
+                        <option value="resolved">Đã phản hồi (Hoàn tất)</option>
+                        <option value="processing">Đang xử lý</option>
+                        <option value="closed">Đóng yêu cầu (Không giải quyết)</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn-submit-mod">
+                    <i class="fas fa-paper-plane"></i> Gửi phản hồi ngay
+                </button>
+            </form>
+        </div>
+    </div>
         <div class="main-content" id="mainContent">
             <!-- Dashboard Page -->
             <div id="dashboard-page">
@@ -951,17 +1057,37 @@
                 <div class="header">
                     <div>
                         <h1>Dashboard tổng quan</h1>
-                        <p>Thống kê hệ thống đến ngày 04/03/2026</p>
+                        <p id="dashboardDateText">Thống kê hệ thống toàn thời gian</p>
                     </div>
                     <div class="header-actions">
-                        <div class="notification-bell">
-                            <i class="fas fa-bell"></i>
-                            <span class="notification-badge">5</span>
-                        </div>
-                        <div class="date-picker" onclick="showDatePicker()">
-                            <i class="fas fa-calendar" style="color: #c53030;"></i>
-                            <span>Tháng 3/2026</span>
-                            <i class="fas fa-chevron-down" style="font-size: 12px;"></i>
+                        <div class="date-picker-container" style="position: relative;">
+                            <div class="date-picker" onclick="toggleDateDropdown()">
+                                <i class="fas fa-calendar" style="color: #c53030;"></i>
+                                <span id="currentDateDisplay">Tất cả thời gian</span>
+                                <i class="fas fa-chevron-down" style="font-size: 12px;"></i>
+                            </div>
+                            <!-- Simple Custom Date Dropdown -->
+                            <div id="dateDropdown" style="display: none; position: absolute; top: 100%; right: 0; background: white; border-radius: 12px; box-shadow: var(--shadow-lg); padding: 15px; z-index: 1001; min-width: 200px; margin-top: 10px; border: 1px solid var(--border-color);">
+                                <div style="margin-bottom: 10px;">
+                                    <label style="display: block; font-size: 12px; font-weight: 700; margin-bottom: 5px;">Chọn năm</label>
+                                    <select id="selectYear" style="width: 100%; padding: 8px; border-radius: 8px; border: 1px solid #e2e8f0;" onchange="handleDateFilterChange()">
+                                        <option value="all">Tất cả các năm</option>
+                                        <option value="2026">2026</option>
+                                        <option value="2025">2025</option>
+                                        <option value="2024">2024</option>
+                                    </select>
+                                </div>
+                                <div id="monthFilterContainer" style="display: none;">
+                                    <label style="display: block; font-size: 12px; font-weight: 700; margin-bottom: 5px;">Chọn tháng</label>
+                                    <select id="selectMonth" style="width: 100%; padding: 8px; border-radius: 8px; border: 1px solid #e2e8f0;" onchange="handleDateFilterChange()">
+                                        <option value="all">Tất cả các tháng</option>
+                                        <option value="1">Tháng 1</option><option value="2">Tháng 2</option><option value="3">Tháng 3</option>
+                                        <option value="4">Tháng 4</option><option value="5">Tháng 5</option><option value="6">Tháng 6</option>
+                                        <option value="7">Tháng 7</option><option value="8">Tháng 8</option><option value="9">Tháng 9</option>
+                                        <option value="10">Tháng 10</option><option value="11">Tháng 11</option><option value="12">Tháng 12</option>
+                                    </select>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -1045,7 +1171,7 @@
                 <div class="summary-stats">
                     <div class="summary-card">
                         <div class="summary-title">Người dùng theo vai trò</div>
-                        <div class="summary-number">2,456</div>
+                        <div class="summary-number" id="summaryTotalUsers">0</div>
                         <div class="progress-bar"><div class="progress-fill" style="width: 70%"></div></div>
                         <div style="display: flex; justify-content: space-between; font-size: 13px;">
                             <span>Sinh viên: 2,200</span>
@@ -1091,6 +1217,77 @@
                 </div>
             </div>
 
+            <!-- Page: Hỗ trợ & Kết nối -->
+            <div id="support-page" style="display: none;">
+                <div class="header">
+                    <div>
+                        <h1>Quản lý Hỗ trợ & Kết nối</h1>
+                        <p>Xử lý yêu cầu và phản hồi từ sinh viên & CLB</p>
+                    </div>
+                    <div class="header-actions">
+                        <button class="nut-bam-premium nut-chinh" onclick="loadSupportRequests()"><i class="fas fa-sync"></i> Làm mới</button>
+                    </div>
+                </div>
+
+                <div class="table-card" style="margin-top: 30px;">
+                    <div class="table-header">
+                        <h3>Yêu cầu đang chờ xử lý</h3>
+                    </div>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Người gửi</th>
+                                <th>Phân loại</th>
+                                <th>Tiêu đề</th>
+                                <th>Ngày gửi</th>
+                                <th>Trạng thái</th>
+                                <th>Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody id="adminSupportTableBody">
+                            <!-- Data populated by JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Page: Điểm rèn luyện -->
+            <div id="points-page" style="display: none;">
+                <div class="header">
+                    <div>
+                        <h1>Quản lý Điểm rèn luyện</h1>
+                        <p>Danh sách lịch sử cộng điểm rèn luyện toàn hệ thống</p>
+                    </div>
+                    <div class="header-actions">
+                        <button class="date-picker" onclick="showAwardPointsModal()">
+                            <i class="fas fa-plus"></i>
+                            <span>Cộng điểm thủ công</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="table-card" style="margin-top: 30px;">
+                    <div class="table-header">
+                        <h3>Lịch sử cộng điểm gần đây</h3>
+                        <button class="action-btn" onclick="loadPointsData()" title="Làm mới"><i class="fas fa-sync"></i></button>
+                    </div>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Sinh viên</th>
+                                <th>Số điểm</th>
+                                <th>Lý do</th>
+                                <th>Người cộng</th>
+                                <th>Ngày cộng</th>
+                            </tr>
+                        </thead>
+                        <tbody id="pointsTableBody">
+                            <!-- Data populated by JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
             <!-- Users Management Page (ẩn mặc định) -->
             <div id="users-page" style="display: none;">
                 <div class="header">
@@ -1099,10 +1296,7 @@
                         <p>Danh sách tất cả người dùng trong hệ thống</p>
                     </div>
                     <div class="header-actions">
-                        <button class="date-picker" onclick="showAddUserModal()">
-                            <i class="fas fa-plus"></i>
-                            <span>Thêm người dùng</span>
-                        </button>
+                        <!-- Nút Thêm người dùng đã được gỡ bỏ theo yêu cầu -->
                     </div>
                 </div>
 
@@ -1111,10 +1305,10 @@
                         <i class="fas fa-search"></i>
                         <input type="text" placeholder="Tìm kiếm người dùng..." id="searchUser">
                     </div>
-                    <select class="filter-select" id="filterRole">
+                    <select class="filter-select" id="filterRole" onchange="loadUsersTable()">
                         <option value="all">Tất cả vai trò</option>
-                        <option value="student">Sinh viên</option>
-                        <option value="org">Ban tổ chức</option>
+                        <option value="user">User</option>
+                        <option value="leader">Leader</option>
                         <option value="admin">Admin</option>
                     </select>
                 </div>
@@ -1393,7 +1587,7 @@
 
     <!-- Club Detail Modal -->
     <div class="modal" id="clubDetailModal">
-        <div class="modal-content" style="max-width: 800px;">
+        <div class="modal-content">
             <div class="modal-header">
                 <h2 id="detailClubName">Chi tiết Câu lạc bộ</h2>
                 <button class="close-btn" onclick="closeModal('clubDetailModal')"><i class="fas fa-times"></i></button>
@@ -1443,7 +1637,7 @@
 
     <!-- Event Detail Modal -->
     <div class="modal" id="eventDetailModal">
-        <div class="modal-content" style="max-width: 800px;">
+        <div class="modal-content">
             <div class="modal-header">
                 <h2 id="detailEventTitleHead">Chi tiết Sự kiện</h2>
                 <button class="close-btn" onclick="closeModal('eventDetailModal')"><i class="fas fa-times"></i></button>
@@ -1481,529 +1675,39 @@
             </div>
         </div>
     </div>
+    
+    <div style="margin-left: var(--sidebar-width);">
+        <%- include('partials/Footer') %>
+    </div>
+    <!-- Core Admin Logic -->
+    <!-- Award Points Modal -->
+    <div class="modal" id="awardPointsModal">
+        <div class="modal-content" style="max-width: 500px;">
+            <div class="modal-header">
+                <h2>Cộng điểm rèn luyện</h2>
+                <button class="close-btn" onclick="closeModal('awardPointsModal')"><i class="fas fa-times"></i></button>
+            </div>
+            <form id="awardPointsForm">
+                <div class="form-group">
+                    <label>MSSV hoặc Email sinh viên</label>
+                    <input type="text" id="awardPointsUser" placeholder="Gõ để tìm sinh viên..." required list="studentList">
+                    <datalist id="studentList"></datalist>
+                </div>
+                <div class="form-group">
+                    <label>Số điểm cộng</label>
+                    <input type="number" id="awardPointsValue" value="5" min="1" max="100" required>
+                </div>
+                <div class="form-group">
+                    <label>Lý do cộng điểm</label>
+                    <textarea id="awardPointsReason" placeholder="Ví dụ: Tham gia tích cực hoạt động tình nguyện..." required></textarea>
+                </div>
+                <button type="submit" class="btn-submit-mod">
+                    <i class="fas fa-star"></i> Xác nhận cộng điểm
+                </button>
+            </form>
+        </div>
+    </div>
 
-
-    <script>
-        // Chart instances
-        let monthlyChart, yearlyChart, monthlyDetailChart, yearlyDetailChart;
-
-        // Initialize charts
-        async function initCharts() {
-            // Fetch Monthly Data
-            const monthlyData = await fetchAPI('/api/admin/reports/monthly');
-            const monthlyCtx = document.getElementById('monthlyChart')?.getContext('2d');
-            if (monthlyCtx && monthlyData) {
-                monthlyChart = new Chart(monthlyCtx, {
-                    type: 'line',
-                    data: {
-                        labels: monthlyData.map(d => d.label),
-                        datasets: [
-                            {
-                                label: 'CLB mới',
-                                data: monthlyData.map(d => d.newClubs),
-                                borderColor: '#c53030',
-                                tension: 0.4
-                            },
-                            {
-                                label: 'Sự kiện',
-                                data: monthlyData.map(d => d.newEvents),
-                                borderColor: '#2563eb',
-                                tension: 0.4
-                            }
-                        ]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false
-                    }
-                });
-            }
-
-            // Fetch Yearly Data
-            const yearlyData = await fetchAPI('/api/admin/reports/yearly');
-            const yearlyCtx = document.getElementById('yearlyChart')?.getContext('2d');
-            if (yearlyCtx && yearlyData) {
-                yearlyChart = new Chart(yearlyCtx, {
-                    type: 'bar',
-                    data: {
-                        labels: yearlyData.map(d => d.label),
-                        datasets: [
-                            {
-                                label: 'Số CLB',
-                                data: yearlyData.map(d => d.totalClubs),
-                                backgroundColor: '#c53030'
-                            },
-                            {
-                                label: 'Số sự kiện',
-                                data: yearlyData.map(d => d.totalEvents),
-                                backgroundColor: '#2563eb'
-                            }
-                        ]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false
-                    }
-                });
-            }
-
-            // Monthly Detail Chart
-            const monthlyDetailCtx = document.getElementById('monthlyDetailChart')?.getContext('2d');
-            if (monthlyDetailCtx) {
-                monthlyDetailChart = new Chart(monthlyDetailCtx, {
-                    type: 'line',
-                    data: {
-                        labels: ['T1', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'T8', 'T9', 'T10', 'T11', 'T12'],
-                        datasets: [{
-                            label: 'Số sự kiện',
-                            data: [45, 38, 52, 48, 55, 60, 58, 62, 48, 42, 38, 45],
-                            borderColor: '#c53030',
-                            tension: 0.4
-                        }]
-                    }
-                });
-            }
-
-            // Yearly Detail Chart
-            const yearlyDetailCtx = document.getElementById('yearlyDetailChart')?.getContext('2d');
-            if (yearlyDetailCtx) {
-                yearlyDetailChart = new Chart(yearlyDetailCtx, {
-                    type: 'bar',
-                    data: {
-                        labels: ['2020', '2021', '2022', '2023', '2024', '2025', '2026'],
-                        datasets: [{
-                            label: 'Số CLB',
-                            data: [15, 22, 25, 32, 38, 42, 48],
-                            backgroundColor: '#c53030'
-                        }]
-                    }
-                });
-            }
-        }
-
-        // Helper to fetch API
-        async function fetchAPI(url) {
-            try {
-                const response = await fetch(url);
-                if (!response.ok) throw new Error('Network response was not ok');
-                return await response.json();
-            } catch (error) {
-                console.error('API Fetch Error:', error);
-                return null;
-            }
-        }
-
-        // 1. Dashboard Stats
-        async function loadDashboardStats() {
-            const stats = await fetchAPI('/api/admin/stats');
-            if (stats) {
-                document.getElementById('statTotalUsers').textContent = stats.totalUsers || 0;
-                document.getElementById('statTotalClubs').textContent = stats.totalClubs || 0;
-                document.getElementById('statTotalEvents').textContent = stats.totalEvents || 0;
-                
-                // Cập nhật thẻ yêu cầu đang chờ nếu có
-                const pendingCard = document.querySelector('.card:nth-child(4) .card-value');
-                if (pendingCard) pendingCard.textContent = stats.pendingRequests || 0;
-            }
-
-            // Load Top Clubs for Dashboard
-            const clubs = await fetchAPI('/api/admin/clubs');
-            if (clubs) {
-                const topTbody = document.getElementById('topClubsTableBody');
-                if (topTbody) {
-                    topTbody.innerHTML = clubs.slice(0, 5).map(club => `
-                        <tr>
-                            <td>
-                                <div style="display: flex; align-items: center; gap: 10px;">
-                                    <img src="${club.logo_url || '/placeholder-club.png'}" style="width: 32px; height: 32px; border-radius: 8px; object-fit: cover;">
-                                    <span>${club.club_name}</span>
-                                </div>
-                            </td>
-                            <td>${club.member_count}</td>
-                            <td>${club.event_count || 0}</td>
-                            <td><span class="status-badge status-active">Hoạt động</span></td>
-                            <td>
-                                <div class="action-buttons">
-                                    <button class="action-btn btn-view" onclick="viewClubDetail(${club.id})"><i class="fas fa-eye"></i></button>
-                                </div>
-                            </td>
-                        </tr>
-                    `).join('');
-                }
-            }
-        }
-
-        // 2. Fetch Users
-        async function loadUsers() {
-            const users = await fetchAPI('/api/admin/users');
-            if (users) {
-                const tbody = document.getElementById('userTableBody');
-                if (!tbody) return;
-                if (users.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 20px; color: #64748b;">Không có người dùng</td></tr>';
-                    return;
-                }
-                tbody.innerHTML = users.map(user => `
-                    <tr>
-                        <td>
-                            <div style="display: flex; align-items: center; gap: 10px;">
-                                <div class="admin-avatar" style="width: 32px; height: 32px; font-size: 12px; background: #cbd5e1; box-shadow: none; overflow: hidden; display: flex; align-items: center; justify-content: center;">
-                                    ${user.avatar && user.avatar.startsWith('data:image') 
-                                        ? `<img src="${user.avatar}" style="width: 100%; height: 100%; object-fit: cover;">`
-                                        : (user.full_name ? user.full_name.charAt(0) : 'U')
-                                    }
-                                </div>
-                                <span>${user.full_name}</span>
-                            </div>
-                        </td>
-                        <td>${user.email}</td>
-                        <td><span class="status-badge status-active" style="${user.role === 'admin' ? 'background: #fee2e2; color: #ef4444;' : ''}">${user.role}</span></td>
-                        <td>${new Date(user.created_at).toLocaleDateString('vi-VN')}</td>
-                        <td><span class="status-badge status-active">Hoạt động</span></td>
-                        <td>
-                            <div class="action-buttons">
-                                <button class="action-btn btn-view" onclick="viewUserDetail('${user.full_name}')"><i class="fas fa-eye"></i></button>
-                                <button class="action-btn btn-delete" onclick="deleteUser('${user.full_name}')"><i class="fas fa-trash"></i></button>
-                            </div>
-                        </td>
-                    </tr>
-                `).join('');
-            }
-        }
-
-        // 3. Fetch Clubs
-        async function loadClubs() {
-            const clubs = await fetchAPI('/api/admin/clubs');
-            if (clubs) {
-                const tbody = document.getElementById('clubTableBody');
-                if (!tbody) return;
-                if (clubs.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 20px; color: #64748b;">Không có câu lạc bộ</td></tr>';
-                    return;
-                }
-                tbody.innerHTML = clubs.map(club => `
-                    <tr>
-                        <td>
-                            <div style="display: flex; align-items: center; gap: 10px;">
-                                <img src="${club.logo_url || '/placeholder-club.png'}" style="width: 32px; height: 32px; border-radius: 8px; object-fit: cover;">
-                                <span>${club.club_name}</span>
-                            </div>
-                        </td>
-                        <td>${club.category_name || 'Khác'}</td>
-                        <td>${club.creator_name || 'Ẩn danh'}</td>
-                        <td>${club.member_count}</td>
-                        <td>${club.event_count || 0}</td>
-                        <td><span class="status-badge status-active">Hoạt động</span></td>
-                        <td>
-                            <div class="action-buttons">
-                                <button class="action-btn btn-view" onclick="viewClubDetail(${club.id})"><i class="fas fa-eye"></i></button>
-                                <button class="action-btn btn-edit" onclick="editClub(${club.id}, '${club.club_name.replace(/'/g, "\\'")}')"><i class="fas fa-edit"></i></button>
-                                <button class="action-btn btn-delete" onclick="deleteClub(${club.id}, '${club.club_name.replace(/'/g, "\\'")}')"><i class="fas fa-trash"></i></button>
-                            </div>
-                        </td>
-                    </tr>
-                `).join('');
-            }
-        }
-
-        // 4. Fetch Events
-        async function loadEvents() {
-            const events = await fetchAPI('/api/admin/events');
-            if (events) {
-                const tbody = document.getElementById('eventTableBody');
-                if (!tbody) return;
-                if (events.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 20px; color: #64748b;">Không có sự kiện</td></tr>';
-                    return;
-                }
-                tbody.innerHTML = events.map(event => {
-                    const now = new Date();
-                    const start = new Date(event.start_time);
-                    const end = event.end_time ? new Date(event.end_time) : new Date(start.getTime() + 3600000);
-                    
-                    let statusClass = 'status-inactive';
-                    let statusText = 'Đã kết thúc';
-                    
-                    if (now < start) {
-                        statusClass = 'status-pending';
-                        statusText = 'Sắp diễn ra';
-                    } else if (now >= start && now <= end) {
-                        statusClass = 'status-active';
-                        statusText = 'Đang diễn ra';
-                    }
-
-                    return `
-                        <tr>
-                            <td>${event.event_name}</td>
-                            <td>${event.club_name}</td>
-                            <td>${start.toLocaleDateString('vi-VN')}</td>
-                            <td>${event.location || 'Trực tuyến'}</td>
-                            <td style="text-align: center; font-weight: 700; color: #c53030;">${event.registration_count || 0}</td>
-                            <td><span class="status-badge ${statusClass}">${statusText}</span></td>
-                            <td>
-                                <div class="action-buttons">
-                                    <button class="action-btn btn-view" onclick="viewEventDetail(${event.id})"><i class="fas fa-eye"></i></button>
-                                    <button class="action-btn btn-delete" onclick="deleteEvent(${event.id})"><i class="fas fa-trash"></i></button>
-                                </div>
-                            </td>
-                        </tr>
-                    `;
-                }).join('');
-            }
-        }
-
-        // 5. Fetch Pending (No longer needed, but keeping empty function)
-        async function loadPending() {
-            // Content removed as per new "No approval" logic
-        }
-
-        async function approveItem(type, id, name) {
-            // Auto approve logic is now on backend
-        }
-
-        async function rejectItem(type, id, name) {
-            // Logic handled by administrator delete if needed
-        }
-
-        // Page navigation
-        function showPage(page) {
-            // Hide all pages
-            const pages = ['dashboard', 'users', 'clubs', 'events', 'monthly-report', 'yearly-report'];
-            pages.forEach(p => {
-                const el = document.getElementById(p + '-page');
-                if (el) el.style.display = 'none';
-            });
-
-            // Show selected page
-            const activePage = document.getElementById(page + '-page');
-            if (activePage) activePage.style.display = 'block';
-
-            // Load data based on page
-            if (page === 'dashboard') loadDashboardStats();
-            if (page === 'users') loadUsers();
-            if (page === 'clubs') loadClubs();
-            if (page === 'events') loadEvents();
-
-            // Update active menu
-            document.querySelectorAll('.nav-item').forEach(item => {
-                item.classList.remove('active');
-                if (item.getAttribute('onclick')?.includes(`'${page}'`)) {
-                    item.classList.add('active');
-                }
-            });
-        }
-
-        // Modal functions
-        function showAddUserModal() {
-            document.getElementById('addUserModal').classList.add('active');
-        }
-
-        function showAddClubModal() {
-            document.getElementById('addClubModal').classList.add('active');
-        }
-
-        function showAddEventModal() {
-            alert('Mở form thêm sự kiện mới');
-        }
-
-        function closeModal(modalId) {
-            document.getElementById(modalId).classList.remove('active');
-        }
-
-        // CRUD operations
-        function viewUserDetail(name) {
-            document.getElementById('detailUserName').textContent = name;
-            document.getElementById('userDetailModal').classList.add('active');
-        }
-
-        async function viewClubDetail(clubId) {
-            const club = await fetchAPI(`/api/clubs/${clubId}`);
-            if (!club) return alert('Không tìm thấy thông tin CLB');
-
-            const members = await fetchAPI(`/api/clubs/${clubId}/members`);
-            const stats = await fetchAPI(`/api/clubs/${clubId}/rankings`);
-
-            document.getElementById('detailClubTitle').textContent = club.club_name;
-            document.getElementById('detailClubCategory').querySelector('span').textContent = club.category_name || 'Khác';
-            document.getElementById('detailClubCreator').querySelector('span').textContent = club.creator_name || 'Hệ thống';
-            document.getElementById('detailClubLogo').src = club.logo_url || '/placeholder-club.png';
-            
-            // Populate Stats
-            if (stats && stats.overview) {
-                document.getElementById('detailMemberCount').textContent = stats.overview.totalMembers || 0;
-                document.getElementById('detailEventCount').textContent = stats.overview.totalEvents || 0;
-                document.getElementById('detailPostCount').textContent = stats.overview.totalPosts || 0;
-            } else {
-                document.getElementById('detailMemberCount').textContent = club.member_count || 0;
-                document.getElementById('detailEventCount').textContent = 0;
-                document.getElementById('detailPostCount').textContent = 0;
-            }
-
-            // Populate Members Table
-            const tbody = document.getElementById('clubMembersTable').querySelector('tbody');
-            if (members && members.length > 0) {
-                tbody.innerHTML = members.map(m => `
-                    <tr>
-                        <td>
-                            <div style="display: flex; align-items: center; gap: 8px;">
-                                <div style="width: 24px; height: 24px; border-radius: 50%; background: #e2e8f0; display: flex; align-items: center; justify-content: center; overflow: hidden; font-size: 10px;">
-                                    ${m.avatar ? `<img src="${m.avatar}" style="width: 100%; height: 100%; object-fit: cover;">` : (m.name ? m.name[0] : 'U')}
-                                </div>
-                                <span style="font-size: 13px;">${m.name}</span>
-                            </div>
-                        </td>
-                        <td><span class="status-badge ${m.role === 'leader' ? 'status-active' : 'status-pending'}" style="font-size: 10px; padding: 2px 6px;">${m.role}</span></td>
-                        <td style="font-size: 12px; color: #64748b;">${m.joined_at ? new Date(m.joined_at).toLocaleDateString('vi-VN') : 'Mới tham gia'}</td>
-                    </tr>
-                `).join('');
-            } else {
-                tbody.innerHTML = '<tr><td colspan="3" style="text-align: center; color: #94a3b8;">Chưa có thành viên</td></tr>';
-            }
-
-            document.getElementById('clubDetailModal').classList.add('active');
-        }
-
-        function editUser(name) {
-            alert('Chỉnh sửa người dùng: ' + name);
-        }
-
-        function editClub(name) {
-            alert('Chỉnh sửa CLB: ' + name);
-        }
-
-        function deleteUser(name) {
-            if (confirm('Bạn có chắc muốn xóa người dùng ' + name + '?')) {
-                alert('Đã xóa người dùng');
-            }
-        }
-
-        async function viewEventDetail(eventId) {
-            const event = await fetchAPI(`/api/events/${eventId}`);
-            if (!event) return alert('Không tìm thấy thông tin sự kiện');
-
-            const regs = await fetchAPI(`/api/events/${eventId}/registrations`);
-
-            document.getElementById('detailEventName').textContent = event.event_name;
-            document.getElementById('detailEventClub').querySelector('span').textContent = event.club_name;
-            document.getElementById('detailEventLocation').querySelector('span').textContent = event.location || 'Trực tuyến';
-            document.getElementById('detailEventTime').querySelector('span').textContent = `${new Date(event.start_time).toLocaleString('vi-VN')}`;
-            document.getElementById('detailEventCreator').querySelector('span').textContent = event.creator_name || 'Hệ thống';
-            document.getElementById('detailEventDesc').textContent = event.description || 'Không có mô tả';
-            
-            document.getElementById('detailRegCount').textContent = regs ? regs.length : 0;
-
-            // Populate Reg Table
-            const tbody = document.getElementById('eventRegTable').querySelector('tbody');
-            if (regs && regs.length > 0) {
-                tbody.innerHTML = regs.map(r => `
-                    <tr>
-                        <td>
-                            <div style="display: flex; align-items: center; gap: 8px;">
-                                <div style="width: 24px; height: 24px; border-radius: 50%; background: #e2e8f0; display: flex; align-items: center; justify-content: center; font-size: 10px;">
-                                    ${r.full_name ? r.full_name[0] : 'U'}
-                                </div>
-                                <span style="font-size: 13px;">${r.full_name}</span>
-                            </div>
-                        </td>
-                        <td style="font-size: 12px;">${r.email}</td>
-                        <td style="font-size: 12px; color: #64748b;">${new Date(r.registered_at).toLocaleDateString('vi-VN')}</td>
-                        <td><span class="status-badge status-active" style="font-size: 10px; padding: 2px 6px;">Đã duyệt</span></td>
-                    </tr>
-                `).join('');
-            } else {
-                tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; color: #94a3b8;">Chưa có người đăng ký</td></tr>';
-            }
-
-            document.getElementById('eventDetailModal').classList.add('active');
-        }
-
-        function approveItem(name) {
-            if (confirm('Duyệt ' + name + '?')) {
-                alert('Đã duyệt thành công');
-            }
-        }
-
-        function rejectItem(name) {
-            if (confirm('Từ chối ' + name + '?')) {
-                alert('Đã từ chối');
-            }
-        }
-
-        function saveUser() {
-            alert('Thêm người dùng thành công');
-            closeModal('addUserModal');
-        }
-
-        function saveClub() {
-            alert('Thêm CLB thành công');
-            closeModal('addClubModal');
-        }
-
-        // Chart update functions
-        function updateMonthlyChart(period) {
-            let data;
-            if (period === '6months') {
-                data = [3, 5, 2, 8, 6, 8];
-            } else if (period === '12months') {
-                data = [3, 5, 2, 8, 6, 8, 7, 9, 4, 6, 5, 7];
-            } else {
-                data = [3, 5, 2, 8, 6, 8, 7, 9, 4, 6, 5, 7, 4, 6, 3, 5, 7, 8, 5, 6, 4, 7, 5, 6];
-            }
-            
-            monthlyChart.data.datasets[0].data = data;
-            monthlyChart.update();
-            
-            // Update active button
-            const buttons = document.querySelectorAll('.chart-period .period-btn');
-            buttons.forEach(btn => btn.classList.remove('active'));
-            // Note: event might not be available here if called directly
-            if (window.event) window.event.currentTarget.classList.add('active');
-        }
-
-        function updateYearlyChart(year) {
-            let data;
-            if (year === '2026') {
-                data = [48, 180];
-            } else if (year === '2025') {
-                data = [42, 160];
-            } else {
-                data = [38, 145];
-            }
-            
-            yearlyChart.data.datasets[0].data = year === '2026' ? [48] : year === '2025' ? [42] : [38];
-            yearlyChart.data.datasets[1].data = year === '2026' ? [180] : year === '2025' ? [160] : [145];
-            yearlyChart.update();
-            
-            // Update active button
-            const buttons = document.querySelectorAll('.chart-period .period-btn');
-            buttons.forEach(btn => btn.classList.remove('active'));
-            if (window.event) window.event.currentTarget.classList.add('active');
-        }
-
-        function showDatePicker() {
-            alert('Chọn khoảng thời gian');
-        }
-
-        function exportReport() {
-            alert('Đang xuất báo cáo...');
-        }
-
-        // Search functionality
-        document.getElementById('searchUser')?.addEventListener('input', function(e) {
-            const searchTerm = e.target.value.toLowerCase();
-            // Implement search logic here
-        });
-
-        document.getElementById('filterRole')?.addEventListener('change', function(e) {
-            const role = e.target.value;
-            // Implement filter logic here
-        });
-
-        // Initialize
-        window.onload = function() {
-            initCharts();
-            showPage('dashboard');
-        };
-    </script>
+    <script src="/JS/admin.js?v=3"></script>
 </body>
 </html>

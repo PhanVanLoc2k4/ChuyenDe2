@@ -19,9 +19,11 @@ async function loadEvents() {
         }
 
         const isLeader = currentUser && clubData && Number(currentUser.id) === Number(clubData.created_by);
+        const isAdmin = currentUser && currentUser.role === 'admin';
+        const canManageEvent = isLeader || isAdmin;
 
         list.innerHTML = events.map(ev => {
-            const mgmtHtml = isLeader ? `
+            const mgmtHtml = canManageEvent ? `
                 <div style="position: absolute; top: 15px; right: 15px; z-index: 20;">
                     <button onclick="togglePostDropdown(event, 'event-${ev.id}')" style="background:none; border:none; cursor:pointer; color:#94a3b8; font-size: 18px; padding: 5px; border-radius: 50%; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; transition: 0.2s;" onmouseover="this.style.background='#f1f5f9'" onmouseout="this.style.background='none'">
                         <i class="fas fa-ellipsis-v"></i>
@@ -40,7 +42,7 @@ async function loadEvents() {
             return `
             <div class="post-card event-card" style="position: relative; overflow: visible; padding: 0; display: flex; flex-direction: column; min-height: 220px;">
                 <div style="display: flex; flex-direction: row; flex: 1;">
-                    <div style="flex: 1; padding: 25px; position: relative;" ${isLeader ? `onclick="openEventRegistrations(${ev.id})" style="cursor:pointer;" title="Nhấn để xem danh sách đăng ký"` : ''}>
+                    <div style="flex: 1; padding: 25px; position: relative;" ${canManageEvent ? `onclick="openEventRegistrations(${ev.id})" style="cursor:pointer;" title="Nhấn để xem danh sách đăng ký"` : ''}>
                         ${mgmtHtml}
                         <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 15px;">
                             <div class="event-date-box" style="background: #fef2f2; border: 1px solid #fee2e2; padding: 10px; border-radius: 12px; text-align: center; min-width: 70px;">
@@ -48,7 +50,7 @@ async function loadEvents() {
                                 <span style="display: block; font-size: 24px; font-weight: 800; color: #1a2639;">${new Date(ev.start_time).getDate()}</span>
                             </div>
                             <div style="display: flex; gap: 10px;">
-                                ${!isLeader ?
+                                ${!canManageEvent ?
                     (ev.is_registered
                         ? `<button onclick="cancelEventRegistration(${ev.id}, event)" class="btn-registered">
                                                 <i class="fas fa-check-circle icon-default"></i><i class="fas fa-times icon-hover"></i>
@@ -213,25 +215,55 @@ async function openEventRegistrations(id) {
             container.innerHTML = `<div style="text-align:center; padding: 50px 20px; background: white; border-radius: 16px; border: 1px dashed #cbd5e1;"><div style="width: 60px; height: 60px; background: #f1f5f9; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 15px auto;"><i class="fas fa-user-xmark" style="font-size: 24px; color: #94a3b8;"></i></div><h3 style="color: #475569; font-size: 16px; margin: 0 0 5px 0;">Danh sách trống</h3><p style="color: #64748b; font-size: 13px; margin: 0;">Sự kiện này hiện chưa có thành viên nào ghi danh tham gia.</p></div>`;
             return;
         }
-        headerCount.innerText = `Tổng cộng: ${users.length} học sinh đã tham gia`;
-        container.innerHTML = '<div style="display: flex; flex-direction: column; gap: 12px;">' + users.map(u => `
-            <div style="display: flex; justify-content: space-between; align-items: center; padding: 18px; border-radius: 12px; border: 1px solid #e2e8f0; background: white; transition: 0.2s;">
+        headerCount.innerText = `Tổng cộng: ${users.length} học sinh đăng ký`;
+        container.innerHTML = '<div style="display: flex; flex-direction: column; gap: 12px;">' + users.map(u => {
+            const isAttended = u.attendance === 'attended';
+            return `
+            <div style="display: flex; justify-content: space-between; align-items: center; padding: 18px; border-radius: 12px; border: 1px solid ${isAttended ? '#86efac' : '#e2e8f0'}; background: ${isAttended ? '#f0fdf4' : 'white'}; transition: 0.2s;">
                 <div style="display: flex; align-items: center; gap: 16px;">
-                    <div style="width: 48px; height: 48px; border-radius: 50%; background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%); color: #2563eb; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 18px; border: 2px solid white; box-shadow: 0 2px 8px rgba(37,99,235,0.15);">
+                    <div style="width: 48px; height: 48px; border-radius: 50%; background: linear-gradient(135deg, ${isAttended ? '#22c55e' : '#2563eb'} 0%, ${isAttended ? '#16a34a' : '#dbeafe'} 100%); color: white; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 18px; border: 2px solid white; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
                         ${u.full_name.charAt(0)}
                     </div>
                     <div>
                         <div style="font-weight: 700; color: #1e293b; font-size: 15px;">${u.full_name}</div>
-                        <div style="font-size: 13px; color: #64748b; margin-top: 4px;"><i class="fas fa-envelope" style="color: #cbd5e1; width: 14px;"></i> ${u.email}</div>
+                        <div style="font-size: 13px; color: #64748b; margin-top: 4px;">
+                            ${isAttended ? '<span style="color: #16a34a; font-weight: 600;"><i class="fas fa-check"></i> Đã có mặt (+5đ)</span>' : '<span style="color: #94a3b8;"><i class="fas fa-clock"></i> Chưa điểm danh</span>'}
+                        </div>
                     </div>
                 </div>
-                <div style="text-align: right; background: #f8fafc; padding: 10px 15px; border-radius: 8px;">
-                    <div style="font-size: 11px; color: #94a3b8; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;"><i class="fas fa-clock"></i> Cập nhật lúc</div>
-                    <div style="font-size: 14px; font-weight: 700; color: #334155; margin-top: 4px;">${new Date(u.registered_at).toLocaleString('vi-VN')}</div>
+                <div style="display: flex; align-items: center; gap: 15px;">
+                    ${!isAttended ? `
+                        <button onclick="submitAttendance(${u.registration_id}, 'attended', ${id})" style="background: #16a34a; color: white; border: none; padding: 8px 16px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; transition: 0.2s;">
+                            <i class="fas fa-check-double"></i> Điểm danh
+                        </button>
+                    ` : ''}
+                    <div style="text-align: right; background: ${isAttended ? '#dcfce7' : '#f8fafc'}; padding: 10px 15px; border-radius: 8px;">
+                        <div style="font-size: 11px; color: #94a3b8; font-weight: 600; text-transform: uppercase;">Ngày ĐK</div>
+                        <div style="font-size: 13px; font-weight: 700; color: #334155; margin-top: 2px;">${new Date(u.registered_at).toLocaleDateString('vi-VN')}</div>
+                    </div>
                 </div>
-            </div>`).join('') + '</div>';
+            </div>`;
+        }).join('') + '</div>';
     } catch (err) {
         headerCount.innerText = "Lỗi kết nối";
         container.innerHTML = '<div style="text-align:center; padding: 40px; color: #ef4444;"><i class="fas fa-exclamation-circle fa-2x"></i><p style="margin-top: 15px;">Lỗi tải dữ liệu.</p></div>';
     }
+}
+
+async function submitAttendance(registrationId, status, eventId) {
+    if (!currentUser) return;
+    try {
+        const adminId = currentUser.id || currentUser.user_id;
+        const response = await fetch('/api/points/attendance', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ registration_id: registrationId, status, admin_id: adminId })
+        });
+        const result = await response.json();
+        if (response.ok) {
+            alert("Điểm danh thành công! Sinh viên đã được cộng +5 điểm rèn luyện.");
+            openEventRegistrations(eventId); // Reload list
+            if (typeof loadPosts === 'function') loadPosts(); // Optional: update stats
+        } else alert("Lỗi: " + result.message);
+    } catch (err) { alert("Lỗi hệ thống khi điểm danh."); }
 }

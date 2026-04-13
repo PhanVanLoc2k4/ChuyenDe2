@@ -38,7 +38,8 @@ async function loadPosts() {
 
             const isLeader = currentUser && clubData && Number(currentUser.id) === Number(clubData.created_by);
             const isAuthor = currentUser && post.author_name === currentUser.full_name;
-            const canManage = isLeader || isAuthor;
+            const isAdmin = currentUser && currentUser.role === 'admin';
+            const canManage = isLeader || isAuthor || isAdmin;
 
             const manageHtml = canManage ? `
                 <div class="post-manage-menu">

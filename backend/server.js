@@ -39,8 +39,10 @@ const eventRoutes = require("./routes/eventRoutes");
 const postRoutes = require("./routes/postRoutes");
 const userRoutes = require("./routes/userRoutes");
 const notificationRoutes = require("./routes/notificationRoutes");
+const supportRoutes = require("./routes/supportRoutes");
 const rankingRoutes = require("./routes/rankingRoutes");
 const adminRoutes = require("./routes/adminRoutes");
+const pointRoutes = require("./routes/pointRoutes");
 
 app.use("/api", authRoutes);      // Đăng ký, Đăng nhập, Stats
 app.use("/api/clubs", clubRoutes); // Quản lý CLB
@@ -48,6 +50,7 @@ app.use("/api/events", eventRoutes); // Quản lý Sự kiện
 app.use("/api/posts", postRoutes);  // Diễn đàn, Bình luận
 app.use("/api/user", userRoutes);   // Profile người dùng
 app.use("/api/notifications", notificationRoutes); // Thông báo
+app.use("/api/support", supportRoutes);
 app.use("/api/rankings", rankingRoutes); // Bảng xếp hạng hệ thống
 app.use("/api/admin", adminRoutes); // Quản trị hệ thống
 

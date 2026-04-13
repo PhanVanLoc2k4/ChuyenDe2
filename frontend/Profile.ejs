@@ -18,9 +18,15 @@
 
 <div class="container">
     <div class="profile-card">
-        <div class="profile-header">
-            <h1><i class="fas fa-id-card"></i> Thông tin cá nhân</h1>
-            <p style="color: #475569; margin-top: 6px;">Quản lý và cập nhật thông tin của bạn</p>
+        <div class="profile-header" style="display: flex; justify-content: space-between; align-items: center;">
+            <div>
+                <h1><i class="fas fa-id-card"></i> Thông tin cá nhân</h1>
+                <p style="color: #475569; margin-top: 6px;">Quản lý và cập nhật thông tin của bạn</p>
+            </div>
+            <div class="points-badge" style="background: linear-gradient(135deg, #f59e0b, #d97706); color: white; padding: 10px 20px; border-radius: 12px; text-align: center; box-shadow: 0 4px 12px rgba(217, 119, 6, 0.2);">
+                <div style="font-size: 0.75rem; text-transform: uppercase; font-weight: 600; opacity: 0.9;">Điểm rèn luyện</div>
+                <div id="displayPoints" style="font-size: 1.5rem; font-weight: 800;"><%= user.training_points || 0 %></div>
+            </div>
         </div>
 
         <div class="profile-body">

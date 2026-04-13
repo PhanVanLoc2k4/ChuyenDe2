@@ -140,6 +140,7 @@ function renderClubs() {
 
         // --- LOGIC XỬ LÝ NÚT BẤM (CẬP NHẬT) ---
         let actionBtn = '';
+        const isAdmin = currentUser && (currentUser.role === 'admin' || currentUser.role_name === 'admin');
         const currentUserId = currentUser ? Number(currentUser.id || currentUser.user_id) : null;
         const clubCreatorId = Number(club.created_by);
         const isMember = userJoinedClubIds.includes(Number(club.id));
@@ -151,6 +152,12 @@ function renderClubs() {
                             <i class="fas fa-crown"></i> Chủ CLB
                          </button>`;
         } 
+        else if (isAdmin) {
+            // Nếu là Admin hệ thống
+            actionBtn = `<button class="btn-join" style="background: #6366f1;" onclick="event.stopPropagation(); window.location.href='/DienDan?id=${club.id}'">
+                            <i class="fas fa-user-shield"></i> Quản trị viên
+                         </button>`;
+        }
         else if (isMember) {
             // Nếu đã là thành viên (nhưng không phải chủ)
             actionBtn = `<button class="btn-join" style="background: #28a745; cursor: default;" onclick="event.stopPropagation()">
@@ -356,6 +363,7 @@ function showClubDetail(id) {
     const clubCreatorId = Number(club.created_by);
     const isMember = userJoinedClubIds.includes(Number(club.id));
     const isRequested = userRequestedClubIds.includes(Number(club.id));
+    const isAdmin = currentUser && (currentUser.role === 'admin' || currentUser.role_name === 'admin');
 
     const modal = document.getElementById('clubModal');
     const modalBody = document.getElementById('modalBody');
@@ -413,7 +421,7 @@ function showClubDetail(id) {
                 </ul>
             </div>
 
-            ${!isMember && !isRequested && currentUserId && clubCreatorId !== currentUserId ? `
+            ${!isAdmin && !isMember && !isRequested && currentUserId && clubCreatorId !== currentUserId ? `
                 <div id="joinReasonSection" class="modal-detail-section" style="margin-top: 25px; background: #fffbeb; padding: 15px; border-radius: 12px; border: 1px solid #fef3c7; display: none;">
                     <h3 style="font-size: 16px; color: #92400e; margin-bottom: 10px;">
                         <i class="fas fa-edit"></i> Lý do muốn tham gia?
@@ -436,6 +444,10 @@ function showClubDetail(id) {
             modalJoinBtn.innerHTML = `<i class="fas fa-trash-alt"></i> Giải thể Câu lạc bộ (Chủ CLB)`;
             modalJoinBtn.style.background = "#dc3545"; 
             modalJoinBtn.onclick = () => handleDeleteClub(club.id);
+        } else if (isAdmin) {
+            modalJoinBtn.innerHTML = `<i class="fas fa-user-shield"></i> Quyền Quản trị viên (Admin)`;
+            modalJoinBtn.style.background = "#6366f1"; 
+            modalJoinBtn.onclick = () => window.location.href = `/DienDan?id=${club.id}`;
         } else if (isMember) {
             modalJoinBtn.innerHTML = `<i class="fas fa-sign-out-alt"></i> Rời khỏi Câu lạc bộ`;
             modalJoinBtn.style.background = "#ed8936"; 
@@ -455,7 +467,7 @@ function showClubDetail(id) {
         const existingBtn = modalJoinBtn.parentNode.querySelector('.btn-dashboard-nav');
         if (existingBtn) existingBtn.remove();
 
-        if (currentUserId && (clubCreatorId === currentUserId || isMember)) {
+        if (currentUserId && (clubCreatorId === currentUserId || isMember || isAdmin)) {
             const dashboardBtn = document.createElement('button');
             dashboardBtn.className = 'btn-join btn-dashboard-nav';
             dashboardBtn.innerHTML = `<i class="fas fa-external-link-alt"></i> Vào trang Câu lạc bộ`;

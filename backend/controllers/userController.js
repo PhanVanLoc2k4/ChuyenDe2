@@ -8,7 +8,7 @@ const getProfile = async (req, res) => {
         const result = await pool.request()
             .input("id", sql.Int, req.params.id)
             .query(`
-                SELECT id, full_name, email, phone, dob, gender, bio, avatar, hobbies 
+                SELECT id, full_name, email, phone, dob, gender, bio, avatar, hobbies, training_points 
                 FROM users 
                 WHERE id = @id
             `);

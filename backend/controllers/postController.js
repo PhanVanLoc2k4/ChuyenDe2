@@ -174,11 +174,16 @@ const updatePost = async (req, res) => {
     const post_id = req.params.id;
     const pool = getPool();
     try {
-        // Kiểm tra quyền (Tác giả bài viết)
+        // Kiểm tra quyền (Tác giả bài viết hoặc Admin)
         const check = await pool.request().input("id", sql.Int, post_id).query("SELECT user_id FROM posts WHERE id = @id");
         if (check.recordset.length === 0) return res.status(404).json({ message: "Không tìm thấy bài viết" });
         
-        if (Number(check.recordset[0].user_id) !== Number(user_id)) {
+        const roleCheck = await pool.request()
+            .input("uid", sql.Int, user_id)
+            .query("SELECT r.role_name FROM user_roles ur JOIN roles r ON ur.role_id = r.id WHERE ur.user_id = @uid");
+        const isAdmin = roleCheck.recordset.some(r => r.role_name === 'admin');
+
+        if (Number(check.recordset[0].user_id) !== Number(user_id) && !isAdmin) {
             return res.status(403).json({ message: "Bạn không có quyền sửa bài viết này" });
         }
 
@@ -206,12 +211,17 @@ const deletePost = async (req, res) => {
         const post = check.recordset[0];
         const club_id = post.club_id;
 
-        // Lấy thông tin chủ CLB
+        // Lấy thông tin chủ CLB & Kiểm tra Admin
         const clubCheck = await pool.request().input("cid", sql.Int, club_id).query("SELECT created_by FROM clubs WHERE id = @cid");
+        const roleCheck = await pool.request()
+            .input("uid", sql.Int, user_id)
+            .query("SELECT r.role_name FROM user_roles ur JOIN roles r ON ur.role_id = r.id WHERE ur.user_id = @uid");
+            
+        const isAdmin = roleCheck.recordset.some(r => r.role_name === 'admin');
         const isLeader = clubCheck.recordset.length > 0 && Number(clubCheck.recordset[0].created_by) === Number(user_id);
         const isAuthor = Number(post.user_id) === Number(user_id);
 
-        if (!isAuthor && !isLeader) {
+        if (!isAuthor && !isLeader && !isAdmin) {
             return res.status(403).json({ message: "Bạn không có quyền xóa bài viết này" });
         }
 

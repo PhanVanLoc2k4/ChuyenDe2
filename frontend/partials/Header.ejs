@@ -6,7 +6,7 @@
         font-family: 'Inter', sans-serif;
         background: white;
         border-bottom: 3px solid #c53030;
-        box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
         position: sticky;
         top: 0;
         z-index: 100;
@@ -37,7 +37,7 @@
     }
 
     .header-main {
-        padding: 20px 40px;
+        padding: 0 30px;
         display: flex;
         justify-content: space-between;
         align-items: center;
@@ -105,7 +105,8 @@
         color: white;
         font-weight: 700;
         text-transform: uppercase;
-        overflow: hidden; /* Đảm bảo ảnh không tràn ra ngoài vòng tròn */
+        overflow: hidden;
+        /* Đảm bảo ảnh không tràn ra ngoài vòng tròn */
     }
 
     .nav-bar {
@@ -154,13 +155,14 @@
 
     /* Style cho Dropdown Menu */
     .user-dropdown-content {
-        display: none; /* Mặc định ẩn */
+        display: none;
+        /* Mặc định ẩn */
         position: absolute;
         top: 110%;
         right: 0;
         background-color: white;
         min-width: 160px;
-        box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.1);
+        box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.1);
         border-radius: 8px;
         z-index: 1000;
         border: 1px solid #e2e8f0;
@@ -171,10 +173,11 @@
     #noti-btn {
         transition: transform 0.2s ease;
     }
+
     #noti-btn:hover {
         transform: scale(1.05);
     }
-    
+
     .noti-badge {
         position: absolute;
         top: 2px;
@@ -195,9 +198,17 @@
     }
 
     @keyframes pulse-red {
-        0% { box-shadow: 0 0 0 0 rgba(229, 62, 62, 0.7); }
-        70% { box-shadow: 0 0 0 6px rgba(229, 62, 62, 0); }
-        100% { box-shadow: 0 0 0 0 rgba(229, 62, 62, 0); }
+        0% {
+            box-shadow: 0 0 0 0 rgba(229, 62, 62, 0.7);
+        }
+
+        70% {
+            box-shadow: 0 0 0 6px rgba(229, 62, 62, 0);
+        }
+
+        100% {
+            box-shadow: 0 0 0 0 rgba(229, 62, 62, 0);
+        }
     }
 
     #noti-dropdown {
@@ -215,7 +226,7 @@
         display: block !important;
         visibility: hidden;
     }
-    
+
     #noti-dropdown.show {
         opacity: 1;
         transform: translateY(0) scale(1);
@@ -253,7 +264,7 @@
         cursor: pointer;
         transition: color 0.2s;
     }
-    
+
     .noti-header button:hover {
         color: #2b6cb0;
         text-decoration: underline;
@@ -281,7 +292,7 @@
     .noti-item.unread {
         background: #ebf8ff;
     }
-    
+
     .noti-item.unread .noti-title {
         color: #2b6cb0;
     }
@@ -296,10 +307,26 @@
         flex-shrink: 0;
         font-size: 16px;
     }
-    .noti-icon.membership { background: #ebf4ff; color: #3182ce; }
-    .noti-icon.post { background: #f0fff4; color: #38a169; }
-    .noti-icon.event { background: #fffaf0; color: #dd6b20; }
-    .noti-icon.default { background: #edf2f7; color: #718096; }
+
+    .noti-icon.membership {
+        background: #ebf4ff;
+        color: #3182ce;
+    }
+
+    .noti-icon.post {
+        background: #f0fff4;
+        color: #38a169;
+    }
+
+    .noti-icon.event {
+        background: #fffaf0;
+        color: #dd6b20;
+    }
+
+    .noti-icon.default {
+        background: #edf2f7;
+        color: #718096;
+    }
 
     .noti-content {
         flex: 1;
@@ -317,7 +344,7 @@
         justify-content: space-between;
         align-items: center;
     }
-    
+
     .noti-indicator {
         width: 8px;
         height: 8px;
@@ -325,7 +352,7 @@
         background: #3182ce;
         display: none;
     }
-    
+
     .noti-item.unread .noti-indicator {
         display: block;
     }
@@ -370,21 +397,33 @@
     /* =========================
        TỐI ƯU RESPONSIVE
     ========================= */
-    
+
     /* Cho Tablet (Màn hình vừa) */
     @media (max-width: 1024px) {
-        .header-top { padding: 8px 20px; }
-        .header-main { padding: 20px; }
-        .nav-bar { padding: 0 20px; }
-        .nav-links { gap: 24px; }
+        .header-top {
+            padding: 8px 20px;
+        }
+
+        .header-main {
+            padding: 15px;
+        }
+
+        .nav-bar {
+            padding: 0 20px;
+        }
+
+        .nav-links {
+            gap: 24px;
+        }
     }
 
     /* Cho Điện thoại (Màn hình nhỏ) */
     @media (max-width: 768px) {
-        .header-top { 
-            display: none; /* Ẩn dải màu đen trên cùng cho đỡ tốn diện tích màn hình đt */
+        .header-top {
+            display: none;
+            /* Ẩn dải màu đen trên cùng cho đỡ tốn diện tích màn hình đt */
         }
-        
+
         .header-main {
             flex-direction: column;
             gap: 15px;
@@ -398,18 +437,21 @@
         }
 
         .logo {
-            font-size: 28px; /* Thu nhỏ logo */
+            font-size: 28px;
+            /* Thu nhỏ logo */
         }
 
         .edition {
             border-left: none;
             padding-left: 0;
-            border-top: 1px solid #e2e8f0; /* Chuyển vạch dọc thành vạch ngang */
+            border-top: 1px solid #e2e8f0;
+            /* Chuyển vạch dọc thành vạch ngang */
             padding-top: 10px;
         }
 
         .nav-bar {
-            padding: 0; /* Bỏ padding để thanh menu tràn viền màn hình */
+            padding: 0;
+            /* Bỏ padding để thanh menu tràn viền màn hình */
         }
 
         /* Chuyển menu thành dạng vuốt ngang trên mobile */
@@ -419,24 +461,32 @@
             justify-content: flex-start;
             padding: 0 15px;
             gap: 20px;
-            -webkit-overflow-scrolling: touch; /* Giúp vuốt mượt trên iOS */
+            -webkit-overflow-scrolling: touch;
+            /* Giúp vuốt mượt trên iOS */
         }
 
         /* Ẩn thanh cuộn ngang để giao diện sạch hơn */
-        .nav-links::-webkit-scrollbar { display: none; }
-        .nav-links { -ms-overflow-style: none; scrollbar-width: none; }
+        .nav-links::-webkit-scrollbar {
+            display: none;
+        }
+
+        .nav-links {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
 
         .nav-links li {
-            white-space: nowrap; /* Không cho rớt dòng text */
+            white-space: nowrap;
+            /* Không cho rớt dòng text */
             padding: 12px 0;
             font-size: 14px;
         }
-        
+
     }
 </style>
 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-<link rel="stylesheet" href="CSS/bien.css">
+<link rel="stylesheet" href="/CSS/bien.css">
 <script src="/socket.io/socket.io.js"></script>
 
 <header class="newspaper-header">
@@ -460,7 +510,7 @@
             <div id="noti-btn" style="position: relative; cursor: pointer; padding: 10px;">
                 <i class="fas fa-bell" style="font-size: 20px; color: #4a5568;"></i>
                 <div id="noti-count" class="noti-badge" style="display: none;">0</div>
-                
+
                 <div id="noti-dropdown" class="user-dropdown-content">
                     <div class="noti-header">
                         <span>Thông báo</span>
@@ -475,16 +525,16 @@
             </div>
 
             <div class="user-info" id="user-profile-btn" style="position: relative;">
-            <span>Xin chào, <strong id="username">Khách</strong></span>
-            <div class="user-avatar" id="userAvatar">?</div>
-            
-            <div id="user-dropdown" class="user-dropdown-content">
-                <a href="/Profile" onclick="window.location.href='/profile';">
-                    <i class="fas fa-user-circle"></i> Trang cá nhân
-                </a>
-                <hr>
-                <a href="#" id="logout-btn"><i class="fas fa-sign-out-alt"></i> Đăng xuất</a>
-            </div>
+                <span>Xin chào, <strong id="username">Khách</strong></span>
+                <div class="user-avatar" id="userAvatar">?</div>
+
+                <div id="user-dropdown" class="user-dropdown-content">
+                    <a href="/Profile" onclick="window.location.href='/profile';">
+                        <i class="fas fa-user-circle"></i> Trang cá nhân
+                    </a>
+                    <hr>
+                    <a href="#" id="logout-btn"><i class="fas fa-sign-out-alt"></i> Đăng xuất</a>
+                </div>
             </div>
         </div>
     </div>
@@ -504,6 +554,9 @@
             <li class="<%= title === 'Diễn đàn' ? 'active' : '' %>">
                 <a href="/DienDan" style="text-decoration: none; color: inherit;">Diễn đàn</a>
             </li>
+            <li id="nav-ketnoi" class="<%= title === 'Kết nối Nhà trường' ? 'active' : '' %>">
+                <a href="/KetNoi" id="nav-ketnoi-text" style="text-decoration: none; color: inherit;">Kết nối</a>
+            </li>
             <li class="<%= title === 'Xếp hạng' ? 'active' : '' %>">
                 <a href="/XepHang" style="text-decoration: none; color: inherit;">Xếp hạng</a>
             </li>
@@ -515,7 +568,7 @@
 <div id="thong-bao-toast"></div>
 
 <script>
-    document.addEventListener("DOMContentLoaded", function() {
+    document.addEventListener("DOMContentLoaded", function () {
         const storedUser = localStorage.getItem('currentUser');
         const usernameEl = document.getElementById("username");
         const avatarEl = document.getElementById("userAvatar");
@@ -528,7 +581,25 @@
 
             if (user.isLoggedIn && user.name) {
                 usernameEl.textContent = user.name;
-                
+
+                // KIỂM TRA ROLE ADMIN ĐỂ HIỂN THỊ LINK QUẢN TRỊ
+                if (user.role === 'admin') {
+                    const adminLink = document.createElement('a');
+                    adminLink.href = '/admin';
+                    adminLink.innerHTML = `<i class="fas fa-user-shield" style="color: #c53030;"></i> Quản trị hệ thống`;
+                    dropdown.prepend(adminLink);
+                }
+
+                // KIỂM TRA ROLE VÀ CẬP NHẬT MENU HỖ TRỢ/KẾT NỐI
+                const ketnoiLink = document.getElementById('nav-ketnoi-text');
+                if (ketnoiLink) {
+                    if (user.role === 'leader') {
+                        ketnoiLink.innerText = 'Kết nối';
+                    } else {
+                        ketnoiLink.innerText = 'Hỗ trợ';
+                    }
+                }
+
                 // KIỂM TRA AVATAR: Nếu có ảnh thì hiển thị ảnh, ngược lại hiển thị chữ cái đầu
                 if (user.avatar) {
                     avatarEl.innerHTML = `<img src="${user.avatar}" alt="Avatar" style="width: 100%; height: 100%; object-fit: cover;">`;
@@ -538,9 +609,9 @@
                 }
 
                 // Click vào profile để bật/tắt menu sổ xuống
-                profileBtn.onclick = function(e) {
+                profileBtn.onclick = function (e) {
                     if (e.target.closest('a')) {
-                        return; 
+                        return;
                     }
 
                     e.stopPropagation(); // Ngăn sự kiện click lan ra ngoài window
@@ -548,20 +619,20 @@
                 };
 
                 // Xử lý nút Đăng xuất trong menu
-                logoutBtn.onclick = function(e) {
+                logoutBtn.onclick = function (e) {
                     e.preventDefault();
-                    if(confirm("Bạn có muốn đăng xuất không?")) {
+                    if (confirm("Bạn có muốn đăng xuất không?")) {
                         localStorage.removeItem('currentUser');
                         window.location.reload();
                     }
                 };
-                
+
                 // --- Notification Handling ---
                 const notiBtn = document.getElementById('noti-btn');
                 const notiDropdown = document.getElementById('noti-dropdown');
 
                 if (notiBtn) {
-                    notiBtn.onclick = function(e) {
+                    notiBtn.onclick = function (e) {
                         e.stopPropagation();
                         notiDropdown.classList.toggle("show");
                         // Close user dropdown if open
@@ -585,7 +656,7 @@
                 function renderNotifications(notis) {
                     const container = document.getElementById('noti-list-container');
                     const countBadge = document.getElementById('noti-count');
-                    
+
                     if (!container) return;
 
                     const unreadCount = notis.filter(n => !n.is_read).length;
@@ -627,14 +698,14 @@
                     }).join('');
                 }
 
-                window.handleNotiClick = async function(e, id, link) {
+                window.handleNotiClick = async function (e, id, link) {
                     if (link === '#' || !link) e.preventDefault();
                     try {
                         await fetch(`/api/notifications/read/${id}`, { method: 'PUT' });
                     } catch (err) { console.error(err); }
                 };
 
-                window.markAllAsRead = async function() {
+                window.markAllAsRead = async function () {
                     try {
                         await fetch(`/api/notifications/read-all/${user.id}`, { method: 'PUT' });
                         loadNotifications(user.id);
@@ -652,7 +723,7 @@
                 socket.on("new_notification", (data) => {
                     console.log("⚡ Real-time notification received:", data);
                     showToast(data.title, data.message, data.type);
-                    loadNotifications(user.id); 
+                    loadNotifications(user.id);
                 });
 
                 socket.on('disconnect', () => {
@@ -665,11 +736,11 @@
 
                     const toast = document.createElement('div');
                     toast.className = `toast-item ${type}`;
-                    
+
                     let icon = 'fa-bell';
                     if (type === 'membership') icon = 'fa-user-check';
                     else if (type === 'success') icon = 'fa-check-circle';
-                    
+
                     toast.innerHTML = `
                         <div class="toast-icon">
                             <i class="fas ${icon}"></i>
@@ -679,10 +750,10 @@
                             <div class="toast-msg">${message}</div>
                         </div>
                     `;
-                    
+
                     toastContainer.appendChild(toast);
                     setTimeout(() => toast.classList.add('active'), 100);
-                    
+
                     setTimeout(() => {
                         toast.classList.remove('active');
                         setTimeout(() => toast.remove(), 500);
@@ -693,7 +764,7 @@
                 loadNotifications(user.id);
 
                 // Đóng menu nếu click ra ngoài vùng user-info hoặc noti-btn
-                window.onclick = function(event) {
+                window.onclick = function (event) {
                     if (!profileBtn.contains(event.target)) {
                         dropdown.classList.remove("show");
                     }
@@ -712,8 +783,8 @@
         usernameEl.textContent = "Khách";
         avatarEl.textContent = "?";
         avatarEl.style.background = "#718096";
-        
-        profileBtn.onclick = function() {
+
+        profileBtn.onclick = function () {
             window.location.href = "/dangnhap";
         };
     });

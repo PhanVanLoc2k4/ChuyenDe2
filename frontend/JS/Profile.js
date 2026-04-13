@@ -73,6 +73,9 @@ async function loadFullData() {
         const joinedClubs = await clubsRes.json();
         
         console.log("✅ Profile Data received from DB:", profileData);
+        // Cập nhật hiển thị điểm
+        const pointsDisplay = document.getElementById('displayPoints');
+        if (pointsDisplay) pointsDisplay.textContent = profileData.training_points || 0;
 
         // Map data từ Database sang State (Dùng các key từ SELECT trong server.js)
         currentProfile = {
@@ -85,7 +88,8 @@ async function loadFullData() {
             gender: profileData.gender || "Nam",
             bio: profileData.bio || "",
             hobbies: profileData.hobbies || "",
-            avatar: profileData.avatar || DEFAULT_AVATAR
+            avatar: profileData.avatar || DEFAULT_AVATAR,
+            points: profileData.training_points || 0
         };
         
         console.log("📍 Render Form with:", currentProfile);

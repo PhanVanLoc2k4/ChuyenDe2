@@ -7,5 +7,6 @@ const { verifyToken, checkRole } = require("../middleware/authMiddleware");
 router.get("/stats", verifyToken, checkRole(['admin']), adminController.getAdminStats);
 router.get("/reports/monthly", verifyToken, checkRole(['admin']), adminController.getMonthlyReports);
 router.get("/users", verifyToken, checkRole(['admin']), adminController.getAllUsers);
+router.put("/users/:id/status", verifyToken, checkRole(['admin']), adminController.updateUserStatus);
 
 module.exports = router;

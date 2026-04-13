@@ -52,30 +52,44 @@ document.addEventListener('DOMContentLoaded', async () => {
 // Hàm load danh sách CLB của User khi chưa chọn CLB cụ thể
 async function loadMyClubs() {
     const list = document.getElementById('myClubsList');
-    list.innerHTML = '<div class="loading-placeholder">Đang tải danh sách CLB của bạn...</div>';
+    if (!list) return;
+    list.innerHTML = '<div class="loading-placeholder">Đang tải danh sách CLB...</div>';
 
     try {
-        const response = await fetch(`/api/user/clubs/${currentUser.user_id || currentUser.id}`);
+        const isAdmin = currentUser && (currentUser.role === 'admin' || currentUser.role_name === 'admin');
+        const endpoint = isAdmin ? '/api/clubs' : `/api/user/clubs/${currentUser.user_id || currentUser.id}`;
+        
+        const response = await fetch(endpoint);
         const clubs = await response.json();
 
+        // Cập nhật câu chào nếu là Admin
+        const titleText = document.querySelector('#noClubSelectedView h2');
+        const subText = document.querySelector('#noClubSelectedView p');
+        if (isAdmin && titleText) {
+            titleText.innerHTML = '<i class="fas fa-user-shield"></i> Bảng điều khiển Quản trị viên';
+            subText.textContent = "Bạn có quyền truy cập vào tất cả câu lạc bộ trong hệ thống.";
+        }
+
         if (clubs.length === 0) {
-            list.innerHTML = `<p style="padding: 20px; color: #64748b;">Bạn chưa tham gia câu lạc bộ nào.</p>`;
+            list.innerHTML = `<p style="padding: 20px; color: #64748b;">${isAdmin ? "Hệ thống chưa có câu lạc bộ nào." : "Bạn chưa tham gia câu lạc bộ nào."}</p>`;
             return;
         }
 
-        list.innerHTML = clubs.map(c => `
+        list.innerHTML = clubs.map(c => {
+            const clubName = c.name || c.club_name;
+            return `
             <div class="post-card" style="cursor: pointer; text-align: left; transition: 0.3s;" onclick="window.location.href='?id=${c.id}'">
                 <div style="display: flex; align-items: center; gap: 15px;">
                     <div style="width: 50px; height: 50px; background: #c53030; color: white; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: bold;">
-                        ${c.name.charAt(0)}
+                        ${clubName.charAt(0)}
                     </div>
                     <div>
-                        <h4 style="margin: 0; font-size: 18px;">${c.name}</h4>
-                        <span style="font-size: 13px; color: #64748b;">Nhấn để vào quản lý / thảo luận</span>
+                        <h4 style="margin: 0; font-size: 18px;">${clubName}</h4>
+                        <span style="font-size: 13px; color: #64748b;">${isAdmin ? "Quản lý / Theo dõi CLB này" : "Nhấn để vào quản lý / thảo luận"}</span>
                     </div>
                 </div>
-            </div>
-        `).join('');
+            </div>`;
+        }).join('');
     } catch (err) {
         list.innerHTML = 'Lỗi tải danh sách CLB.';
     }
@@ -107,12 +121,18 @@ async function loadClubInfo() {
         }
 
         // Kiểm tra quyền Trưởng CLB
-        const isLeader = currentUser && Number(currentUser.user_id || currentUser.id) === Number(clubData.created_by);
+        const isLeader = currentUser && clubData && Number(currentUser.id) === Number(clubData.created_by);
+        const isAdmin = currentUser && (currentUser.role === 'admin' || currentUser.role_name === 'admin');
         
-        // Luôn hiện Cài đặt cho thành viên, nhưng Phân quyền chỉ cho Leader
-        document.getElementById('navSettings').style.display = 'flex';
+        // Luôn hiện Cài đặt cho thành viên, nhưng Phân quyền chỉ cho Leader & Admin
+        const tabCaiDat = document.getElementById('navSettings');
+        if (isLeader || isAdmin) {
+            tabCaiDat.style.display = 'flex';
+        } else {
+            tabCaiDat.style.display = 'flex'; // Hiện tại đang để flex cho tất cả, giữ nguyên hoặc có thể đổi tùy yêu cầu
+        }
         
-        if (isLeader) {
+        if (isLeader || isAdmin) {
             document.getElementById('navMembers').style.display = 'flex';
             document.getElementById('btnCreateEvent').style.display = 'flex';
         } else {
