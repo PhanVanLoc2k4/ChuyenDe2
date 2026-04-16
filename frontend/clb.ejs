@@ -1,106 +1,133 @@
 <%- include('partials/Header') %>
-<!DOCTYPE html>
-<html lang="vi">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>Câu lạc bộ - CLB Connect | Tạo & Quản lý CLB</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="CSS/clb.css">
-</head>
-<body>
+    <!DOCTYPE html>
+    <html lang="vi">
 
-<div class="container">
-    <div class="page-header">
-        <div>
-            <h1>Câu lạc bộ sinh viên</h1>
-            <p>Khám phá, tham gia hoặc <strong style="color:#c53030">tạo CLB của riêng bạn</strong> để kết nối đam mê</p>
-        </div>
-        <button class="btn-create-club" id="mainCreateClubBtn" onclick="showCreateClubModal()">
-            <i class="fas fa-plus-circle"></i> Tạo CLB mới
-        </button>
-    </div>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+        <title>Câu lạc bộ - CLB Connect | Tạo & Quản lý CLB</title>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+        <link
+            href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap"
+            rel="stylesheet">
+        <link rel="stylesheet" href="CSS/clb.css">
+    </head>
 
-    <div class="search-filter-section">
-        <div class="search-box">
-            <div class="search-input">
-                <i class="fas fa-search"></i>
-                <input type="text" id="searchInput" placeholder="Tìm kiếm câu lạc bộ theo tên hoặc mô tả...">
+    <body>
+
+    <main class="cinematic-layout">
+        <!-- Cinematic Hero -->
+        <section class="hero-cinematic">
+            <div class="hero-bg-overlay"></div>
+            <div class="hero-content">
+                <div class="hero-tagline">KHÁM PHÁ ĐAM MÊ</div>
+                <h1 class="hero-title">Kiến Tạo <br><span class="text-glow">Cộng Đồng</span> Sinh Viên</h1>
+                <p class="hero-subtitle">Nơi tụ hội của những tinh hoa, nơi khởi nguồn cho những ý tưởng táo bạo và những tình bạn bền chặt. Bạn đã sẵn sàng để tỏa sáng?</p>
+                <div class="hero-btns">
+                    <button class="btn-cinema-primary" onclick="window.scrollTo({top: document.getElementById('discover-section').offsetTop - 80, behavior: 'smooth'})">
+                        <i class="fas fa-play"></i> Bắt đầu khám phá
+                    </button>
+                    <button class="btn-cinema-outline" id="heroCreateBtn" onclick="showCreateClubModal()" style="display: none;">
+                        <i class="fas fa-plus"></i> Thành lập CLB
+                    </button>
+                </div>
+            </div>
+            <div class="hero-scroll">
+                <div class="mouse-icon"></div>
+                <span>Cuộn để xem thêm</span>
+            </div>
+        </section>
+
+        <div class="container cinematic-content" id="discover-section">
+            <!-- Glassmorphism Search & Filter -->
+            <div class="search-filter-cinematic">
+                <div class="search-input-group">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="searchInput" placeholder="Tìm kiếm cộng đồng, tài năng hoặc lĩnh vực..." oninput="handleSearch()">
+                </div>
+                <div class="filter-group" id="categoryFilter">
+                    <!-- Categories rendered via JS -->
+                </div>
+            </div>
+
+            <div id="clubsGrid" class="clubs-grid-cinematic">
+                <!-- Clubs rendered via JS -->
             </div>
         </div>
-        <div class="category-filter" id="categoryFilter">
-            <div class="category-chip active" data-category="all">Tất cả</div>
-        </div>
-    </div>
+    </main>
 
-    <div id="clubsGrid" class="clubs-grid"></div>
-</div>
-
-<div id="createClubModal" class="modal">
-    <div class="modal-content">
-        <div class="modal-header">
-            <span class="modal-close" onclick="closeCreateClubModal()">&times;</span>
-            <h2><i class="fas fa-plus-circle"></i> Tạo câu lạc bộ mới</h2>
-            <p>Điền thông tin chi tiết để thành lập CLB của bạn</p>
-        </div>
-        <div class="modal-body">
-            <form id="createClubForm">
-                <div class="form-group">
-                    <label><i class="fas fa-image"></i> Logo câu lạc bộ *</label>
-                    <div class="image-upload-wrapper">
-                        <input type="file" id="clubLogo" accept="image/*" required onchange="previewImage(this, 'logoPreview')">
-                        <div class="preview-container">
-                            <img id="logoPreview" src="" alt="Logo Preview" style="display:none; width: 80px; height: 80px; border-radius: 50%; object-fit: cover; margin-top: 10px; border: 2px solid #ddd;">
+        <div id="createClubModal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <span class="modal-close" onclick="closeCreateClubModal()">&times;</span>
+                    <h2><i class="fas fa-plus-circle"></i> Tạo câu lạc bộ mới</h2>
+                    <p>Điền thông tin chi tiết để thành lập CLB của bạn</p>
+                </div>
+                <div class="modal-body">
+                    <form id="createClubForm">
+                        <div class="form-group">
+                            <label><i class="fas fa-image"></i> Logo câu lạc bộ *</label>
+                            <div class="image-upload-wrapper">
+                                <input type="file" id="clubLogo" accept="image/*" required
+                                    onchange="previewImage(this, 'logoPreview')">
+                                <div class="preview-container">
+                                    <img id="logoPreview" src="" alt="Logo Preview"
+                                        style="display:none; width: 80px; height: 80px; border-radius: 50%; object-fit: cover; margin-top: 10px; border: 2px solid #ddd;">
+                                </div>
+                            </div>
                         </div>
-                    </div>
-                </div>
 
-                <div class="form-group">
-                    <label><i class="fas fa-panorama"></i> Ảnh bìa câu lạc bộ *</label>
-                    <div class="image-upload-wrapper">
-                        <input type="file" id="clubCover" accept="image/*" required onchange="previewImage(this, 'coverPreview')">
-                        <div class="preview-container">
-                            <img id="coverPreview" src="" alt="Cover Preview" style="display:none; width: 100%; height: 120px; border-radius: 8px; object-fit: cover; margin-top: 10px; border: 2px solid #ddd;">
+                        <div class="form-group">
+                            <label><i class="fas fa-panorama"></i> Ảnh bìa câu lạc bộ *</label>
+                            <div class="image-upload-wrapper">
+                                <input type="file" id="clubCover" accept="image/*" required
+                                    onchange="previewImage(this, 'coverPreview')">
+                                <div class="preview-container">
+                                    <img id="coverPreview" src="" alt="Cover Preview"
+                                        style="display:none; width: 100%; height: 120px; border-radius: 8px; object-fit: cover; margin-top: 10px; border: 2px solid #ddd;">
+                                </div>
+                            </div>
                         </div>
-                    </div>
+                        <div class="form-group">
+                            <label><i class="fas fa-tag"></i> Tên câu lạc bộ *</label>
+                            <input type="text" id="clubName" placeholder="VD: CLB Lập trình, CLB Nhiếp ảnh Sáng tạo"
+                                required>
+                        </div>
+                        <div class="form-group">
+                            <label><i class="fas fa-layer-group"></i> Danh mục *</label>
+                            <input type="text" id="clubCategory" placeholder="VD: Võ thuật, Kịch, Kỹ năng..." required>
+                        </div>
+                        <div class="form-group">
+                            <label><i class="fas fa-align-left"></i> Mô tả ngắn (hiển thị trên thẻ) *</label>
+                            <textarea id="clubDescription" rows="2" placeholder="Mô tả ngắn gọn, hấp dẫn về CLB..."
+                                required></textarea>
+                        </div>
+                        <div class="form-actions">
+                            <button type="button" class="btn-cancel" onclick="closeCreateClubModal()">Hủy bỏ</button>
+                            <button type="submit" class="btn-submit"><i class="fas fa-check-circle"></i> Tạo CLB
+                                ngay</button>
+                        </div>
+                    </form>
                 </div>
-                <div class="form-group">
-                    <label><i class="fas fa-tag"></i> Tên câu lạc bộ *</label>
-                    <input type="text" id="clubName" placeholder="VD: CLB Lập trình, CLB Nhiếp ảnh Sáng tạo" required>
-                </div>
-                <div class="form-group">
-                    <label><i class="fas fa-layer-group"></i> Danh mục *</label>
-                    <input type="text" id="clubCategory" placeholder="VD: Võ thuật, Kịch, Kỹ năng..." required>
-                </div>
-                <div class="form-group">
-                    <label><i class="fas fa-align-left"></i> Mô tả ngắn (hiển thị trên thẻ) *</label>
-                    <textarea id="clubDescription" rows="2" placeholder="Mô tả ngắn gọn, hấp dẫn về CLB..." required></textarea>
-                </div>
-                <div class="form-actions">
-                    <button type="button" class="btn-cancel" onclick="closeCreateClubModal()">Hủy bỏ</button>
-                    <button type="submit" class="btn-submit"><i class="fas fa-check-circle"></i> Tạo CLB ngay</button>
-                </div>
-            </form>
+            </div>
         </div>
-    </div>
-</div>
 
-<div id="clubModal" class="modal">
-    <div class="modal-content">
-        <div class="modal-header">
-            <span class="modal-close" onclick="closeModal()">&times;</span>
-            <h2 id="modalClubName"></h2>
-            <p id="modalClubCategory"></p>
+        <div id="clubModal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <span class="modal-close" onclick="closeModal()">&times;</span>
+                    <h2 id="modalClubName"></h2>
+                    <p id="modalClubCategory"></p>
+                </div>
+                <div class="modal-body" id="modalBody"></div>
+                <div class="modal-footer">
+                    <button class="btn-join" id="modalJoinBtn" onclick="joinClubFromModal()">Tham gia CLB</button>
+                </div>
+            </div>
         </div>
-        <div class="modal-body" id="modalBody"></div>
-        <div class="modal-footer">
-            <button class="btn-join" id="modalJoinBtn" onclick="joinClubFromModal()">Tham gia CLB</button>
-        </div>
-    </div>
-</div>
 
-<script src="JS/clb.js"></script>
-</body>
-</html>
-<%- include('partials/Footer') %>
+        <script src="JS/clb.js"></script>
+    </body>
+
+    </html>
+    <%- include('partials/Footer') %>
