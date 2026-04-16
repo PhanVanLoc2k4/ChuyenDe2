@@ -401,3 +401,66 @@ small.hint {
 hr {
     margin: 0.5rem 0;
 }
+
+/* Point History Table Styles */
+.history-table-wrapper {
+    margin-top: 10px;
+    border: 1px solid var(--border-light);
+    border-radius: 12px;
+    overflow: hidden;
+    background: #fff;
+}
+
+.history-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+}
+
+.history-table th {
+    background: #f8fafc;
+    padding: 12px 15px;
+    text-align: left;
+    font-weight: 700;
+    color: #475569;
+    border-bottom: 2px solid var(--border-light);
+}
+
+.history-table td {
+    padding: 12px 15px;
+    border-bottom: 1px solid #f1f5f9;
+    color: #334155;
+}
+
+.history-table tr:last-child td {
+    border-bottom: none;
+}
+
+.history-table tr:hover td {
+    background: #fdfdfd;
+}
+
+.point-badge {
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-weight: 700;
+    font-size: 0.85rem;
+    display: inline-block;
+}
+
+.point-positive {
+    background: #dcfce7;
+    color: #166534;
+}
+
+.point-negative {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+@media (max-width: 600px) {
+    .history-table th, .history-table td {
+        padding: 8px 10px;
+        font-size: 0.8rem;
+    }
+}

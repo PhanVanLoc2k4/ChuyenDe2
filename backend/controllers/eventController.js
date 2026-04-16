@@ -322,6 +322,51 @@ const deleteEvent = async (req, res) => {
     } catch (err) { res.status(500).json({ message: "Lỗi xóa sự kiện" }); }
 };
 
+// 10. Lấy bình luận sự kiện
+const getEventComments = async (req, res) => {
+    const pool = getPool();
+    try {
+        const result = await pool.request()
+            .input("eid", sql.Int, req.params.id)
+            .query(`
+                SELECT ec.id, ec.content, ec.created_at, ec.parent_id, u.full_name as author_name, u.avatar as author_avatar
+                FROM event_comments ec
+                LEFT JOIN users u ON ec.user_id = u.id
+                WHERE ec.event_id = @eid
+                ORDER BY ec.created_at ASC
+            `);
+        res.json(result.recordset);
+    } catch (err) {
+        console.error("Lỗi getEventComments:", err);
+        res.status(500).json({ message: "Lỗi load bình luận sự kiện" });
+    }
+};
+
+// 11. Đăng bình luận sự kiện
+const createEventComment = async (req, res) => {
+    const { user_id, content, parent_id } = req.body;
+    const event_id = req.params.id;
+    const pool = getPool();
+    try {
+        await pool.request()
+            .input("eid", sql.Int, event_id)
+            .input("uid", sql.Int, user_id)
+            .input("content", sql.NVarChar, content)
+            .input("parent", sql.Int, parent_id || null)
+            .query(`INSERT INTO event_comments (event_id, user_id, content, created_at, parent_id) 
+                    VALUES (@eid, @uid, @content, GETDATE(), @parent)`);
+        
+        await pool.request()
+            .input("eid", sql.Int, event_id)
+            .query("UPDATE events SET comments = comments + 1 WHERE id = @eid");
+            
+        res.json({ message: "Bình luận thành công!" });
+    } catch (err) {
+        console.error("Lỗi createEventComment:", err);
+        res.status(500).json({ message: "Lỗi đăng bình luận sự kiện" });
+    }
+};
+
 module.exports = {
     getAllEvents,
     createEvent,
@@ -331,5 +376,7 @@ module.exports = {
     likeEvent,
     getEventRegistrations,
     updateEvent,
-    deleteEvent
+    deleteEvent,
+    getEventComments,
+    createEventComment
 };

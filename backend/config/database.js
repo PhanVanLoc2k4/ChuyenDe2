@@ -72,6 +72,9 @@ async function checkSchema(pool) {
                     created_by INT -- Admin hoặc Leader thực hiện
                 );
             END
+
+            IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('event_comments') AND name = 'parent_id')
+                ALTER TABLE event_comments ADD parent_id INT FOREIGN KEY REFERENCES event_comments(id);
         `);
         
         console.log("✅ Schema check completed.");

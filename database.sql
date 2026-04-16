@@ -47,6 +47,7 @@ BEGIN
         bio NVARCHAR(MAX),
         hobbies NVARCHAR(MAX),
         avatar NVARCHAR(MAX),
+        training_points INT DEFAULT 0,
         created_at DATETIME DEFAULT GETDATE()
     );
 END
@@ -238,5 +239,18 @@ BEGIN
         total_score INT DEFAULT 0,
         current_rank INT DEFAULT 0,
         trend NVARCHAR(50) DEFAULT 'stable'
+    );
+END
+
+-- 17. Tạo bảng Training_Point_History (Lịch sử điểm rèn luyện)
+IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'training_point_history')
+BEGIN
+    CREATE TABLE training_point_history (
+        id INT IDENTITY(1,1) PRIMARY KEY,
+        user_id INT NOT NULL FOREIGN KEY REFERENCES users(id) ON DELETE CASCADE,
+        points INT NOT NULL,
+        reason NVARCHAR(MAX),
+        created_at DATETIME DEFAULT GETDATE(),
+        created_by INT -- Admin/Leader thực hiện cộng điểm
     );
 END

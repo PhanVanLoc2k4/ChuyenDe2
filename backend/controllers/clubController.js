@@ -156,7 +156,8 @@ const getClubDetail = async (req, res) => {
         const result = await pool.request()
             .input("id", sql.Int, clubId)
             .query(`
-                SELECT c.*, u.full_name as creator_name, cat.category_name 
+                SELECT c.*, u.full_name as creator_name, cat.category_name,
+                       (SELECT COUNT(*) FROM club_members cm WHERE cm.club_id = c.id) AS member_count
                 FROM clubs c
                 LEFT JOIN users u ON c.created_by = u.id
                 LEFT JOIN categories cat ON c.category_id = cat.id

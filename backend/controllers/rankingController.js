@@ -25,11 +25,15 @@ const getGlobalRankings = async (req, res) => {
         const activeClubsResult = await pool.request().query(activeClubsQuery);
         const activeClubs = activeClubsResult.recordset;
 
-        // 2. Thành viên ưu tú
+        // 2. Bảng xếp hạng rèn luyện (Tính tổng thực tế từ lịch sử và loại bỏ Admin)
         const topMembersQuery = `
-            SELECT TOP 10 u.id, u.full_name, u.avatar, COUNT(p.id) as contribution_score
+            SELECT TOP 10 u.id, u.full_name, u.avatar, 
+                   SUM(h.points) as contribution_score
             FROM users u
-            JOIN posts p ON u.id = p.user_id
+            JOIN training_point_history h ON u.id = h.user_id
+            LEFT JOIN user_roles ur ON u.id = ur.user_id
+            LEFT JOIN roles r ON ur.role_id = r.id
+            WHERE ISNULL(r.role_name, 'user') != 'admin'
             GROUP BY u.id, u.full_name, u.avatar
             ORDER BY contribution_score DESC
         `;

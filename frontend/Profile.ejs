@@ -23,7 +23,7 @@
                 <h1><i class="fas fa-id-card"></i> Thông tin cá nhân</h1>
                 <p style="color: #475569; margin-top: 6px;">Quản lý và cập nhật thông tin của bạn</p>
             </div>
-            <div class="points-badge" style="background: linear-gradient(135deg, #f59e0b, #d97706); color: white; padding: 10px 20px; border-radius: 12px; text-align: center; box-shadow: 0 4px 12px rgba(217, 119, 6, 0.2);">
+            <div id="trainingPointsBadge" class="points-badge" style="background: linear-gradient(135deg, #f59e0b, #d97706); color: white; padding: 10px 20px; border-radius: 12px; text-align: center; box-shadow: 0 4px 12px rgba(217, 119, 6, 0.2);">
                 <div style="font-size: 0.75rem; text-transform: uppercase; font-weight: 600; opacity: 0.9;">Điểm rèn luyện</div>
                 <div id="displayPoints" style="font-size: 1.5rem; font-weight: 800;"><%= user.training_points || 0 %></div>
             </div>
@@ -94,6 +94,29 @@
                             <div id="clubChecklist" class="checkbox-group">
                                 </div>
                             <small class="hint"><i class="fas fa-check-circle"></i> Chọn các CLB bạn đang sinh hoạt</small>
+                        </div>
+
+                        <!-- PHẦN LỊCH SỬ ĐIỂM RÈN LUYỆN -->
+                        <div id="pointHistorySection" class="form-field full-width" style="margin-top: 20px;">
+                            <label><i class="fas fa-history"></i> Lịch sử điểm rèn luyện</label>
+                            <div class="table-container history-table-wrapper">
+                                <table class="history-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Ngày</th>
+                                            <th>Nội dung / Lý do</th>
+                                            <th style="text-align: center;">Điểm</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="pointHistoryBody">
+                                        <tr>
+                                            <td colspan="3" style="text-align: center; color: #64748b; padding: 20px;">
+                                                <i class="fas fa-spinner fa-spin"></i> Đang tải lịch sử...
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
                     </div>
 

@@ -53,6 +53,7 @@ app.use("/api/notifications", notificationRoutes); // Thông báo
 app.use("/api/support", supportRoutes);
 app.use("/api/rankings", rankingRoutes); // Bảng xếp hạng hệ thống
 app.use("/api/admin", adminRoutes); // Quản trị hệ thống
+app.use("/api/points", pointRoutes); // Quản lý Điểm rèn luyện
 
 // TRANG PROFILE (Để lại tương thích với logic cũ)
 app.get("/profile", (req, res) => {

@@ -27,7 +27,7 @@ function renderRanking(type) {
     
     // Cập nhật label dựa trên loại
     if (type === 'mostActiveClubs') scoreLabel.innerText = "Điểm hoạt động";
-    else if (type === 'topMembers') scoreLabel.innerText = "Điểm cống hiến";
+    else if (type === 'topMembers') scoreLabel.innerText = "Điểm rèn luyện";
     else if (type === 'biggestClubs') scoreLabel.innerText = "Số thành viên";
     else if (type === 'popularEvents') scoreLabel.innerText = "Lượt yêu thích";
 
@@ -95,7 +95,7 @@ function formatNumber(num) {
 function getUnit(type) {
     switch(type) {
         case 'mostActiveClubs': return 'Điểm hoạt động';
-        case 'topMembers': return 'Điểm cống hiến';
+        case 'topMembers': return 'Điểm rèn luyện';
         case 'biggestClubs': return 'Thành viên';
         case 'popularEvents': return 'Lượt thích';
         default: return 'Điểm';

@@ -80,7 +80,8 @@ async function fetchClubs() {
             creatorName: c.creator || "Ban quản trị",
             logo_url: c.logo_url || '', 
             cover_url: c.cover_url || '',
-            created_by: c.created_by 
+            created_by: c.created_by,
+            memberCount: c.member_count || 0
         }));
 
         renderCategoryFilters(); 

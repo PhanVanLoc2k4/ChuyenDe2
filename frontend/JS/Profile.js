@@ -33,7 +33,7 @@ const avatarInput = document.getElementById('avatarInput');
 document.addEventListener('DOMContentLoaded', async () => {
     const userStr = localStorage.getItem('currentUser');
     if (!userStr) {
-        window.location.href = "/login";
+        window.location.href = "/dangnhap";
         return;
     }
     currentUser = JSON.parse(userStr);
@@ -58,11 +58,30 @@ async function loadFullData() {
 
     console.log("🚀 Starting fetch for UserID:", userId);
 
+    // KIỂM TRA QUYỀN: Nếu là admin thì ẩn phần điểm rèn luyện
+    const isAdmin = currentUser && currentUser.role === 'admin';
+    if (isAdmin) {
+        const pointsBadge = document.getElementById('trainingPointsBadge');
+        const historySection = document.getElementById('pointHistorySection');
+        if (pointsBadge) pointsBadge.style.display = 'none';
+        if (historySection) historySection.style.display = 'none';
+    }
+
     try {
-        const [profileRes, clubsRes] = await Promise.all([
+        const fetchPromises = [
             fetch(`/api/user/profile/${userId}`),
             fetch(`/api/user/clubs/${userId}`)
-        ]);
+        ];
+
+        // Chỉ fetch lịch sử điểm nếu không phải admin
+        if (!isAdmin) {
+            fetchPromises.push(fetch(`/api/points/history/${userId}`));
+        }
+
+        const responses = await Promise.all(fetchPromises);
+        const profileRes = responses[0];
+        const clubsRes = responses[1];
+        const historyRes = !isAdmin ? responses[2] : null;
 
         if (!profileRes.ok) {
             const errData = await profileRes.json();
@@ -71,11 +90,24 @@ async function loadFullData() {
 
         const profileData = await profileRes.json();
         const joinedClubs = await clubsRes.json();
+        const pointHistory = historyRes ? await historyRes.json() : [];
         
         console.log("✅ Profile Data received from DB:", profileData);
-        // Cập nhật hiển thị điểm
+        
+        // Tính tổng điểm từ lịch sử để đảm bảo khớp hoàn toàn với danh sách hiển thị
+        let totalPoints = 0;
+        if (!isAdmin && pointHistory.length > 0) {
+            totalPoints = pointHistory.reduce((sum, item) => sum + (item.points || 0), 0);
+        } else if (!isAdmin) {
+            // Nếu không có lịch sử, lấy từ profileData (phòng hờ)
+            totalPoints = profileData.training_points || 0;
+        }
+
+        // Cập nhật hiển thị điểm tổng ở đầu trang
         const pointsDisplay = document.getElementById('displayPoints');
-        if (pointsDisplay) pointsDisplay.textContent = profileData.training_points || 0;
+        if (pointsDisplay && !isAdmin) {
+            pointsDisplay.textContent = totalPoints;
+        }
 
         // Map data từ Database sang State (Dùng các key từ SELECT trong server.js)
         currentProfile = {
@@ -95,6 +127,7 @@ async function loadFullData() {
         console.log("📍 Render Form with:", currentProfile);
         renderProfileToForm();
         renderJoinedClubsUI(joinedClubs);
+        renderPointHistoryUI(pointHistory);
         
     } catch (error) {
         console.error("❌ Lỗi tải dữ liệu Profile:", error);
@@ -151,6 +184,41 @@ function renderJoinedClubsUI(clubs) {
             <i class="fas fa-users" style="margin-right: 6px;"></i> ${club.name}
         </div>
     `).join('');
+}
+
+/**
+ * 4.1 HIỂN THỊ LỊCH SỬ ĐIỂM RÈN LUYỆN
+ */
+function renderPointHistoryUI(history) {
+    const historyContainer = document.getElementById('pointHistoryBody');
+    if (!historyContainer) return;
+
+    if (!history || history.length === 0) {
+        historyContainer.innerHTML = `
+            <tr>
+                <td colspan="3" style="text-align: center; color: #64748b; padding: 20px;">
+                    Bạn chưa có lịch sử cộng điểm nào.
+                </td>
+            </tr>
+        `;
+        return;
+    }
+
+    historyContainer.innerHTML = history.map(item => {
+        const date = new Date(item.created_at).toLocaleDateString('vi-VN');
+        const points = item.points >= 0 ? `+${item.points}` : item.points;
+        const pointClass = item.points >= 0 ? 'point-positive' : 'point-negative';
+
+        return `
+            <tr>
+                <td style="white-space: nowrap;">${date}</td>
+                <td>${item.reason || 'N/A'}</td>
+                <td style="text-align: center;">
+                    <span class="point-badge ${pointClass}">${points}</span>
+                </td>
+            </tr>
+        `;
+    }).join('');
 }
 
 /**
