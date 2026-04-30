@@ -28,7 +28,7 @@ async function handleLogin() {
     const password = document.getElementById('loginPassword').value.trim();
 
     if (!email || !password) {
-        alert('Vui lòng nhập email và mật khẩu!');
+        showToast('Vui lòng nhập email và mật khẩu!', 'warning');
         return;
     }
 
@@ -47,7 +47,7 @@ async function handleLogin() {
         const data = await response.json();
 
         if (response.ok) {
-            alert(data.message || 'Đăng nhập thành công!');
+            showToast(data.message || 'Đăng nhập thành công!', 'success');
             
             // LƯU Ý MỚI: Cập nhật lưu thêm Token vào localStorage
             const userInfo = {
@@ -61,21 +61,22 @@ async function handleLogin() {
             };
             localStorage.setItem('currentUser', JSON.stringify(userInfo));
 
-            // Chuyển hướng về trang chủ
-            if (data.role === 'admin') {
-                window.location.href = '/admin';
-            } else {
-                window.location.href = '/'; // Sinh viên bình thường về trang chủ
-            } 
-
+            // Chuyển hướng về trang chủ sau 1.5s để thấy toast
+            setTimeout(() => {
+                if (data.role === 'admin') {
+                    window.location.href = '/admin';
+                } else {
+                    window.location.href = '/'; // Sinh viên bình thường về trang chủ
+                } 
+            }, 1500);
 
         } else {
             // Xử lý lỗi (sai pass, không tìm thấy email...)
-            alert(`Lỗi: ${data.message}`);
+            showToast(`Lỗi: ${data.message}`, 'warning');
         }
     } catch (error) {
         console.error("Lỗi đăng nhập:", error);
-        alert('Không thể kết nối đến máy chủ. Vui lòng kiểm tra mạng hoặc server!');
+        showToast('Không thể kết nối đến máy chủ. Vui lòng kiểm tra mạng hoặc server!', 'warning');
     }
 }
 
@@ -93,18 +94,18 @@ async function handleRegister() {
 
     // Validate dữ liệu cơ bản ở Frontend
     if (!name || !email || !dob || !password || !confirm) {
-        alert('Vui lòng điền đầy đủ thông tin!');
+        showToast('Vui lòng điền đầy đủ thông tin!', 'warning');
         return;
     }
 
     if (name.length < 2) {
-        alert('Họ và tên quá ngắn!');
+        showToast('Họ và tên quá ngắn!', 'warning');
         return;
     }
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
-        alert('Email không đúng định dạng!');
+        showToast('Email không đúng định dạng!', 'warning');
         return;
     }
 
@@ -118,22 +119,22 @@ async function handleRegister() {
     }
 
     if (age < 16 || age > 100) {
-        alert(`Tuổi không hợp lệ (${age} tuổi). Bạn phải từ 16 đến 100 tuổi!`);
+        showToast(`Tuổi không hợp lệ (${age} tuổi). Bạn phải từ 16 đến 100 tuổi!`, 'warning');
         return;
     }
 
     if (password !== confirm) {
-        alert('Mật khẩu xác nhận không khớp!');
+        showToast('Mật khẩu xác nhận không khớp!', 'warning');
         return;
     }
 
     if (password.length < 6) {
-        alert('Mật khẩu phải có ít nhất 6 ký tự!');
+        showToast('Mật khẩu phải có ít nhất 6 ký tự!', 'warning');
         return;
     }
 
     if (!agree) {
-        alert('Bạn cần đồng ý với điều khoản dịch vụ!');
+        showToast('Bạn cần đồng ý với điều khoản dịch vụ!', 'warning');
         return;
     }
 
@@ -158,19 +159,21 @@ async function handleRegister() {
         const data = await response.json();
 
         if (response.ok) {
-            alert('Đăng ký thành công! Vui lòng đăng nhập để tiếp tục.');
+            showToast('Đăng ký thành công! Vui lòng đăng nhập để tiếp tục.', 'success');
             
-            // Tự động chuyển qua tab Login và điền sẵn email vừa đăng ký
-            switchTab('login');
-            document.getElementById('loginEmail').value = email;
-            document.getElementById('loginPassword').value = ''; 
+            setTimeout(() => {
+                // Tự động chuyển qua tab Login và điền sẵn email vừa đăng ký
+                switchTab('login');
+                document.getElementById('loginEmail').value = email;
+                document.getElementById('loginPassword').value = ''; 
+            }, 1500);
         } else {
             // Lỗi email đã tồn tại, thiếu thông tin...
-            alert(`Lỗi: ${data.message}`);
+            showToast(`Lỗi: ${data.message}`, 'warning');
         }
     } catch (error) {
         console.error("Lỗi đăng ký:", error);
-        alert('Không thể kết nối đến máy chủ. Vui lòng kiểm tra mạng hoặc server!');
+        showToast('Không thể kết nối đến máy chủ. Vui lòng kiểm tra mạng hoặc server!', 'warning');
     }
 }
 
@@ -179,3 +182,37 @@ window.onload = function() {
     // Nếu user đã đăng nhập, có thể bạn muốn đá họ về trang chủ luôn?
     // if(localStorage.getItem('currentUser')) window.location.href = '/';
 };
+
+// Hàm hiển thị Toast Notification tùy chỉnh (Thay thế cho alert mặc định)
+function showToast(message, type = 'warning') {
+    let toastContainer = document.getElementById('thong-bao-toast');
+    if (!toastContainer) {
+        toastContainer = document.createElement('div');
+        toastContainer.id = 'thong-bao-toast';
+        document.body.appendChild(toastContainer);
+    }
+    
+    const toast = document.createElement('div');
+    toast.className = `toast-item ${type}`;
+    
+    let iconClass = 'fa-exclamation-circle';
+    if (type === 'success') iconClass = 'fa-check-circle';
+    if (type === 'info') iconClass = 'fa-info-circle';
+    
+    toast.innerHTML = `
+        <div class="toast-icon"><i class="fas ${iconClass}"></i></div>
+        <div class="toast-content">
+            <div class="toast-title">Thông báo</div>
+            <div class="toast-msg">${message}</div>
+        </div>
+    `;
+    
+    toastContainer.appendChild(toast);
+    
+    setTimeout(() => toast.classList.add('active'), 10);
+    
+    setTimeout(() => {
+        toast.classList.remove('active');
+        setTimeout(() => toast.remove(), 400); 
+    }, 3000);
+}

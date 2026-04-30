@@ -1,12 +1,17 @@
 <!DOCTYPE html>
 <html lang="vi">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><%= title %></title>
+    <title>
+        <%= title %>
+    </title>
     <link rel="stylesheet" href="/CSS/bien.css?v=3">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@400;500;600;700;800&family=Playfair+Display:wght@700;800&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@400;500;600;700;800&family=Playfair+Display:wght@700;800&display=swap"
+        rel="stylesheet">
     <style>
         :root {
             --primary: var(--primary-color);
@@ -40,7 +45,7 @@
             margin-bottom: 40px;
             position: relative;
             overflow: hidden;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
         }
 
         .hero-section::before {
@@ -54,11 +59,35 @@
             animation: rotate 20s linear infinite;
         }
 
-        @keyframes rotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        @keyframes rotate {
+            from {
+                transform: rotate(0deg);
+            }
 
-        .hero-content { position: relative; z-index: 10; }
-        .hero-section h1 { font-family: 'Playfair Display', serif; font-size: 42px; margin-bottom: 15px; }
-        .hero-section p { color: #94a3b8; font-size: 18px; max-width: 700px; margin: 0 auto; line-height: 1.6; }
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 10;
+        }
+
+        .hero-section h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: 42px;
+            margin-bottom: 15px;
+            color: wheat;
+        }
+
+        .hero-section p {
+            color: #94a3b8;
+            font-size: 18px;
+            max-width: 700px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
 
         /* Main Layout */
         .main-tab-layout {
@@ -91,8 +120,17 @@
             cursor: pointer;
         }
 
-        .nav-link:hover { background: #f1f5f9; color: var(--primary); transform: translateX(5px); }
-        .nav-link.active { background: var(--primary); color: white; box-shadow: 0 10px 20px rgba(197, 48, 48, 0.2); }
+        .nav-link:hover {
+            background: #f1f5f9;
+            color: var(--primary);
+            transform: translateX(5px);
+        }
+
+        .nav-link.active {
+            background: var(--primary);
+            color: white;
+            box-shadow: 0 10px 20px rgba(197, 48, 48, 0.2);
+        }
 
         /* Content Area */
         .content-area {
@@ -105,8 +143,20 @@
         }
 
         /* Form Styles */
-        .form-group { margin-bottom: 25px; }
-        .form-group label { display: block; font-weight: 700; margin-bottom: 10px; color: #1e293b; font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px; }
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: #1e293b;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
         .form-control {
             width: 100%;
             padding: 15px 20px;
@@ -118,8 +168,17 @@
             transition: all 0.3s ease;
             outline: none;
         }
-        .form-control:focus { border-color: var(--primary); background: white; box-shadow: 0 0 0 4px rgba(197, 48, 48, 0.1); }
-        textarea.form-control { min-height: 150px; resize: none; }
+
+        .form-control:focus {
+            border-color: var(--primary);
+            background: white;
+            box-shadow: 0 0 0 4px rgba(197, 48, 48, 0.1);
+        }
+
+        textarea.form-control {
+            min-height: 150px;
+            resize: none;
+        }
 
         .submit-btn {
             background: var(--primary);
@@ -138,7 +197,11 @@
             justify-content: center;
         }
 
-        .submit-btn:hover { background: var(--primary-hover); transform: translateY(-3px); box-shadow: 0 10px 20px rgba(197, 48, 48, 0.2); }
+        .submit-btn:hover {
+            background: var(--primary-hover);
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(197, 48, 48, 0.2);
+        }
 
         /* Request Cards */
         .request-card {
@@ -150,19 +213,65 @@
             transition: all 0.3s ease;
         }
 
-        .request-card:hover { transform: translateY(-5px); box-shadow: var(--shadow); }
+        .request-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow);
+        }
 
-        .card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 15px; }
-        .card-category { font-size: 12px; text-transform: uppercase; font-weight: 800; color: var(--primary); background: rgba(197, 48, 48, 0.1); padding: 4px 12px; border-radius: 50px; }
-        .card-status { font-size: 11px; font-weight: 800; text-transform: uppercase; padding: 4px 12px; border-radius: 50px; }
-        
-        .status-pending { background: #fff7ed; color: #9a3412; }
-        .status-processing { background: #eff6ff; color: #1e40af; }
-        .status-resolved { background: #f0fdf4; color: #166534; }
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 15px;
+        }
 
-        .card-subject { font-size: 18px; font-weight: 800; margin-bottom: 10px; color: #1e293b; }
-        .card-message { color: #64748b; font-size: 14px; line-height: 1.6; margin-bottom: 20px; }
-        
+        .card-category {
+            font-size: 12px;
+            text-transform: uppercase;
+            font-weight: 800;
+            color: var(--primary);
+            background: rgba(197, 48, 48, 0.1);
+            padding: 4px 12px;
+            border-radius: 50px;
+        }
+
+        .card-status {
+            font-size: 11px;
+            font-weight: 800;
+            text-transform: uppercase;
+            padding: 4px 12px;
+            border-radius: 50px;
+        }
+
+        .status-pending {
+            background: #fff7ed;
+            color: #9a3412;
+        }
+
+        .status-processing {
+            background: #eff6ff;
+            color: #1e40af;
+        }
+
+        .status-resolved {
+            background: #f0fdf4;
+            color: #166534;
+        }
+
+        .card-subject {
+            font-size: 18px;
+            font-weight: 800;
+            margin-bottom: 10px;
+            color: #1e293b;
+        }
+
+        .card-message {
+            color: #64748b;
+            font-size: 14px;
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+
         .card-reply {
             margin-top: 15px;
             padding: 20px;
@@ -170,127 +279,159 @@
             border-radius: 16px;
             border-left: 4px solid var(--primary);
         }
-        .reply-header { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; font-weight: 700; font-size: 13px; color: #334155; }
-        .reply-content { font-size: 14px; color: #475569; }
 
-        .hidden { display: none; }
+        .reply-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 8px;
+            font-weight: 700;
+            font-size: 13px;
+            color: #334155;
+        }
+
+        .reply-content {
+            font-size: 14px;
+            color: #475569;
+        }
+
+        .hidden {
+            display: none;
+        }
 
         @media (max-width: 992px) {
-            .main-tab-layout { grid-template-columns: 1fr; }
-            .hero-section { padding: 40px 20px; }
-            .hero-section h1 { font-size: 32px; }
+            .main-tab-layout {
+                grid-template-columns: 1fr;
+            }
+
+            .hero-section {
+                padding: 40px 20px;
+            }
+
+            .hero-section h1 {
+                font-size: 32px;
+            }
         }
     </style>
 </head>
+
 <body>
 
     <%- include('partials/Header') %>
 
-    <div class="ketnoi-container">
-        <div class="hero-section">
-            <div class="hero-content">
-                <h1 id="pageTitle">Kết nối Nhà trường</h1>
-                <p id="pageDesc">Một kênh giao tiếp chính thức để sinh viên và CLB kết nối, gửi đề xuất và nhận hỗ trợ trực tiếp từ Ban Giám hiệu.</p>
-            </div>
-        </div>
-
-        <div class="main-tab-layout">
-            <!-- Sidebar Navigation -->
-            <div class="side-nav">
-                <div class="nav-link active" onclick="switchTab('create')">
-                    <i class="fas fa-paper-plane"></i> Gửi yêu cầu mới
-                </div>
-                <div class="nav-link" onclick="switchTab('list')">
-                    <i class="fas fa-history"></i> Lịch sử yêu cầu
-                </div>
-                <div class="nav-link" onclick="switchTab('info')">
-                    <i class="fas fa-info-circle"></i> Thông tin hỗ trợ
+        <div class="ketnoi-container">
+            <div class="hero-section">
+                <div class="hero-content">
+                    <h1 id="pageTitle">Kết nối Nhà trường</h1>
+                    <p id="pageDesc">Một kênh giao tiếp chính thức để sinh viên và CLB kết nối, gửi đề xuất và nhận hỗ
+                        trợ trực tiếp từ Ban Giám hiệu.</p>
                 </div>
             </div>
 
-            <!-- Content Area -->
-            <div class="content-area">
-                <!-- Tab: Create Request -->
-                <div id="tab-create">
-                    <h2 style="margin-bottom: 30px; font-weight: 800;">Tạo Yêu cầu mới</h2>
-                    <form id="supportForm">
-                        <div class="form-group">
-                            <label>Phân loại yêu cầu</label>
-                            <select name="category" class="form-control" required>
-                                <option value="Cơ sở vật chất">Cơ sở vật chất / Trang thiết bị</option>
-                                <option value="Kinh phí">Hỗ trợ Kinh phí / Tài chính</option>
-                                <option value="Sự kiện">Tổ chức Sự kiện / Workshop</option>
-                                <option value="Khiếu nại">Khiếu nại / Phản ánh</option>
-                                <option value="Khác">Vấn đề khác</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label>Tiêu đề</label>
-                            <input type="text" name="subject" class="form-control" placeholder="Tóm tắt yêu cầu của bạn..." required>
-                        </div>
-                        <div class="form-group">
-                            <label>Chi tiết yêu cầu</label>
-                            <textarea name="message" class="form-control" placeholder="Mô tả cụ thể mong muốn hoặc vấn đề bạn gặp phải..." required></textarea>
-                        </div>
-                        <button type="submit" class="submit-btn">
-                            <i class="fas fa-paper-plane"></i> Gửi yêu cầu ngay
-                        </button>
-                    </form>
-                </div>
-
-                <!-- Tab: My Requests -->
-                <div id="tab-list" class="hidden">
-                    <h2 style="margin-bottom: 30px; font-weight: 800;">Lịch sử Yêu cầu</h2>
-                    <div id="requestsList">
-                        <!-- Loading or Empty state -->
-                        <p style="text-align: center; color: #94a3b8; padding: 40px;">Đang tải danh sách...</p>
+            <div class="main-tab-layout">
+                <!-- Sidebar Navigation -->
+                <div class="side-nav">
+                    <div class="nav-link active" onclick="switchTab('create')">
+                        <i class="fas fa-paper-plane"></i> Gửi yêu cầu mới
+                    </div>
+                    <div class="nav-link" onclick="switchTab('list')">
+                        <i class="fas fa-history"></i> Lịch sử yêu cầu
+                    </div>
+                    <div class="nav-link" onclick="switchTab('info')">
+                        <i class="fas fa-info-circle"></i> Thông tin hỗ trợ
                     </div>
                 </div>
 
-                <!-- Tab: Info -->
-                <div id="tab-info" class="hidden">
-                    <h2 style="margin-bottom: 30px; font-weight: 800;">Thông tin Hỗ trợ</h2>
-                    <div style="line-height: 1.8; color: #475569;">
-                        <p>Nhà trường luôn sẵn sàng lắng nghe và hỗ trợ các hoạt động của sinh viên và Câu lạc bộ. Để yêu cầu được xử lý nhanh nhất, vui lòng:</p>
-                        <ul style="margin-top: 20px; padding-left: 20px;">
-                            <li>Gửi yêu cầu trước ít nhất 7 ngày làm việc đối với các sự kiện lớn.</li>
-                            <li>Đính kèm các văn bản, kế hoạch cụ thể (nếu có) thông qua liên kết Drive.</li>
-                            <li>Mô tả rõ ràng mục đích và đối tượng tham gia.</li>
-                        </ul>
-                        <div style="margin-top: 40px; padding: 25px; background: #f1f5f9; border-radius: 20px;">
-                            <h4 style="color: #1e293b; margin-bottom: 15px;"><i class="fas fa-clock"></i> Thời gian phản hồi dự kiến</h4>
-                            <p>Thông thường, các yêu cầu sẽ được phản hồi trong vòng <b>24-48 giờ</b> làm việc. Đối với các vấn đề cần sự phê duyệt của Ban Giám hiệu, thời gian có thể kéo dài hơn.</p>
+                <!-- Content Area -->
+                <div class="content-area">
+                    <!-- Tab: Create Request -->
+                    <div id="tab-create">
+                        <h2 style="margin-bottom: 30px; font-weight: 800;">Tạo Yêu cầu mới</h2>
+                        <form id="supportForm">
+                            <div class="form-group">
+                                <label>Phân loại yêu cầu</label>
+                                <select name="category" class="form-control" required>
+                                    <option value="Cơ sở vật chất">Cơ sở vật chất / Trang thiết bị</option>
+                                    <option value="Kinh phí">Hỗ trợ Kinh phí / Tài chính</option>
+                                    <option value="Sự kiện">Tổ chức Sự kiện / Workshop</option>
+                                    <option value="Khiếu nại">Khiếu nại / Phản ánh</option>
+                                    <option value="Khác">Vấn đề khác</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Tiêu đề</label>
+                                <input type="text" name="subject" class="form-control"
+                                    placeholder="Tóm tắt yêu cầu của bạn..." required>
+                            </div>
+                            <div class="form-group">
+                                <label>Chi tiết yêu cầu</label>
+                                <textarea name="message" class="form-control"
+                                    placeholder="Mô tả cụ thể mong muốn hoặc vấn đề bạn gặp phải..."
+                                    required></textarea>
+                            </div>
+                            <button type="submit" class="submit-btn">
+                                <i class="fas fa-paper-plane"></i> Gửi yêu cầu ngay
+                            </button>
+                        </form>
+                    </div>
+
+                    <!-- Tab: My Requests -->
+                    <div id="tab-list" class="hidden">
+                        <h2 style="margin-bottom: 30px; font-weight: 800;">Lịch sử Yêu cầu</h2>
+                        <div id="requestsList">
+                            <!-- Loading or Empty state -->
+                            <p style="text-align: center; color: #94a3b8; padding: 40px;">Đang tải danh sách...</p>
+                        </div>
+                    </div>
+
+                    <!-- Tab: Info -->
+                    <div id="tab-info" class="hidden">
+                        <h2 style="margin-bottom: 30px; font-weight: 800;">Thông tin Hỗ trợ</h2>
+                        <div style="line-height: 1.8; color: #475569;">
+                            <p>Nhà trường luôn sẵn sàng lắng nghe và hỗ trợ các hoạt động của sinh viên và Câu lạc bộ.
+                                Để yêu cầu được xử lý nhanh nhất, vui lòng:</p>
+                            <ul style="margin-top: 20px; padding-left: 20px;">
+                                <li>Gửi yêu cầu trước ít nhất 7 ngày làm việc đối với các sự kiện lớn.</li>
+                                <li>Đính kèm các văn bản, kế hoạch cụ thể (nếu có) thông qua liên kết Drive.</li>
+                                <li>Mô tả rõ ràng mục đích và đối tượng tham gia.</li>
+                            </ul>
+                            <div style="margin-top: 40px; padding: 25px; background: #f1f5f9; border-radius: 20px;">
+                                <h4 style="color: #1e293b; margin-bottom: 15px;"><i class="fas fa-clock"></i> Thời gian
+                                    phản hồi dự kiến</h4>
+                                <p>Thông thường, các yêu cầu sẽ được phản hồi trong vòng <b>24-48 giờ</b> làm việc. Đối
+                                    với các vấn đề cần sự phê duyệt của Ban Giám hiệu, thời gian có thể kéo dài hơn.</p>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
 
-    <script>
-        // CẬP NHẬT NỘI DUNG THEO VAI TRÒ (Role-based Branding)
-        document.addEventListener("DOMContentLoaded", function() {
-            const storedUser = localStorage.getItem('currentUser');
-            if (!storedUser) {
-                window.location.href = '/dangnhap';
-                return;
-            }
+        <script>
+            // CẬP NHẬT NỘI DUNG THEO VAI TRÒ (Role-based Branding)
+            document.addEventListener("DOMContentLoaded", function () {
+                const storedUser = localStorage.getItem('currentUser');
+                if (!storedUser) {
+                    window.location.href = '/dangnhap';
+                    return;
+                }
 
-            const user = JSON.parse(storedUser);
-            const titleEl = document.getElementById('pageTitle');
-            const descEl = document.getElementById('pageDesc');
+                const user = JSON.parse(storedUser);
+                const titleEl = document.getElementById('pageTitle');
+                const descEl = document.getElementById('pageDesc');
 
-            if (user.role === 'leader') {
-                titleEl.innerText = "Kết nối Nhà trường";
-                descEl.innerText = "Kênh hỗ trợ dành riêng cho Ban điều hành CLB để đề xuất kế hoạch, mượn cơ sở vật chất và phối hợp cùng nhà trường.";
-                document.title = "Kết nối Nhà trường - Club Connect";
-            } else {
-                titleEl.innerText = "Trung tâm Hỗ trợ & Khiếu nại";
-                descEl.innerText = "Nơi tiếp nhận các phản ánh, khiếu nại và yêu cầu hỗ trợ cá nhân của sinh viên để đảm bảo quyền lợi tốt nhất tại trường.";
-                document.title = "Hỗ trợ & Khiếu nại - Club Connect";
-            }
-        });
-    </script>
-    <script src="/JS/ketnoi.js"></script>
+                if (user.role === 'leader') {
+                    titleEl.innerText = "Kết nối Nhà trường";
+                    descEl.innerText = "Kênh hỗ trợ dành riêng cho Ban điều hành CLB để đề xuất kế hoạch, mượn cơ sở vật chất và phối hợp cùng nhà trường.";
+                    document.title = "Kết nối Nhà trường - Club Connect";
+                } else {
+                    titleEl.innerText = "Trung tâm Hỗ trợ & Khiếu nại";
+                    descEl.innerText = "Nơi tiếp nhận các phản ánh, khiếu nại và yêu cầu hỗ trợ cá nhân của sinh viên để đảm bảo quyền lợi tốt nhất tại trường.";
+                    document.title = "Hỗ trợ & Khiếu nại - Club Connect";
+                }
+            });
+        </script>
+        <script src="/JS/ketnoi.js"></script>
 </body>
+
 </html>

@@ -34,6 +34,19 @@ const createClub = async (req, res) => {
     }
 
     try {
+        // Kiểm tra xem tài khoản đã tạo được 7 ngày chưa
+        const userQuery = await pool.request()
+            .input("userId", sql.Int, created_by)
+            .query("SELECT DATEDIFF(day, created_at, GETDATE()) as days_active FROM users WHERE id = @userId");
+
+        if (userQuery.recordset.length === 0) {
+            return res.status(404).json({ message: "Không tìm thấy thông tin người dùng!" });
+        }
+
+        if (userQuery.recordset[0].days_active < 7) {
+            return res.status(403).json({ message: "Tài khoản của bạn phải hoạt động ít nhất 7 ngày để tạo Câu lạc bộ!" });
+        }
+
         const normalizedCatName = category_name.trim();
         const club_code = "CLB" + Date.now();
 
@@ -268,8 +281,39 @@ const deleteClub = async (req, res) => {
             return res.status(403).json({ message: "Chỉ người tạo CLB mới có quyền giải tán." });
         }
 
-        // Xóa CLB (Cascade sẽ tự động xóa members, posts, events nếu có config)
-        await pool.request().input("id", sql.Int, clubId).query("DELETE FROM clubs WHERE id = @id");
+        // Xóa thủ công toàn bộ dữ liệu liên kết trước khi xóa CLB để tránh lỗi Khóa Ngoại (Foreign Key)
+        const transaction = new sql.Transaction(pool);
+        await transaction.begin();
+        
+        try {
+            const request = new sql.Request(transaction);
+            request.input("id", sql.Int, clubId);
+
+            // 1. Xóa dữ liệu liên quan đến Sự kiện (Events)
+            await request.query("DELETE FROM event_comments WHERE event_id IN (SELECT id FROM events WHERE club_id = @id)");
+            await request.query("DELETE FROM event_likes WHERE event_id IN (SELECT id FROM events WHERE club_id = @id)");
+            await request.query("DELETE FROM event_registrations WHERE event_id IN (SELECT id FROM events WHERE club_id = @id)");
+            await request.query("DELETE FROM events WHERE club_id = @id");
+
+            // 2. Xóa dữ liệu liên quan đến Bài viết (Posts)
+            await request.query("DELETE FROM comments WHERE post_id IN (SELECT id FROM posts WHERE club_id = @id)");
+            await request.query("DELETE FROM post_likes WHERE post_id IN (SELECT id FROM posts WHERE club_id = @id)");
+            await request.query("DELETE FROM saved_posts WHERE post_id IN (SELECT id FROM posts WHERE club_id = @id)");
+            await request.query("DELETE FROM posts WHERE club_id = @id");
+
+            // 3. Xóa dữ liệu thành viên và yêu cầu tham gia
+            await request.query("DELETE FROM club_members WHERE club_id = @id");
+            await request.query("DELETE FROM join_requests WHERE club_id = @id");
+            await request.query("DELETE FROM club_stats WHERE club_id = @id");
+
+            // 4. Cuối cùng mới xóa Câu lạc bộ
+            await request.query("DELETE FROM clubs WHERE id = @id");
+
+            await transaction.commit();
+        } catch (transactionErr) {
+            await transaction.rollback();
+            throw transactionErr;
+        }
         
         res.json({ message: "Câu lạc bộ đã được giải tán thành công." });
     } catch (err) {

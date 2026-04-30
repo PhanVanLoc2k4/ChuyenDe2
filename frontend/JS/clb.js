@@ -18,7 +18,7 @@ function initAnimations() {
             if (entry.isIntersecting) {
                 setTimeout(() => {
                     entry.target.classList.add('reveal');
-                }, index * 100); 
+                }, index * 100);
                 observer.unobserve(entry.target);
             }
         });
@@ -52,7 +52,7 @@ function checkAuth() {
 function renderAuthSection() {
     const authSection = document.getElementById('authSection');
     const heroBtn = document.getElementById('heroCreateBtn');
-    
+
     if (currentUser && (currentUser.isLoggedIn || currentUser.id)) {
         if (authSection) {
             authSection.innerHTML = `
@@ -62,8 +62,8 @@ function renderAuthSection() {
                 </div>`;
         }
 
-        // Show Create button in Hero for Leaders/Admins
-        if (heroBtn && (currentUser.role === 'leader' || currentUser.role === 'admin')) {
+        // Hiển thị nút Tạo CLB cho tất cả user đã đăng nhập (backend sẽ kiểm tra điều kiện 7 ngày)
+        if (heroBtn && currentUser) {
             heroBtn.style.display = 'flex';
         }
     }
@@ -167,7 +167,7 @@ function renderClubs() {
 
     grid.innerHTML = list.map(club => {
         const coverImg = club.cover_url || 'https://via.placeholder.com/600x400?text=Cinema+Connect';
-        
+
         return `
         <div class="club-card cinematic-reveal" onclick="showClubDetail(${club.id})">
             <div class="club-cover-container">
@@ -324,14 +324,14 @@ async function handleCreateClub(event) {
 
         const result = await response.json();
         if (response.ok) {
-            alert("Tạo câu lạc bộ thành công!");
-            location.reload();
+            showToast("Tạo câu lạc bộ thành công!", "success");
+            setTimeout(() => location.reload(), 1500);
         } else {
-            alert("Lỗi: " + result.message);
+            showToast(result.message, "warning");
         }
     } catch (error) {
         console.error("Lỗi khi xử lý ảnh:", error);
-        alert("Không thể xử lý ảnh. Vui lòng thử lại với ảnh khác.");
+        showToast("Không thể xử lý ảnh. Vui lòng thử lại với ảnh khác.", "warning");
     }
 }
 // Giả sử đây là hàm tạo thẻ CLB của bạn
@@ -472,6 +472,7 @@ function showClubDetail(id) {
             dashboardBtn.style.marginTop = "10px";
             dashboardBtn.style.width = "100%";
             dashboardBtn.style.display = "block";
+            dashboardBtn.style.borderRadius = "24px";
             dashboardBtn.onclick = () => {
                 window.location.href = `/DienDan?id=${club.id}`;
             };
@@ -542,3 +543,36 @@ function closeCreateClubModal() {
     document.getElementById('createClubForm')?.reset();
 }
 
+// 8. Hàm hiển thị Toast Notification tùy chỉnh (Thay thế cho alert mặc định)
+function showToast(message, type = 'warning') {
+    let toastContainer = document.getElementById('thong-bao-toast');
+    if (!toastContainer) {
+        toastContainer = document.createElement('div');
+        toastContainer.id = 'thong-bao-toast';
+        document.body.appendChild(toastContainer);
+    }
+
+    const toast = document.createElement('div');
+    toast.className = `toast-item ${type}`;
+
+    let iconClass = 'fa-exclamation-circle';
+    if (type === 'success') iconClass = 'fa-check-circle';
+    if (type === 'info') iconClass = 'fa-info-circle';
+
+    toast.innerHTML = `
+        <div class="toast-icon"><i class="fas ${iconClass}"></i></div>
+        <div class="toast-content">
+            <div class="toast-title">Thông báo</div>
+            <div class="toast-msg">${message}</div>
+        </div>
+    `;
+
+    toastContainer.appendChild(toast);
+
+    setTimeout(() => toast.classList.add('active'), 10);
+
+    setTimeout(() => {
+        toast.classList.remove('active');
+        setTimeout(() => toast.remove(), 400);
+    }, 3000);
+}

@@ -16,6 +16,16 @@ router.get("/dangnhap", (req, res) => {
     res.render("dangnhap", { title: "Đăng Nhập" });
 });
 
+// Quên mật khẩu
+router.get("/quenmatkhau", (req, res) => {
+    res.render("quenmatkhau", { title: "Quên Mật Khẩu" });
+});
+
+// Đặt lại mật khẩu
+router.get("/datlaimatkhau", (req, res) => {
+    res.render("datlaimatkhau", { title: "Đặt Lại Mật Khẩu" });
+});
+
 // Trang Diễn đàn
 router.get("/DienDan", (req, res) => {
     res.render("DienDan", { title: "Diễn đàn" });

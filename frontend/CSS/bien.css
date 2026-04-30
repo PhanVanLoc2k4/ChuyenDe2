@@ -95,39 +95,60 @@ h1, h2, h3, h4 {
 #thong-bao-toast {
     position: fixed;
     top: 20px;
-    right: 20px;
+    left: 50%;
+    transform: translateX(-50%);
     z-index: 10000;
     display: flex;
     flex-direction: column;
     gap: 10px;
+    align-items: center;
 }
 
 .toast-item {
-    background: white;
-    min-width: 300px;
-    padding: 15px 20px;
-    border-radius: 10px;
-    box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
+    background: rgba(15, 23, 42, 0.85);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    min-width: 320px;
+    padding: 16px 24px;
+    border-radius: 14px;
+    box-shadow: 0 20px 40px -10px rgba(0,0,0,0.3), 0 0 0 1px rgba(255,255,255,0.05) inset;
     display: flex;
     align-items: center;
-    gap: 15px;
-    border-left: 5px solid var(--primary-color);
-    transform: translateX(120%);
-    transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    gap: 16px;
+    border-left: 4px solid transparent;
+    color: white;
+    transform: translateY(-120%);
+    opacity: 0;
+    transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.4s ease;
 }
 
 .toast-item.active {
-    transform: translateX(0);
+    transform: translateY(0);
+    opacity: 1;
 }
 
-.toast-item.success { border-left-color: var(--success-color); }
-.toast-item.warning { border-left-color: var(--warning-color); }
-.toast-item.info { border-left-color: var(--accent-color); }
+.toast-item.success { 
+    border-left-color: #34d399;
+    background: linear-gradient(90deg, rgba(52, 211, 153, 0.1) 0%, rgba(15, 23, 42, 0.85) 100%);
+}
+.toast-item.success .toast-icon { color: #34d399; text-shadow: 0 0 12px rgba(52, 211, 153, 0.5); }
 
-.toast-icon { font-size: 20px; }
+.toast-item.warning { 
+    border-left-color: #fbbf24;
+    background: linear-gradient(90deg, rgba(251, 191, 36, 0.1) 0%, rgba(15, 23, 42, 0.85) 100%);
+}
+.toast-item.warning .toast-icon { color: #fbbf24; text-shadow: 0 0 12px rgba(251, 191, 36, 0.5); }
+
+.toast-item.info { 
+    border-left-color: #60a5fa;
+    background: linear-gradient(90deg, rgba(96, 165, 250, 0.1) 0%, rgba(15, 23, 42, 0.85) 100%);
+}
+.toast-item.info .toast-icon { color: #60a5fa; text-shadow: 0 0 12px rgba(96, 165, 250, 0.5); }
+
+.toast-icon { font-size: 22px; }
 .toast-content { flex: 1; }
-.toast-title { font-weight: 700; font-size: 14px; margin-bottom: 2px; }
-.toast-msg { font-size: 13px; color: var(--text-muted); }
+.toast-title { font-weight: 700; font-size: 15px; margin-bottom: 4px; color: #f8fafc; }
+.toast-msg { font-size: 13.5px; color: #94a3b8; line-height: 1.4; }
 
 /* 4. Loading Skeleton */
 .khung-cho {

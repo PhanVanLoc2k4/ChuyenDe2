@@ -1,5 +1,37 @@
 <%- include('partials/Header') %>
 <div class="auth-container">
+    <!-- Cột bên trái: Branding/Thông tin nền tảng -->
+    <div class="auth-branding">
+        <div class="brand-badge">✨ Nền Tảng CLB Số 1</div>
+        <h1 class="brand-title">Khám Phá Vô Vạn<br>Cơ Hội Cùng CLB Connect</h1>
+        <p class="brand-subtitle">Trải nghiệm hệ sinh thái toàn diện dành cho sinh viên. Nơi giao lưu, học hỏi và cháy hết mình với đam mê.</p>
+        
+        <div class="brand-features">
+            <div class="feature-item">
+                <i class="fas fa-users"></i>
+                <div class="feature-text">
+                    <h4>Cộng Đồng Trẻ</h4>
+                    <p>Hàng ngàn sinh viên năng động.</p>
+                </div>
+            </div>
+            <div class="feature-item">
+                <i class="fas fa-calendar-check"></i>
+                <div class="feature-text">
+                    <h4>Sự Kiện Bùng Nổ</h4>
+                    <p>Tham gia các sự kiện hoành tráng.</p>
+                </div>
+            </div>
+            <div class="feature-item">
+                <i class="fas fa-rocket"></i>
+                <div class="feature-text">
+                    <h4>Quản Lý Thông Minh</h4>
+                    <p>Công cụ quản trị CLB mạnh mẽ.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Cột bên phải: Form Đăng nhập/Đăng ký -->
     <div class="auth-card">
         <div class="auth-header">
             <i class="fas fa-user-circle"></i>
@@ -30,7 +62,7 @@
                 </div>
             </div>
             <div class="forgot-password">
-                <a href="#">Quên mật khẩu?</a>
+                <a href="/quenmatkhau">Quên mật khẩu?</a>
             </div>
             <button class="btn-auth" onclick="handleLogin()">
                 <i class="fas fa-sign-in-alt"></i> Đăng nhập
@@ -48,54 +80,61 @@
 
         <!-- FORM ĐĂNG KÝ (ẩn ban đầu) -->
         <div class="auth-form form-hidden" id="registerForm">
-            <div class="form-group">
-                <label>Họ và tên</label>
-                <div class="input-with-icon">
-                    <i class="fas fa-user"></i>
-                    <input type="text" placeholder="Nguyễn Văn A" id="regName">
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Họ và tên</label>
+                    <div class="input-with-icon">
+                        <i class="fas fa-user"></i>
+                        <input type="text" placeholder="Nguyễn Văn A" id="regName">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Email</label>
+                    <div class="input-with-icon">
+                        <i class="fas fa-envelope"></i>
+                        <input type="email" placeholder="your.email@example.com" id="regEmail">
+                    </div>
                 </div>
             </div>
-            <div class="form-group">
-                <label>Email</label>
-                <div class="input-with-icon">
-                    <i class="fas fa-envelope"></i>
-                    <input type="email" placeholder="your.email@example.com" id="regEmail">
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Ngày sinh</label>
+                    <div class="input-with-icon">
+                        <i class="fas fa-calendar-alt"></i>
+                        <input type="date" id="regDob">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Giới tính</label>
+                    <div class="gender-selection" style="display: flex; gap: 15px; margin-top: 15px; align-items: center; justify-content: center; background: rgba(0,0,0,0.2); padding: 16px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.1);">
+                        <label style="display: flex; align-items: center; gap: 5px; cursor: pointer; margin-bottom: 0;">
+                            <input type="radio" name="regGender" value="Nam" checked> Nam
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 5px; cursor: pointer; margin-bottom: 0;">
+                            <input type="radio" name="regGender" value="Nữ"> Nữ
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 5px; cursor: pointer; margin-bottom: 0;">
+                            <input type="radio" name="regGender" value="Khác"> Khác
+                        </label>
+                    </div>
                 </div>
             </div>
-            <div class="form-group">
-                <label>Ngày sinh</label>
-                <div class="input-with-icon">
-                    <i class="fas fa-calendar-alt"></i>
-                    <input type="date" id="regDob">
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Mật khẩu</label>
+                    <div class="input-with-icon">
+                        <i class="fas fa-lock"></i>
+                        <input type="password" placeholder="Tối thiểu 6 ký tự" id="regPassword">
+                    </div>
                 </div>
-            </div>
-            
-            <div class="form-group">
-                <label>Giới tính</label>
-                <div class="gender-selection" style="display: flex; gap: 15px; margin-top: 5px;">
-                    <label style="display: flex; align-items: center; gap: 5px; cursor: pointer;">
-                        <input type="radio" name="regGender" value="Nam" checked> Nam
-                    </label>
-                    <label style="display: flex; align-items: center; gap: 5px; cursor: pointer;">
-                        <input type="radio" name="regGender" value="Nữ"> Nữ
-                    </label>
-                    <label style="display: flex; align-items: center; gap: 5px; cursor: pointer;">
-                        <input type="radio" name="regGender" value="Khác"> Khác
-                    </label>
-                </div>
-            </div>
-            <div class="form-group">
-                <label>Mật khẩu</label>
-                <div class="input-with-icon">
-                    <i class="fas fa-lock"></i>
-                    <input type="password" placeholder="Tối thiểu 6 ký tự" id="regPassword">
-                </div>
-            </div>
-            <div class="form-group">
-                <label>Xác nhận mật khẩu</label>
-                <div class="input-with-icon">
-                    <i class="fas fa-lock"></i>
-                    <input type="password" placeholder="Nhập lại mật khẩu" id="regConfirm">
+                <div class="form-group">
+                    <label>Xác nhận mật khẩu</label>
+                    <div class="input-with-icon">
+                        <i class="fas fa-lock"></i>
+                        <input type="password" placeholder="Nhập lại mật khẩu" id="regConfirm">
+                    </div>
                 </div>
             </div>
 

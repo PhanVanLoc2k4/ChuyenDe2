@@ -1,0 +1,111 @@
+<%- include('partials/Header') %>
+<div class="auth-container" style="display: flex; justify-content: center; max-width: 600px; grid-template-columns: 1fr; margin-top: 120px;">
+    <div class="auth-card" style="width: 100%;">
+        <div class="auth-header" style="padding-bottom: 20px;">
+            <i class="fas fa-key" style="font-size: 50px;"></i>
+            <h2>Thiết Lập Mật Khẩu Mới</h2>
+            <p>Vui lòng nhập mật khẩu mới cho tài khoản của bạn</p>
+        </div>
+
+        <div class="auth-form" style="padding-top: 10px;">
+            <div class="form-group">
+                <label>Mật khẩu mới</label>
+                <div class="input-with-icon">
+                    <i class="fas fa-lock"></i>
+                    <input type="password" placeholder="Tối thiểu 6 ký tự" id="newPassword">
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label>Xác nhận mật khẩu mới</label>
+                <div class="input-with-icon">
+                    <i class="fas fa-lock"></i>
+                    <input type="password" placeholder="Nhập lại mật khẩu" id="confirmPassword">
+                </div>
+            </div>
+
+            <button class="btn-auth" onclick="submitNewPassword()" style="margin-top: 20px;">
+                <i class="fas fa-save"></i> Cập Nhật Mật Khẩu
+            </button>
+        </div>
+    </div>
+</div>
+
+<%- include('partials/Footer') %>
+<link rel="stylesheet" href="CSS/dangnhap.css">
+<script src="JS/clb.js"></script>
+<script>
+    async function submitNewPassword() {
+        const newPassword = document.getElementById('newPassword').value.trim();
+        const confirmPassword = document.getElementById('confirmPassword').value.trim();
+
+        if (!newPassword || !confirmPassword) {
+            if (typeof showToast === 'function') showToast('Vui lòng điền đủ mật khẩu!', 'warning');
+            else alert('Vui lòng điền đủ mật khẩu!');
+            return;
+        }
+
+        if (newPassword.length < 6) {
+            if (typeof showToast === 'function') showToast('Mật khẩu phải từ 6 ký tự!', 'warning');
+            else alert('Mật khẩu phải từ 6 ký tự!');
+            return;
+        }
+
+        if (newPassword !== confirmPassword) {
+            if (typeof showToast === 'function') showToast('Xác nhận mật khẩu không khớp!', 'warning');
+            else alert('Xác nhận mật khẩu không khớp!');
+            return;
+        }
+
+        // Lấy token từ URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const token = urlParams.get('token');
+
+        if (!token) {
+            if (typeof showToast === 'function') showToast('Không tìm thấy mã xác thực. Vui lòng kiểm tra lại link!', 'error');
+            else alert('Không tìm thấy mã xác thực. Vui lòng kiểm tra lại link!');
+            return;
+        }
+
+        const btn = document.querySelector('.btn-auth');
+        const originalText = btn.innerHTML;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang xử lý...';
+        btn.disabled = true;
+
+        try {
+            const response = await fetch('/api/reset-password', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ token, newPassword })
+            });
+            const data = await response.json();
+
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+
+            if (response.ok) {
+                if (typeof showToast === 'function') {
+                    showToast(data.message, 'success');
+                } else {
+                    alert(data.message);
+                }
+                
+                setTimeout(() => {
+                    window.location.href = '/dangnhap';
+                }, 1500);
+            } else {
+                if (typeof showToast === 'function') {
+                    showToast(data.message, 'error');
+                } else {
+                    alert(data.message);
+                }
+            }
+        } catch (error) {
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+            console.error(error);
+            if (typeof showToast === 'function') showToast('Lỗi kết nối máy chủ!', 'error');
+            else alert('Lỗi kết nối máy chủ!');
+        }
+    }
+</script>

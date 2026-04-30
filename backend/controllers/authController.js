@@ -1,5 +1,6 @@
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
+const nodemailer = require("nodemailer");
 const { getPool, JWT_SECRET, sql } = require("../config/database");
 const { validateEmail, calculateAge, generateUserCode } = require("../utils/helpers");
 
@@ -127,8 +128,122 @@ const getUserStats = async (req, res) => {
     }
 };
 
+const forgotPassword = async (req, res) => {
+    const { email } = req.body;
+    if (!email) return res.status(400).json({ message: "Vui lòng nhập email!" });
+
+    try {
+        const pool = getPool();
+        const check = await pool.request()
+            .input("email", sql.VarChar, email)
+            .query("SELECT id, full_name FROM users WHERE email = @email");
+
+        if (check.recordset.length === 0) {
+            return res.status(404).json({ message: "Email không tồn tại trong hệ thống!" });
+        }
+
+        const user = check.recordset[0];
+
+        // Tạo tài khoản test Ethereal (Fake Email Service)
+        let testAccount = await nodemailer.createTestAccount();
+
+        let transporter = nodemailer.createTransport({
+            host: "smtp.ethereal.email",
+            port: 587,
+            secure: false, 
+            auth: {
+                user: testAccount.user, 
+                pass: testAccount.pass, 
+            },
+        });
+
+        // Tạo Token Đặt Lại Mật Khẩu (Hạn 15 phút)
+        const resetToken = jwt.sign(
+            { email: email, purpose: "reset_password" },
+            JWT_SECRET,
+            { expiresIn: "15m" }
+        );
+
+        // Tạo link trỏ tới giao diện Đặt lại mật khẩu với JWT token
+        const resetLink = `http://localhost:5000/datlaimatkhau?token=${resetToken}`;
+
+        let info = await transporter.sendMail({
+            from: '"CLB Connect Support" <support@clbconnect.com>',
+            to: email,
+            subject: "Yêu cầu khôi phục mật khẩu - CLB Connect",
+            html: `<div style="font-family: Arial, sans-serif; padding: 20px;">
+                    <h2 style="color: #c53030;">CLB Connect</h2>
+                    <h3>Chào ${user.full_name},</h3>
+                    <p>Bạn đã yêu cầu đặt lại mật khẩu. Vui lòng click vào nút bên dưới để tiến hành:</p>
+                    <a href="${resetLink}" style="display: inline-block; padding: 12px 25px; background: #c53030; color: white; text-decoration: none; border-radius: 5px; font-weight: bold; margin-top: 10px;">Đặt lại mật khẩu</a>
+                    <p style="margin-top: 20px; color: #666; font-size: 13px;">Nếu bạn không yêu cầu, vui lòng bỏ qua email này.</p>
+                   </div>`,
+        });
+
+        const previewUrl = nodemailer.getTestMessageUrl(info);
+        console.log("📧 Email khôi phục đã được gửi. Link xem trước (Ethereal):", previewUrl);
+
+        res.json({ 
+            message: "Thành công! Vui lòng kiểm tra hộp thư đến của bạn.",
+            previewUrl: previewUrl // Trả về frontend để hiển thị (chỉ dùng cho môi trường Dev)
+        });
+
+    } catch (err) {
+        console.error("Lỗi gửi email quên mật khẩu:", err);
+        res.status(500).json({ message: "Lỗi máy chủ khi thiết lập email!" });
+    }
+};
+
+const resetPassword = async (req, res) => {
+    const { token, newPassword } = req.body;
+
+    if (!token || !newPassword) {
+        return res.status(400).json({ message: "Thiếu thông tin xác thực hoặc mật khẩu mới!" });
+    }
+
+    if (newPassword.length < 6) {
+        return res.status(400).json({ message: "Mật khẩu phải từ 6 ký tự trở lên!" });
+    }
+
+    try {
+        // Xác thực Token
+        const decoded = jwt.verify(token, JWT_SECRET);
+        
+        if (decoded.purpose !== "reset_password") {
+            return res.status(400).json({ message: "Token không hợp lệ!" });
+        }
+
+        const email = decoded.email;
+        const pool = getPool();
+
+        // Băm mật khẩu mới
+        const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+        // Cập nhật Database
+        const result = await pool.request()
+            .input("password", sql.VarChar, hashedPassword)
+            .input("email", sql.VarChar, email)
+            .query("UPDATE users SET password = @password WHERE email = @email");
+
+        if (result.rowsAffected[0] === 0) {
+            return res.status(400).json({ message: "Không tìm thấy người dùng để cập nhật mật khẩu!" });
+        }
+
+        res.json({ message: "Mật khẩu của bạn đã được cập nhật thành công!" });
+
+    } catch (err) {
+        console.error("Lỗi đặt lại mật khẩu:", err);
+        if (err.name === 'TokenExpiredError') {
+            return res.status(400).json({ message: "Đường dẫn khôi phục đã hết hạn (quá 15 phút). Vui lòng yêu cầu lại!" });
+        }
+        res.status(400).json({ message: "Đường dẫn không hợp lệ hoặc đã bị lỗi!" });
+    }
+};
+
 module.exports = {
     register,
     login,
-    getUserStats
+    getUserStats,
+    forgotPassword,
+    resetPassword
 };
