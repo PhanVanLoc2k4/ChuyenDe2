@@ -1,146 +1,175 @@
 <%- include('partials/Header') %>
-<!DOCTYPE html>
-<html lang="vi">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>Hồ sơ cá nhân - CLB Connect</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="CSS/Profile.css">
-</head>
-<body>
+    <!DOCTYPE html>
+    <html lang="vi">
 
-<% 
-    // Khởi tạo biến user mặc định nếu server không truyền sang để tránh lỗi crash trang
-    if (typeof user === 'undefined') { user = {}; } 
-%>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+        <title>Hồ sơ cá nhân - CLB Connect</title>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+        <link
+            href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap"
+            rel="stylesheet">
+        <link rel="stylesheet" href="CSS/Profile.css">
+    </head>
 
-<div class="container">
-    <div class="profile-card">
-        <div class="profile-header" style="display: flex; justify-content: space-between; align-items: center;">
-            <div>
-                <h1><i class="fas fa-id-card"></i> Thông tin cá nhân</h1>
-                <p style="color: #475569; margin-top: 6px;">Quản lý và cập nhật thông tin của bạn</p>
-            </div>
-            <div id="trainingPointsBadge" class="points-badge" style="background: linear-gradient(135deg, #f59e0b, #d97706); color: white; padding: 10px 20px; border-radius: 12px; text-align: center; box-shadow: 0 4px 12px rgba(217, 119, 6, 0.2);">
-                <div style="font-size: 0.75rem; text-transform: uppercase; font-weight: 600; opacity: 0.9;">Điểm rèn luyện</div>
-                <div id="displayPoints" style="font-size: 1.5rem; font-weight: 800;"><%= user.training_points || 0 %></div>
-            </div>
-        </div>
+    <body>
 
-        <div class="profile-body">
-            <div class="avatar-section">
-                <div class="avatar-wrapper" id="avatarPreview">
-                    <img id="avatarImg" 
-                         src="<%= (user.avatar) ? user.avatar : 'https://ui-avatars.com/api/?background=2563eb&color=fff&size=180&rounded=true&bold=true&name=' + (user.full_name || 'User') %>" 
-                         alt="avatar">
-                </div>
-                
-                <div id="uploadControl" style="display: none; margin-top: 15px;">
-                    <label for="avatarInput" class="upload-avatar-btn">
-                        <i class="fas fa-camera"></i> Đổi ảnh đại diện
-                    </label>
-                    <input type="file" id="avatarInput" accept="image/jpeg, image/png, image/jpg" style="display: none;">
-                </div>
+        <% 
+            if (typeof user === 'undefined') { user = {}; } 
+        %>
 
-                <div id="viewAvatarHint" style="font-size: 0.75rem; color: #64748b; margin-top: 10px; text-align: center;">
-                    <i class="fas fa-info-circle"></i> Bấm "Chỉnh sửa" để đổi ảnh
-                </div>
-            </div> <div class="info-form">
-                <form id="userProfileForm">
-                    <div class="form-grid">
-                        <div class="form-field">
-                            <label><i class="fas fa-user"></i> Họ và tên</label>
-                            <input type="text" id="fullName" name="fullName" value="<%= user.full_name || '' %>" disabled>
+            <div class="container">
+                <div class="profile-card">
+                    <div class="profile-header"
+                        style="display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <h1><i class="fas fa-id-card"></i> Thông tin cá nhân</h1>
+                            <p style="color: #475569; margin-top: 6px;">Quản lý và cập nhật thông tin của bạn</p>
                         </div>
-
-                        <div class="form-field">
-                            <label><i class="fas fa-envelope"></i> Email</label>
-                            <input type="email" id="email" name="email" value="<%= user.email || '' %>" disabled>
-                        </div>
-
-                        <div class="form-field">
-                            <label><i class="fas fa-phone-alt"></i> Số điện thoại</label>
-                            <input type="tel" id="phone" name="phone" value="<%= user.phone || '' %>" disabled>
-                        </div>
-
-                        <div class="form-field">
-                            <label><i class="fas fa-calendar"></i> Ngày sinh</label>
-                            <input type="date" id="dob" name="dob" value="<%= user.dob ? new Date(user.dob).toISOString().split('T')[0] : '' %>" disabled>
-                        </div>
-
-                        <div class="form-field">
-                            <label><i class="fas fa-venus-mars"></i> Giới tính</label>
-                            <div class="radio-group" id="genderGroup">
-                                <label><input type="radio" name="gender" value="Nam" <%= user.gender === 'Nam' ? 'checked' : '' %> disabled> Nam</label>
-                                <label><input type="radio" name="gender" value="Nữ" <%= user.gender === 'Nữ' ? 'checked' : '' %> disabled> Nữ</label>
-                                <label><input type="radio" name="gender" value="Khác" <%= user.gender === 'Khác' ? 'checked' : '' %> disabled> Khác</label>
+                        <div id="trainingPointsBadge" class="points-badge"
+                            style="background: linear-gradient(135deg, #f59e0b, #d97706); color: white; padding: 10px 20px; border-radius: 12px; text-align: center; box-shadow: 0 4px 12px rgba(217, 119, 6, 0.2);">
+                            <div style="font-size: 0.75rem; text-transform: uppercase; font-weight: 600; opacity: 0.9;">
+                                Điểm rèn luyện</div>
+                            <div id="displayPoints" style="font-size: 1.5rem; font-weight: 800;">
+                                <%= user.training_points || 0 %>
                             </div>
                         </div>
+                    </div>
 
-                        <div class="form-field full-width">
-                            <label><i class="fas fa-pen-fancy"></i> Giới thiệu bản thân</label>
-                            <textarea rows="3" id="bio" name="bio" placeholder="Đôi lời về bạn..." disabled><%= user.bio || '' %></textarea>
+                    <div class="profile-body">
+                        <div class="avatar-section">
+                            <div class="avatar-wrapper" id="avatarPreview">
+                                <img id="avatarImg"
+                                    src="<%= (user.avatar) ? user.avatar : 'https://ui-avatars.com/api/?background=2563eb&color=fff&size=180&rounded=true&bold=true&name=' + (user.full_name || 'User') %>"
+                                    alt="avatar">
+                            </div>
+
+                            <div id="uploadControl" style="display: none; margin-top: 15px;">
+                                <label for="avatarInput" class="upload-avatar-btn">
+                                    <i class="fas fa-camera"></i> Đổi ảnh đại diện
+                                </label>
+                                <input type="file" id="avatarInput" accept="image/jpeg, image/png, image/jpg"
+                                    style="display: none;">
+                            </div>
+
+                            <div id="viewAvatarHint"
+                                style="font-size: 0.75rem; color: #64748b; margin-top: 10px; text-align: center;">
+                                <i class="fas fa-info-circle"></i> Bấm "Chỉnh sửa" để đổi ảnh
+                            </div>
+
+                            <div class="form-actions" id="actionButtons" style="margin-top: 20px; display: flex; flex-direction: column; gap: 10px;">
+                                <button type="button" id="editBtn" class="btn btn-edit" style="width: 100%;">
+                                    <i class="fas fa-pencil-alt"></i> Chỉnh sửa hồ sơ
+                                </button>
+                                <button type="button" id="saveBtn" class="btn btn-primary" style="display: none; width: 100%;">
+                                    <i class="fas fa-save"></i> Lưu thay đổi
+                                </button>
+                                <button type="button" id="cancelBtn" class="btn btn-outline" style="display: none; width: 100%;">
+                                    <i class="fas fa-times"></i> Hủy bỏ
+                                </button>
+                            </div>
                         </div>
+                        <div class="info-form">
+                            <form id="userProfileForm">
+                                <div class="form-grid">
+                                    <div class="form-field">
+                                        <label><i class="fas fa-user"></i> Họ và tên</label>
+                                        <input type="text" id="fullName" name="fullName"
+                                            value="<%= user.full_name || '' %>" disabled>
+                                    </div>
 
-                        <div class="form-field full-width">
-                            <label><i class="fas fa-tag"></i> Sở thích / Kỹ năng</label>
-                            <input type="text" id="hobbies" name="hobbies" value="<%= user.hobbies || '' %>" disabled>
-                        </div>
+                                    <div class="form-field">
+                                        <label><i class="fas fa-envelope"></i> Email</label>
+                                        <input type="email" id="email" name="email" value="<%= user.email || '' %>"
+                                            disabled>
+                                    </div>
 
-                        <div class="form-field full-width">
-                            <label><i class="fas fa-handshake"></i> Câu lạc bộ tham gia</label>
-                            <div id="clubChecklist" class="checkbox-group">
+                                    <div class="form-field">
+                                        <label><i class="fas fa-phone-alt"></i> Số điện thoại</label>
+                                        <input type="tel" id="phone" name="phone" value="<%= user.phone || '' %>"
+                                            disabled>
+                                    </div>
+
+                                    <div class="form-field">
+                                        <label><i class="fas fa-calendar"></i> Ngày sinh</label>
+                                        <input type="date" id="dob" name="dob"
+                                            value="<%= user.dob ? new Date(user.dob).toISOString().split('T')[0] : '' %>"
+                                            disabled>
+                                    </div>
+
+                                    <div class="form-field">
+                                        <label><i class="fas fa-venus-mars"></i> Giới tính</label>
+                                        <div class="radio-group" id="genderGroup">
+                                            <label><input type="radio" name="gender" value="Nam" <%=user.gender==='Nam'
+                                                    ? 'checked' : '' %> disabled> Nam</label>
+                                            <label><input type="radio" name="gender" value="Nữ" <%=user.gender==='Nữ'
+                                                    ? 'checked' : '' %> disabled> Nữ</label>
+                                            <label><input type="radio" name="gender" value="Khác"
+                                                    <%=user.gender==='Khác' ? 'checked' : '' %> disabled> Khác</label>
+                                        </div>
+                                    </div>
+
+                                    <div class="form-field full-width">
+                                        <label><i class="fas fa-pen-fancy"></i> Giới thiệu bản thân</label>
+                                        <textarea rows="3" id="bio" name="bio" placeholder="Đôi lời về bạn..."
+                                            disabled><%= user.bio || '' %></textarea>
+                                    </div>
+
+                                    <div class="form-field full-width">
+                                        <label><i class="fas fa-tag"></i> Sở thích / Kỹ năng</label>
+                                        <input type="text" id="hobbies" name="hobbies" value="<%= user.hobbies || '' %>"
+                                            disabled>
+                                    </div>
+
+                                    <div class="form-field full-width">
+                                        <label><i class="fas fa-handshake"></i> Câu lạc bộ tham gia</label>
+                                        <div id="clubChecklist" class="checkbox-group">
+                                        </div>
+                                        <small class="hint"><i class="fas fa-check-circle"></i> Chọn các CLB bạn đang
+                                            sinh hoạt</small>
+                                    </div>
+
+                                    <!-- PHẦN LỊCH SỬ ĐIỂM RÈN LUYỆN -->
+                                    <div id="pointHistorySection" class="form-field full-width"
+                                        style="margin-top: 20px;">
+                                        <label><i class="fas fa-history"></i> Lịch sử điểm rèn luyện</label>
+                                        <div class="table-container history-table-wrapper">
+                                            <table class="history-table">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Ngày</th>
+                                                        <th>Nội dung / Lý do</th>
+                                                        <th style="text-align: center;">Điểm</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody id="pointHistoryBody">
+                                                    <tr>
+                                                        <td colspan="3"
+                                                            style="text-align: center; color: #64748b; padding: 20px;">
+                                                            <i class="fas fa-spinner fa-spin"></i> Đang tải lịch sử...
+                                                        </td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
                                 </div>
-                            <small class="hint"><i class="fas fa-check-circle"></i> Chọn các CLB bạn đang sinh hoạt</small>
-                        </div>
 
-                        <!-- PHẦN LỊCH SỬ ĐIỂM RÈN LUYỆN -->
-                        <div id="pointHistorySection" class="form-field full-width" style="margin-top: 20px;">
-                            <label><i class="fas fa-history"></i> Lịch sử điểm rèn luyện</label>
-                            <div class="table-container history-table-wrapper">
-                                <table class="history-table">
-                                    <thead>
-                                        <tr>
-                                            <th>Ngày</th>
-                                            <th>Nội dung / Lý do</th>
-                                            <th style="text-align: center;">Điểm</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="pointHistoryBody">
-                                        <tr>
-                                            <td colspan="3" style="text-align: center; color: #64748b; padding: 20px;">
-                                                <i class="fas fa-spinner fa-spin"></i> Đang tải lịch sử...
-                                            </td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </div>
+
+                            </form>
                         </div>
                     </div>
+                </div>
+            </div>
 
-                    <div class="form-actions" id="actionButtons">
-                        <button type="button" id="editBtn" class="btn btn-edit">
-                            <i class="fas fa-pencil-alt"></i> Chỉnh sửa hồ sơ
-                        </button>
-                        <button type="button" id="saveBtn" class="btn btn-primary" style="display: none;">
-                            <i class="fas fa-save"></i> Lưu thay đổi
-                        </button>
-                        <button type="button" id="cancelBtn" class="btn btn-outline" style="display: none;">
-                            <i class="fas fa-times"></i> Hủy bỏ
-                        </button>
-                    </div>
-                </form>
-            </div> </div> </div>
-</div>
+            <script>
+                // Dùng JSON.parse để an toàn hơn cho trình soạn thảo
+                const SERVER_USER_DATA = JSON.parse('<%- JSON.stringify(user || {}) %>');
+            </script>
+            <script src="JS/Profile.js"></script>
 
-<script>
-    // Dùng JSON.parse để an toàn hơn cho trình soạn thảo
-    const SERVER_USER_DATA = JSON.parse('<%- JSON.stringify(user || {}) %>');
-</script>
-<script src="JS/Profile.js"></script>
+    </body>
 
-</body>
-</html>
-<%- include('partials/Footer') %>
+    </html>
+    <%- include('partials/Footer') %>

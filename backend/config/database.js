@@ -41,6 +41,12 @@ async function checkSchema(pool) {
             IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('users') AND name = 'training_points')
                 ALTER TABLE users ADD training_points INT DEFAULT 0;
 
+            IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('users') AND name = 'created_at')
+                ALTER TABLE users ADD created_at DATETIME DEFAULT GETDATE();
+            
+            -- Cập nhật thời gian tạo cho các user cũ (nếu có)
+            UPDATE users SET created_at = GETDATE() WHERE created_at IS NULL;
+
             IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('event_registrations') AND name = 'attendance')
                 ALTER TABLE event_registrations ADD attendance NVARCHAR(50) DEFAULT 'registered';
 
