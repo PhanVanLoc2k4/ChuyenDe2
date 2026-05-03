@@ -2,6 +2,24 @@ let currentUser = null;
 let allFeedItems = [];
 let isSubmitting = false; // Prevent double-clicks
 
+// --- MODAL HELPERS ---
+function openModal(id) {
+    const modal = document.getElementById(id);
+    if (modal) modal.classList.add('active');
+}
+
+function closeModal(id) {
+    const modal = document.getElementById(id);
+    if (modal) modal.classList.remove('active');
+}
+
+// Close modals when clicking outside
+window.addEventListener('click', (e) => {
+    if (e.target.classList.contains('modal')) {
+        e.target.classList.remove('active');
+    }
+});
+
 document.addEventListener('DOMContentLoaded', async () => {
     const userStr = localStorage.getItem('currentUser');
     if (userStr) {
@@ -45,6 +63,12 @@ async function updateSidebarProfile() {
     if (createPostAvatar) createPostAvatar.innerHTML = avatarHtml;
     if (modalPostAvatar) modalPostAvatar.innerHTML = avatarHtml;
     if (modalPostName) modalPostName.textContent = currentUser.name || "Người dùng";
+
+    // Populate Share Modal
+    const shareUserAvatar = document.getElementById('shareUserAvatar');
+    const shareUserName = document.getElementById('shareUserName');
+    if (shareUserAvatar) shareUserAvatar.innerHTML = avatarHtml;
+    if (shareUserName) shareUserName.textContent = currentUser.name || "Người dùng";
 
     // Fetch real stats
     const uid = currentUser.user_id || currentUser.id;
@@ -174,11 +198,37 @@ function renderPostHTML(post) {
         </div>
 
         <div class="post-body">
-            ${post.title && post.title !== 'Trạng thái' ? `<h3 class="post-title">${post.title}</h3>` : ''}
+            ${post.title && post.title !== 'Trạng thái' && post.title !== 'Đã chia sẻ' ? `<h3 class="post-title">${post.title}</h3>` : ''}
             <div class="post-content">${post.content || ''}</div>
+            
             ${post.image ? `
                 <div class="post-media-container" style="max-height: 500px; width: 100%; overflow: hidden; border-radius: 12px; margin-top: 15px;">
                     <img src="${post.image}" class="post-media-content" style="width: 100%; height: auto; max-height: 500px; object-fit: cover;" onerror="this.parentElement.style.display='none'">
+                </div>
+            ` : ''}
+
+            <!-- UI TRỰC QUAN CHO BÀI CHIA SẺ -->
+            ${post.shared_post_id ? `
+                <div class="shared-content-preview" style="margin-top: 15px; border: 1px solid #e2e8f0; border-radius: 16px; padding: 15px; background: #f8fafc; cursor: pointer;" onclick="window.location.hash='#post-${post.shared_post_id}'">
+                    <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
+                        <div style="width: 30px; height: 30px; border-radius: 50%; background: #c53030; display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 12px; overflow: hidden;">
+                            ${post.orig_post_author_avatar ? `<img src="${post.orig_post_author_avatar}" style="width:100%; height:100%; object-fit:cover;">` : (post.orig_post_author || 'U').charAt(0)}
+                        </div>
+                        <div style="font-weight: 700; font-size: 13px; color: #1e293b;">${post.orig_post_author || 'Thành viên'}</div>
+                    </div>
+                    <div style="font-size: 14px; color: #475569; line-height: 1.5;">${post.orig_post_content || ''}</div>
+                    ${post.orig_post_image ? `<img src="${post.orig_post_image}" style="width:100%; border-radius: 8px; margin-top: 10px; max-height: 250px; object-fit: cover;">` : ''}
+                </div>
+            ` : ''}
+
+            ${post.shared_event_id ? `
+                <div class="shared-content-preview" style="margin-top: 15px; border: 1px solid #e2e8f0; border-radius: 16px; padding: 15px; background: #fff; border-left: 4px solid #c53030; cursor: pointer;" onclick="showEventDetail(${post.shared_event_id})">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
+                        <div style="font-weight: 700; font-size: 12px; color: #c53030; text-transform: uppercase;">SỰ KIỆN TỪ ${post.orig_event_club || 'NHÀ TRƯỜNG'}</div>
+                    </div>
+                    <h4 style="margin: 0 0 5px 0; color: #1e293b;">${post.orig_event_name}</h4>
+                    <div style="font-size: 13px; color: #64748b; margin-bottom: 10px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">${post.orig_event_desc || ''}</div>
+                    ${post.orig_event_image ? `<img src="${post.orig_event_image}" style="width:100%; border-radius: 8px; max-height: 200px; object-fit: cover;">` : ''}
                 </div>
             ` : ''}
         </div>
@@ -195,10 +245,9 @@ function renderPostHTML(post) {
                     <span class="count" id="comment-count-${post.id}">${post.comments || 0}</span>
                     <span class="label">Bình luận</span>
                 </div>
-                <div class="action-item views-info">
-                    <i class="far fa-eye"></i>
-                    <span class="count">${post.views || 0}</span>
-                    <span class="label">Lượt xem</span>
+                <div class="action-item share-btn" onclick="sharePost(${post.id}, 'post')">
+                    <i class="fas fa-share-alt"></i>
+                    <span class="label">Chia sẻ</span>
                 </div>
             </div>
             
@@ -301,9 +350,9 @@ function renderEventHTML(ev) {
                     <span>${ev.comments || 0}</span>
                 </div>
             </div>
-            <div class="stat-item views-info">
-                <i class="far fa-eye"></i>
-                <span>${ev.views || 0} lượt xem</span>
+            <div class="stat-item share-btn" onclick="sharePost(${ev.id}, 'event')">
+                <i class="fas fa-share-alt"></i>
+                <span>Chia sẻ</span>
             </div>
         </div>
 
@@ -334,6 +383,73 @@ function renderEventHTML(ev) {
     `;
 }
 
+// --- SHARE FUNCTION ---
+function sharePost(id, type = 'post') {
+    console.log("sharePost called with:", id, type);
+    if (!currentUser) return alert("Vui lòng đăng nhập để thực hiện chia sẻ!");
+    
+    // Sử dụng == để so sánh vì id từ HTML có thể là string, trong khi item.id là number
+    const target = allFeedItems.find(item => item.id == id && item.feedType === type);
+    console.log("Target found:", target);
+    if (!target) return;
+
+    document.getElementById('shareTargetId').value = id;
+    document.getElementById('shareTargetType').value = type;
+    document.getElementById('shareCaption').value = '';
+
+    const preview = document.getElementById('sharePreviewContent');
+    if (type === 'post') {
+        preview.innerHTML = `
+            <div style="font-weight: 700; margin-bottom: 5px;">${target.author_name}</div>
+            <div style="display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;">${target.content}</div>
+        `;
+    } else {
+        preview.innerHTML = `
+            <div style="font-weight: 700; color: #c53030; margin-bottom: 5px;">SỰ KIỆN: ${target.event_name}</div>
+            <div style="display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;">${target.description || ''}</div>
+        `;
+    }
+
+    openModal('sharePostModal');
+}
+
+async function submitShare() {
+    if (isSubmitting) return;
+    const targetId = document.getElementById('shareTargetId').value;
+    const targetType = document.getElementById('shareTargetType').value;
+    const caption = document.getElementById('shareCaption').value.trim();
+    
+    isSubmitting = true;
+    try {
+        const body = {
+            content: caption,
+            user_id: (currentUser.user_id || currentUser.id),
+            club_id: null // Chia sẻ lên tường cá nhân (công khai)
+        };
+
+        if (targetType === 'post') body.shared_post_id = targetId;
+        else body.shared_event_id = targetId;
+
+        const res = await fetch('/api/posts/share', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(body)
+        });
+
+        if (res.ok) {
+            alert("Đã chia sẻ lên dòng thời gian của bạn!");
+            closeModal('sharePostModal');
+            loadFeed();
+        } else {
+            alert("Lỗi khi chia sẻ bài viết.");
+        }
+    } catch (err) {
+        console.error(err);
+        alert("Lỗi kết nối server.");
+    } finally {
+        isSubmitting = false;
+    }
+}
 
 // --- POST ACTIONS ---
 

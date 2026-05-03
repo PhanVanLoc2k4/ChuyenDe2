@@ -16,12 +16,25 @@ const getAllPosts = async (req, res) => {
 
         let query = `
             SELECT p.id, p.title, p.content, p.image, p.likes, p.views, p.comments, p.type, p.created_at, p.user_id,
+                   p.shared_post_id, p.shared_event_id,
                    c.id AS club_id, c.club_name, c.club_code,
-                   u.full_name as author_name, u.avatar as author_avatar
+                   u.full_name as author_name, u.avatar as author_avatar,
+                   -- Thông tin bài viết gốc (nếu là share bài viết)
+                   origP.content as orig_post_content, origP.image as orig_post_image,
+                   origU.full_name as orig_post_author, origU.avatar as orig_post_author_avatar,
+                   -- Thông tin sự kiện gốc (nếu là share sự kiện)
+                   origE.event_name as orig_event_name, origE.description as orig_event_desc, origE.image as orig_event_image,
+                   origEC.club_name as orig_event_club
                    ${user_id ? ", CASE WHEN EXISTS (SELECT 1 FROM post_likes pl WHERE pl.post_id = p.id AND pl.user_id = @current_uid) THEN 1 ELSE 0 END as user_liked" : ""}
             FROM posts p 
             LEFT JOIN clubs c ON p.club_id = c.id
             LEFT JOIN users u ON p.user_id = u.id
+            -- Join lấy bài viết gốc
+            LEFT JOIN posts origP ON p.shared_post_id = origP.id
+            LEFT JOIN users origU ON origP.user_id = origU.id
+            -- Join lấy sự kiện gốc
+            LEFT JOIN events origE ON p.shared_event_id = origE.id
+            LEFT JOIN clubs origEC ON origE.club_id = origEC.id
         `;
         let conditions = [];
         if (club && club !== "all") {
@@ -109,6 +122,29 @@ const createPost = async (req, res) => {
 
         res.json({ message: "Đăng bài thành công!", postId });
     } catch (err) { res.status(500).json({ message: "Lỗi đăng bài" }); }
+};
+
+// 2.1 Chia sẻ bài viết/sự kiện (Tạo bài đăng mới trỏ tới bài gốc)
+const createShare = async (req, res) => {
+    const { content, user_id, shared_post_id, shared_event_id, club_id } = req.body;
+    const pool = getPool();
+    try {
+        const result = await pool.request()
+            .input("c", sql.NVarChar, content)
+            .input("uid", sql.Int, user_id)
+            .input("spid", sql.Int, shared_post_id || null)
+            .input("seid", sql.Int, shared_event_id || null)
+            .input("cid", sql.Int, club_id || null)
+            .query(`INSERT INTO posts (title, content, type, user_id, shared_post_id, shared_event_id, club_id, created_at, likes, views, comments) 
+                    OUTPUT INSERTED.id
+                    VALUES (N'Đã chia sẻ', @c, N'Chia sẻ', @uid, @spid, @seid, @cid, GETDATE(), 0, 0, 0)`);
+        
+        const postId = result.recordset[0].id;
+        res.json({ message: "Chia sẻ thành công!", postId });
+    } catch (err) {
+        console.error("Lỗi chia sẻ:", err);
+        res.status(500).json({ message: "Lỗi khi thực hiện chia sẻ" });
+    }
 };
 
 // 3. Like bài viết
@@ -276,5 +312,6 @@ module.exports = {
     getPostComments,
     createComment,
     updatePost,
-    deletePost
+    deletePost,
+    createShare
 };

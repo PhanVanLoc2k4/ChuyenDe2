@@ -9,5 +9,6 @@ router.get("/:postId/comments", postController.getPostComments);
 router.post("/:postId/comments", postController.createComment);
 router.put("/:id", postController.updatePost); // Mới
 router.delete("/:id", postController.deletePost); // Mới
+router.post("/share", postController.createShare);
 
 module.exports = router;

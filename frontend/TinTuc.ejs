@@ -74,7 +74,7 @@
                 <div class="create-post-header">
                     <div class="user-avatar-medium" id="createPostAvatar">NA</div>
                     <div class="post-input" onclick="openCreatePostModal()">
-                        Bạn đang nghĩ gì?
+                        <a>Bạn đang nghĩ gì?</a>
                     </div>
                 </div>
                 <div class="create-post-divider"></div>
@@ -345,17 +345,22 @@
                     </div>
                     <div class="form-group">
                         <label>Ảnh bìa sự kiện</label>
-                        <div class="custom-upload" onclick="document.getElementById('editEventImage').click()" style="border: 2px dashed #e2e8f0; padding: 20px; border-radius: 12px; text-align: center; cursor: pointer;">
+                        <div class="custom-upload" onclick="document.getElementById('editEventImage').click()"
+                            style="border: 2px dashed #e2e8f0; padding: 20px; border-radius: 12px; text-align: center; cursor: pointer;">
                             <i class="fas fa-image" style="font-size: 24px; color: #94a3b8; margin-bottom: 8px;"></i>
-                            <div id="editEventImageName" style="font-size: 13px; color: #64748b;">Chọn ảnh khác (để trống nếu giữ ảnh cũ)</div>
+                            <div id="editEventImageName" style="font-size: 13px; color: #64748b;">Chọn ảnh khác (để
+                                trống nếu giữ ảnh cũ)</div>
                         </div>
                         <input type="file" id="editEventImage" accept="image/*" style="display: none;"
                             onchange="document.getElementById('editEventImageName').textContent = this.files[0].name; document.getElementById('editEventImageName').style.color = '#c53030';">
                     </div>
                 </div>
-                <div class="modal-footer" style="padding-top: 15px; border-top: 1px solid #f1f5f9; display: flex; gap: 10px; justify-content: flex-end;">
+                <div class="modal-footer"
+                    style="padding-top: 15px; border-top: 1px solid #f1f5f9; display: flex; gap: 10px; justify-content: flex-end;">
                     <button type="button" class="btn-secondary" onclick="closeModal('editEventModal')">Hủy</button>
-                    <button type="submit" class="btn-primary" style="background: #c53030; border: none; padding: 10px 25px; border-radius: 8px; color: white; font-weight: 700; cursor: pointer;">Cập nhật ngay</button>
+                    <button type="submit" class="btn-primary"
+                        style="background: #c53030; border: none; padding: 10px 25px; border-radius: 8px; color: white; font-weight: 700; cursor: pointer;">Cập
+                        nhật ngay</button>
                 </div>
             </form>
         </div>
@@ -410,6 +415,40 @@
                 <button class="btn-secondary" onclick="closeModal('eventDetailModal')">Đóng</button>
                 <button class="btn-primary" id="detailRegisterBtn" onclick="toggleRegisterFromDetail()">Tham gia
                     ngay</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Chia sẻ bài viết -->
+    <div class="modal" id="sharePostModal">
+        <div class="modal-content compact-modal">
+            <div class="modal-header">
+                <h3><i class="fas fa-share-alt" style="color: #3b82f6; margin-right: 8px;"></i> Chia sẻ bài viết</h3>
+                <button class="close-btn" onclick="closeModal('sharePostModal')">&times;</button>
+            </div>
+            <div class="form-body no-scrollbar">
+                <div class="modal-user-info">
+                    <div class="modal-user-avatar" id="shareUserAvatar">NA</div>
+                    <div class="modal-user-details">
+                        <div class="modal-user-name" id="shareUserName">Tên người dùng</div>
+                        <div style="font-size: 12px; color: #64748b;">Chia sẻ lên dòng thời gian</div>
+                    </div>
+                </div>
+                <textarea class="modal-post-input" id="shareCaption" placeholder="Nói gì đó về bài viết này..."
+                    style="min-height: 100px; border: 1px solid #e2e8f0; margin-top: 15px;"></textarea>
+
+                <div id="sharePreviewArea"
+                    style="margin-top: 15px; border: 1px solid #e2e8f0; border-radius: 12px; padding: 12px; background: #f8fafc;">
+                    <div id="sharePreviewContent" style="font-size: 13px; color: #475569;">
+                        <!-- Preview content injected here -->
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <input type="hidden" id="shareTargetId">
+                <input type="hidden" id="shareTargetType">
+                <button class="btn-secondary" onclick="closeModal('sharePostModal')">Hủy</button>
+                <button class="btn-primary" onclick="submitShare()" style="background: #3b82f6;">Chia sẻ ngay</button>
             </div>
         </div>
     </div>

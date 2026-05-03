@@ -95,10 +95,9 @@ async function loadPosts() {
                             <span class="count" id="comment-count-${post.id}">${post.comments || 0}</span>
                             <span class="label">Bình luận</span>
                         </div>
-                        <div class="action-item views-info">
-                            <i class="far fa-eye"></i>
-                            <span class="count">${post.views || 0}</span>
-                            <span class="label">Lượt xem</span>
+                        <div class="action-item share-btn" onclick="sharePost(${post.id}, 'post')">
+                            <i class="fas fa-share-alt"></i>
+                            <span class="label">Chia sẻ</span>
                         </div>
                     </div>
                     
@@ -262,5 +261,23 @@ async function submitEditPost(event) {
     } catch (err) {
         console.error(err);
         alert("Lỗi hệ thống khi cập nhật.");
+    }
+}
+
+function sharePost(id, type = 'post') {
+    const url = window.location.origin + (type === 'post' ? `/TinTuc#post-${id}` : `/TinTuc#event-${id}`);
+    
+    if (navigator.share) {
+        navigator.share({
+            title: 'Chia sẻ bài viết',
+            url: url
+        }).catch(err => console.error("Error sharing:", err));
+    } else {
+        navigator.clipboard.writeText(url).then(() => {
+            alert("Đã sao chép liên kết bài viết vào bộ nhớ tạm!");
+        }).catch(err => {
+            console.error("Lỗi chia sẻ:", err);
+            alert("Không thể sao chép liên kết.");
+        });
     }
 }

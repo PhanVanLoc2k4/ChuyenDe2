@@ -387,6 +387,9 @@
     font-size: 16px;
     cursor: pointer;
     transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    min-height: 48px;
 }
 
 .post-input:hover {
@@ -1757,6 +1760,14 @@
 
 .news-feed .post-card.event-post .post-stats i {
     font-size: 16px;
+}
+
+.share-btn:hover {
+    color: #0ea5e9 !important;
+}
+
+.share-btn:hover i {
+    color: #0ea5e9 !important;
 }
 
 /* Action Buttons */
