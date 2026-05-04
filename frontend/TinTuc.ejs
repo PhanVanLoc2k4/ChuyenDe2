@@ -79,16 +79,16 @@
                 </div>
                 <div class="create-post-divider"></div>
                 <div class="create-post-actions">
-                    <div class="post-action" onclick="openCreatePostModal('image')">
-                        <i class="fas fa-image"></i>
-                        <span>Ảnh</span>
+                    <div class="post-action action-image" onclick="openCreatePostModal('image')">
+                        <i class="fas fa-images"></i>
+                        <span>Ảnh/Album</span>
                     </div>
-                    <div class="post-action" onclick="openCreatePostModal('video')">
+                    <div class="post-action action-video" onclick="openCreatePostModal('video')">
                         <i class="fas fa-video"></i>
-                        <span>Video</span>
+                        <span>Video ngắn</span>
                     </div>
-                    <div class="post-action" onclick="openCreatePostModal('event')">
-                        <i class="fas fa-calendar"></i>
+                    <div class="post-action action-event" onclick="openCreatePostModal('event')">
+                        <i class="fas fa-calendar-star"></i>
                         <span>Sự kiện</span>
                     </div>
                 </div>
@@ -207,31 +207,29 @@
                 <h3>Hành động: Tạo bài viết mới</h3>
                 <button class="close-btn" onclick="closeModal('createPostModal')">&times;</button>
             </div>
-            <div class="form-body no-scrollbar">
+            <div class="modal-body no-scrollbar">
                 <div class="modal-user-info">
                     <div class="modal-user-avatar" id="modalPostAvatar">NA</div>
                     <div class="modal-user-details">
                         <div class="modal-user-name" id="modalPostName">Tên người dùng</div>
-                        <select id="postClub"
-                            style="border: none; background: #f1f5f9; font-size: 12px; padding: 4px 8px; border-radius: 4px; color: #4a5568; outline: none; margin-top: 4px; cursor: pointer;">
-                            <option value="">🌎 Công khai</option>
-                        </select>
+
                     </div>
                 </div>
                 <textarea class="modal-post-input" id="postContent" placeholder="Bạn đang nghĩ gì?"></textarea>
                 <div class="media-upload-area" onclick="document.getElementById('postMedia').click()" id="uploadArea">
                     <i class="fas fa-cloud-upload-alt"></i>
-                    <p>Thêm ảnh hoặc video</p>
+                    <p id="uploadText">Thêm ảnh hoặc video</p>
                 </div>
-                <input type="file" id="postMedia" accept="image/*" style="display: none;" onchange="previewMedia(this)">
-                <div class="media-preview" id="mediaPreview" style="display: none;">
-                    <img src="" id="previewImage" style="width: 100%; border-radius: 10px;">
-                    <button class="remove-media" onclick="removeMedia()">&times;</button>
+                <input type="file" id="postMedia" accept="image/*,video/*" style="display: none;" onchange="previewMedia(this)">
+                <div class="media-preview" id="mediaPreview" style="display: none; position: relative; margin-top: 15px;">
+                    <img src="" id="previewImage" style="width: 100%; border-radius: 12px; display: none;">
+                    <video id="previewVideo" style="width: 100%; border-radius: 12px; display: none;" controls></video>
+                    <button class="remove-media" onclick="removeMedia()" style="position: absolute; top: 10px; right: 10px; background: rgba(0,0,0,0.5); color: white; border: none; border-radius: 50%; width: 30px; height: 30px; cursor: pointer;">&times;</button>
                 </div>
             </div>
-            <div class="modal-footer">
-                <button class="btn-secondary" onclick="closeModal('createPostModal')">Hủy</button>
-                <button class="btn-primary" onclick="createPost()">Đăng bài ngay</button>
+            <div class="modal-footer" style="padding: 20px 30px; border-top: 1px solid #f1f5f9; display: flex; justify-content: flex-end; gap: 12px; background: white;">
+                <button class="btn-secondary" onclick="closeModal('createPostModal')" style="padding: 10px 24px; border-radius: 12px; background: #f1f5f9; color: #4a5568; border: none; font-weight: 700; cursor: pointer;">Hủy</button>
+                <button class="btn-primary" onclick="createPost()" style="padding: 10px 30px; border-radius: 12px; background: #c53030; color: white; border: none; font-weight: 700; cursor: pointer; box-shadow: 0 4px 12px rgba(197, 48, 48, 0.2);">Đăng bài ngay</button>
             </div>
         </div>
     </div>

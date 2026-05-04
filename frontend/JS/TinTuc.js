@@ -202,8 +202,11 @@ function renderPostHTML(post) {
             <div class="post-content">${post.content || ''}</div>
             
             ${post.image ? `
-                <div class="post-media-container" style="max-height: 500px; width: 100%; overflow: hidden; border-radius: 12px; margin-top: 15px;">
-                    <img src="${post.image}" class="post-media-content" style="width: 100%; height: auto; max-height: 500px; object-fit: cover;" onerror="this.parentElement.style.display='none'">
+                <div class="post-media-container" style="width: 100%; border-radius: 12px; margin-top: 15px; background: #000; overflow: hidden;">
+                    ${post.image.startsWith('data:video') || post.image.includes('.mp4') ? 
+                        `<video src="${post.image}" controls style="width: 100%; max-height: 500px; display: block;"></video>` : 
+                        `<img src="${post.image}" style="width: 100%; height: auto; max-height: 500px; object-fit: cover; display: block;" onerror="this.parentElement.style.display='none'">`
+                    }
                 </div>
             ` : ''}
 
@@ -981,21 +984,47 @@ let mediaFile = null;
 function previewMedia(input) {
     if (input.files && input.files[0]) {
         mediaFile = input.files[0];
+        const fileType = mediaFile.type;
         const reader = new FileReader();
+        
         reader.onload = e => {
-            document.getElementById('previewImage').src = e.target.result;
-            document.getElementById('previewImage').style.display = 'block';
-            document.getElementById('mediaPreview').style.display = 'block';
-            document.getElementById('uploadArea').style.display = 'none';
+            const previewImage = document.getElementById('previewImage');
+            const previewVideo = document.getElementById('previewVideo');
+            const mediaPreview = document.getElementById('mediaPreview');
+            const uploadArea = document.getElementById('uploadArea');
+
+            mediaPreview.style.display = 'block';
+            uploadArea.style.display = 'none';
+
+            if (fileType.startsWith('video/')) {
+                previewVideo.src = e.target.result;
+                previewVideo.style.display = 'block';
+                previewImage.style.display = 'none';
+            } else {
+                previewImage.src = e.target.result;
+                previewImage.style.display = 'block';
+                previewVideo.style.display = 'none';
+                previewVideo.src = '';
+            }
         }
-        reader.readAsDataURL(input.files[0]);
+        reader.readAsDataURL(mediaFile);
     }
 }
 
 function removeMedia() {
-    document.getElementById('postMedia').value = '';
+    const postMedia = document.getElementById('postMedia');
+    if (postMedia) postMedia.value = '';
+    
     document.getElementById('mediaPreview').style.display = 'none';
     document.getElementById('uploadArea').style.display = 'block';
+    
+    const previewImg = document.getElementById('previewImage');
+    const previewVid = document.getElementById('previewVideo');
+    if (previewImg) previewImg.src = '';
+    if (previewVid) {
+        previewVid.pause();
+        previewVid.src = '';
+    }
     mediaFile = null;
 }
 

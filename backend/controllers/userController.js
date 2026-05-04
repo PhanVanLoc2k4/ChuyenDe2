@@ -12,7 +12,7 @@ const getProfile = async (req, res) => {
                 FROM users 
                 WHERE id = @id
             `);
-        
+
         if (result.recordset.length > 0) {
             res.json(result.recordset[0]);
         } else {
@@ -35,9 +35,9 @@ const updateProfile = async (req, res) => {
         if (dob) {
             const age = calculateAge(dob);
             if (age < 16 || age > 100) {
-                return res.status(400).json({ 
-                    success: false, 
-                    message: `Tuổi không hợp lệ (${age} tuổi). Bạn phải từ 16 đến 100 tuổi!` 
+                return res.status(400).json({
+                    success: false,
+                    message: `Tuổi không hợp lệ (${age} tuổi). Bạn phải từ 16 đến 100 tuổi!`
                 });
             }
         }
@@ -51,12 +51,12 @@ const updateProfile = async (req, res) => {
         await pool.request()
             .input("id", sql.Int, id)
             .input("full_name", sql.NVarChar, full_name)
-            .input("phone", sql.NVarChar, phone) 
-            .input("dob", sql.Date, birthDate) 
+            .input("phone", sql.NVarChar, phone)
+            .input("dob", sql.Date, birthDate)
             .input("gender", sql.NVarChar, gender)
             .input("bio", sql.NVarChar, bio)
             .input("hobbies", sql.NVarChar, hobbies)
-            .input("avatar", sql.NVarChar(sql.MAX), avatar) 
+            .input("avatar", sql.NVarChar(sql.MAX), avatar)
             .query(`
                 UPDATE users 
                 SET full_name = @full_name, 

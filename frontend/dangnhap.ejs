@@ -1,169 +1,195 @@
 <%- include('partials/Header') %>
-<div class="auth-container">
-    <!-- Cột bên trái: Branding/Thông tin nền tảng -->
-    <div class="auth-branding">
-        <div class="brand-badge">✨ Nền Tảng CLB Số 1</div>
-        <h1 class="brand-title">Khám Phá Vô Vạn<br>Cơ Hội Cùng CLB Connect</h1>
-        <p class="brand-subtitle">Trải nghiệm hệ sinh thái toàn diện dành cho sinh viên. Nơi giao lưu, học hỏi và cháy hết mình với đam mê.</p>
-        
-        <div class="brand-features">
-            <div class="feature-item">
-                <i class="fas fa-users"></i>
-                <div class="feature-text">
-                    <h4>Cộng Đồng Trẻ</h4>
-                    <p>Hàng ngàn sinh viên năng động.</p>
-                </div>
-            </div>
-            <div class="feature-item">
-                <i class="fas fa-calendar-check"></i>
-                <div class="feature-text">
-                    <h4>Sự Kiện Bùng Nổ</h4>
-                    <p>Tham gia các sự kiện hoành tráng.</p>
-                </div>
-            </div>
-            <div class="feature-item">
-                <i class="fas fa-rocket"></i>
-                <div class="feature-text">
-                    <h4>Quản Lý Thông Minh</h4>
-                    <p>Công cụ quản trị CLB mạnh mẽ.</p>
-                </div>
-            </div>
-        </div>
-    </div>
+    <div class="auth-container">
+        <!-- Cột bên trái: Branding/Thông tin nền tảng -->
+        <div class="auth-branding">
+            <div class="brand-badge">✨ Nền Tảng CLB Số 1</div>
+            <h1 class="brand-title">Khám Phá Vô Vạn<br>Cơ Hội Cùng CLB Connect</h1>
+            <p class="brand-subtitle">Trải nghiệm hệ sinh thái toàn diện dành cho sinh viên. Nơi giao lưu, học hỏi và
+                cháy hết mình với đam mê.</p>
 
-    <!-- Cột bên phải: Form Đăng nhập/Đăng ký -->
-    <div class="auth-card">
-        <div class="auth-header">
-            <i class="fas fa-user-circle"></i>
-            <h2>Chào bạn!</h2>
-            <p>Tham gia cộng đồng CLB Connect ngay</p>
-        </div>
-
-        <!-- Tabs chuyển đổi Đăng nhập / Đăng ký -->
-        <div class="auth-tabs">
-            <div class="auth-tab active" id="loginTab" onclick="switchTab('login')">Đăng nhập</div>
-            <div class="auth-tab" id="registerTab" onclick="switchTab('register')">Đăng ký</div>
-        </div>
-
-        <!-- FORM ĐĂNG NHẬP -->
-        <div class="auth-form" id="loginForm">
-            <div class="form-group">
-                <label>Email hoặc tên đăng nhập</label>
-                <div class="input-with-icon">
-                    <i class="fas fa-envelope"></i>
-                    <input type="text" placeholder="Nhập email hoặc username" id="loginEmail">
-                </div>
-            </div>
-            <div class="form-group">
-                <label>Mật khẩu</label>
-                <div class="input-with-icon">
-                    <i class="fas fa-lock"></i>
-                    <input type="password" placeholder="••••••••" id="loginPassword">
-                </div>
-            </div>
-            <div class="forgot-password">
-                <a href="/quenmatkhau">Quên mật khẩu?</a>
-            </div>
-            <button class="btn-auth" onclick="handleLogin()">
-                <i class="fas fa-sign-in-alt"></i> Đăng nhập
-            </button>
-
-            <div class="divider">
-                <span>hoặc đăng nhập với</span>
-            </div>
-            <div class="social-login">
-                <div class="social-btn" onclick="alert('Đăng nhập với Google')"><i class="fab fa-google"></i></div>
-                <div class="social-btn" onclick="alert('Đăng nhập với Facebook')"><i class="fab fa-facebook-f"></i></div>
-                <div class="social-btn" onclick="alert('Đăng nhập với GitHub')"><i class="fab fa-github"></i></div>
-            </div>
-        </div>
-
-        <!-- FORM ĐĂNG KÝ (ẩn ban đầu) -->
-        <div class="auth-form form-hidden" id="registerForm">
-            <div class="form-row">
-                <div class="form-group">
-                    <label>Họ và tên</label>
-                    <div class="input-with-icon">
-                        <i class="fas fa-user"></i>
-                        <input type="text" placeholder="Nguyễn Văn A" id="regName">
+            <div class="brand-features">
+                <div class="feature-item">
+                    <i class="fas fa-users"></i>
+                    <div class="feature-text">
+                        <h4>Cộng Đồng Trẻ</h4>
+                        <p>Hàng ngàn sinh viên năng động.</p>
                     </div>
                 </div>
+                <div class="feature-item">
+                    <i class="fas fa-calendar-check"></i>
+                    <div class="feature-text">
+                        <h4>Sự Kiện Bùng Nổ</h4>
+                        <p>Tham gia các sự kiện hoành tráng.</p>
+                    </div>
+                </div>
+                <div class="feature-item">
+                    <i class="fas fa-rocket"></i>
+                    <div class="feature-text">
+                        <h4>Quản Lý Thông Minh</h4>
+                        <p>Công cụ quản trị CLB mạnh mẽ.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Cột bên phải: Form Đăng nhập/Đăng ký -->
+        <div class="auth-card">
+            <div class="auth-header">
+                <i class="fas fa-user-circle"></i>
+                <h2>Chào bạn!</h2>
+                <p>Tham gia cộng đồng CLB Connect ngay</p>
+            </div>
+
+            <!-- Tabs chuyển đổi Đăng nhập / Đăng ký -->
+            <div class="auth-tabs">
+                <div class="auth-tab active" id="loginTab" onclick="switchTab('login')">Đăng nhập</div>
+                <div class="auth-tab" id="registerTab" onclick="switchTab('register')">Đăng ký</div>
+            </div>
+
+            <!-- FORM ĐĂNG NHẬP -->
+            <div class="auth-form" id="loginForm">
                 <div class="form-group">
-                    <label>Email</label>
+                    <label>Email hoặc tên đăng nhập</label>
                     <div class="input-with-icon">
                         <i class="fas fa-envelope"></i>
-                        <input type="email" placeholder="your.email@example.com" id="regEmail">
+                        <input type="text" placeholder="Nhập email hoặc username" id="loginEmail">
                     </div>
                 </div>
-            </div>
-
-            <div class="form-row">
-                <div class="form-group">
-                    <label>Ngày sinh</label>
-                    <div class="input-with-icon">
-                        <i class="fas fa-calendar-alt"></i>
-                        <input type="date" id="regDob">
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label>Giới tính</label>
-                    <div class="gender-selection" style="display: flex; gap: 15px; margin-top: 15px; align-items: center; justify-content: center; background: rgba(0,0,0,0.2); padding: 16px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.1);">
-                        <label style="display: flex; align-items: center; gap: 5px; cursor: pointer; margin-bottom: 0;">
-                            <input type="radio" name="regGender" value="Nam" checked> Nam
-                        </label>
-                        <label style="display: flex; align-items: center; gap: 5px; cursor: pointer; margin-bottom: 0;">
-                            <input type="radio" name="regGender" value="Nữ"> Nữ
-                        </label>
-                        <label style="display: flex; align-items: center; gap: 5px; cursor: pointer; margin-bottom: 0;">
-                            <input type="radio" name="regGender" value="Khác"> Khác
-                        </label>
-                    </div>
-                </div>
-            </div>
-
-            <div class="form-row">
                 <div class="form-group">
                     <label>Mật khẩu</label>
                     <div class="input-with-icon">
                         <i class="fas fa-lock"></i>
-                        <input type="password" placeholder="Tối thiểu 6 ký tự" id="regPassword">
+                        <input type="password" placeholder="••••••••" id="loginPassword">
                     </div>
                 </div>
-                <div class="form-group">
-                    <label>Xác nhận mật khẩu</label>
-                    <div class="input-with-icon">
-                        <i class="fas fa-lock"></i>
-                        <input type="password" placeholder="Nhập lại mật khẩu" id="regConfirm">
+                <div class="forgot-password">
+                    <a href="/quenmatkhau">Quên mật khẩu?</a>
+                </div>
+                <button class="btn-auth" onclick="handleLogin()">
+                    <i class="fas fa-sign-in-alt"></i> Đăng nhập
+                </button>
+
+                <div class="divider">
+                    <span>hoặc đăng nhập với</span>
+                </div>
+                <div class="social-login">
+                    <div class="social-btn" onclick="alert('Đăng nhập với Google')"><i class="fab fa-google"></i></div>
+                    <div class="social-btn" onclick="alert('Đăng nhập với Facebook')"><i class="fab fa-facebook-f"></i>
                     </div>
+                    <div class="social-btn" onclick="alert('Đăng nhập với GitHub')"><i class="fab fa-github"></i></div>
                 </div>
             </div>
 
-            <div class="terms">
-                <input type="checkbox" id="agreeTerms">
-                <label for="agreeTerms">Tôi đồng ý với <a href="#">Điều khoản dịch vụ</a> và <a href="#">Chính sách bảo mật</a>.</label>
-            </div>
+            <!-- FORM ĐĂNG KÝ (ẩn ban đầu) -->
+            <div class="auth-form form-hidden" id="registerForm">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Họ và tên</label>
+                        <div class="input-with-icon">
+                            <i class="fas fa-user"></i>
+                            <input type="text" placeholder="Nguyễn Văn A" id="regName">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Email</label>
+                        <div class="input-with-icon">
+                            <i class="fas fa-envelope"></i>
+                            <input type="email" placeholder="your.email@example.com" id="regEmail">
+                        </div>
+                    </div>
+                </div>
 
-            <button class="btn-auth" onclick="handleRegister()">
-                <i class="fas fa-user-plus"></i> Đăng ký
-            </button>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Ngày sinh</label>
+                        <div class="input-with-icon">
+                            <i class="fas fa-calendar-alt"></i>
+                            <input type="date" id="regDob">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Giới tính</label>
+                        <div class="gender-selection"
+                            style="display: flex; gap: 15px; margin-top: 15px; align-items: center; justify-content: center; background: rgba(0,0,0,0.2); padding: 16px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.1);">
+                            <label
+                                style="display: flex; align-items: center; gap: 5px; cursor: pointer; margin-bottom: 0;">
+                                <input type="radio" name="regGender" value="Nam" checked> Nam
+                            </label>
+                            <label
+                                style="display: flex; align-items: center; gap: 5px; cursor: pointer; margin-bottom: 0;">
+                                <input type="radio" name="regGender" value="Nữ"> Nữ
+                            </label>
+                            <label
+                                style="display: flex; align-items: center; gap: 5px; cursor: pointer; margin-bottom: 0;">
+                                <input type="radio" name="regGender" value="Khác"> Khác
+                            </label>
+                        </div>
+                    </div>
+                </div>
 
-            <div class="divider">
-                <span>hoặc đăng ký với</span>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Mật khẩu</label>
+                        <div class="input-with-icon">
+                            <i class="fas fa-lock"></i>
+                            <input type="password" placeholder="Tối thiểu 6 ký tự" id="regPassword">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Xác nhận mật khẩu</label>
+                        <div class="input-with-icon">
+                            <i class="fas fa-lock"></i>
+                            <input type="password" placeholder="Nhập lại mật khẩu" id="regConfirm">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="terms">
+                    <input type="checkbox" id="agreeTerms">
+                    <label for="agreeTerms">Tôi đồng ý với <a href="#">Điều khoản dịch vụ</a> và <a href="#">Chính sách
+                            bảo mật</a>.</label>
+                </div>
+
+                <button class="btn-auth" onclick="handleRegister()">
+                    <i class="fas fa-user-plus"></i> Đăng ký
+                </button>
+
+                <div class="divider">
+                    <span>hoặc đăng ký với</span>
+                </div>
+                <div class="social-login">
+                    <div class="social-btn" onclick="alert('Đăng ký với Google')"><i class="fab fa-google"></i></div>
+                    <div class="social-btn" onclick="alert('Đăng ký với Facebook')"><i class="fab fa-facebook-f"></i>
+                    </div>
+                    <div class="social-btn" onclick="alert('Đăng ký với GitHub')"><i class="fab fa-github"></i></div>
+                </div>
             </div>
-            <div class="social-login">
-                <div class="social-btn" onclick="alert('Đăng ký với Google')"><i class="fab fa-google"></i></div>
-                <div class="social-btn" onclick="alert('Đăng ký với Facebook')"><i class="fab fa-facebook-f"></i></div>
-                <div class="social-btn" onclick="alert('Đăng ký với GitHub')"><i class="fab fa-github"></i></div>
+        </div>
+
+        <!-- Thông điệp bảo mật -->
+        <div class="security-note">
+            <i class="fas fa-shield-alt"></i> Thông tin của bạn được bảo mật tuyệt đối
+        </div>
+    </div>
+    <div id="otpModal" class="otp-modal-overlay form-hidden">
+        <div class="otp-modal-content">
+            <div class="otp-header">
+                <i class="fas fa-envelope-open-text"></i>
+                <h3>Xác thực Email</h3>
+            </div>
+            <p>Chúng tôi đã gửi một mã gồm 6 chữ số đến email của bạn. Vui lòng nhập mã vào bên dưới:</p>
+            <div class="input-with-icon">
+                <i class="fas fa-key"></i>
+                <input type="text" id="otpInput" placeholder="Nhập mã OTP (6 số)..." maxlength="6">
+            </div>
+            <div class="otp-actions">
+                <button class="btn-auth" onclick="submitOtp()">
+                    <i class="fas fa-check-circle"></i> Xác nhận
+                </button>
+                <button class="btn-cancel" onclick="closeOtpModal()">Hủy bỏ</button>
             </div>
         </div>
     </div>
-
-    <!-- Thông điệp bảo mật -->
-    <div class="security-note">
-        <i class="fas fa-shield-alt"></i> Thông tin của bạn được bảo mật tuyệt đối
-    </div>
-</div>
-
-<%- include('partials/Footer') %>
-<script src="JS/dangnhap.js"></script>
-<link rel="stylesheet" href="CSS/dangnhap.css">
+    <%- include('partials/Footer') %>
+        <script src="JS/dangnhap.js"></script>
+        <link rel="stylesheet" href="CSS/dangnhap.css">

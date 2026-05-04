@@ -40,7 +40,7 @@ async function handleLogin() {
                 'Content-Type': 'application/json'
             },
             // Gửi dữ liệu dưới dạng JSON (trùng với tên biến body bên Backend)
-            body: JSON.stringify({ email: email, password: password }) 
+            body: JSON.stringify({ email: email, password: password })
         });
 
         // Parse kết quả trả về từ Backend
@@ -48,7 +48,7 @@ async function handleLogin() {
 
         if (response.ok) {
             showToast(data.message || 'Đăng nhập thành công!', 'success');
-            
+
             // LƯU Ý MỚI: Cập nhật lưu thêm Token vào localStorage
             const userInfo = {
                 isLoggedIn: true,
@@ -67,7 +67,7 @@ async function handleLogin() {
                     window.location.href = '/admin';
                 } else {
                     window.location.href = '/'; // Sinh viên bình thường về trang chủ
-                } 
+                }
             }, 1500);
 
         } else {
@@ -81,8 +81,11 @@ async function handleLogin() {
 }
 
 /* =========================
-   XỬ LÝ ĐĂNG KÝ (GỌI API)
+   XỬ LÝ ĐĂNG KÝ (2 BƯỚC VỚI OTP)
 ========================= */
+let tempRegisterEmail = ""; // Biến lưu tạm email để gọi bước xác thực
+
+// Bước 1: Validate và Gửi mã OTP
 async function handleRegister() {
     const name = document.getElementById('regName').value.trim();
     const email = document.getElementById('regEmail').value.trim();
@@ -139,36 +142,37 @@ async function handleRegister() {
     }
 
     try {
-        // Gọi API Đăng ký
-        const response = await fetch('/api/register', {
+        showToast('Đang gửi mã xác nhận, vui lòng đợi...', 'info');
+
+        // Gọi API Gửi OTP thay vì lưu thẳng
+        const response = await fetch('/api/register/send-otp', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
-            // Gửi lên name, email, password như backend đang mong đợi
-            // (Hiện API backend của bạn không lưu 'username', nên mình không gửi lên để tránh dư thừa data)
-            body: JSON.stringify({ 
-                name: name, 
-                email: email, 
+            body: JSON.stringify({
+                name: name,
+                email: email,
                 password: password,
                 dob: dob,
-                gender: gender 
+                gender: gender
             })
         });
 
         const data = await response.json();
 
         if (response.ok) {
-            showToast('Đăng ký thành công! Vui lòng đăng nhập để tiếp tục.', 'success');
-            
-            setTimeout(() => {
-                // Tự động chuyển qua tab Login và điền sẵn email vừa đăng ký
-                switchTab('login');
-                document.getElementById('loginEmail').value = email;
-                document.getElementById('loginPassword').value = ''; 
-            }, 1500);
+            showToast(data.message, 'success');
+            tempRegisterEmail = email; // Lưu lại email để dùng cho hàm submitOtp()
+
+            // Hiện bảng nhập OTP
+            document.getElementById('otpModal').classList.remove('form-hidden');
+
+            // NẾU CHẠY DEV: In link Ethereal ra console để dễ lấy mã
+            if (data.previewUrl) {
+                console.log("🔗 LINK LẤY OTP (Chỉ dành cho Dev):", data.previewUrl);
+            }
         } else {
-            // Lỗi email đã tồn tại, thiếu thông tin...
             showToast(`Lỗi: ${data.message}`, 'warning');
         }
     } catch (error) {
@@ -177,8 +181,53 @@ async function handleRegister() {
     }
 }
 
+// Bước 2: Gửi mã OTP lên server để xác nhận và lưu Database
+async function submitOtp() {
+    const otp = document.getElementById('otpInput').value.trim();
+
+    if (!otp || otp.length !== 6) {
+        return showToast('Vui lòng nhập đủ 6 số OTP!', 'warning');
+    }
+
+    try {
+        const response = await fetch('/api/register/verify', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email: tempRegisterEmail, otp: otp })
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+            showToast('Đăng ký thành công! Vui lòng đăng nhập để tiếp tục.', 'success');
+            closeOtpModal();
+
+            setTimeout(() => {
+                // Tự động chuyển qua tab Login và điền sẵn email vừa đăng ký
+                switchTab('login');
+                document.getElementById('loginEmail').value = tempRegisterEmail;
+                document.getElementById('loginPassword').value = '';
+            }, 1500);
+        } else {
+            showToast(`Lỗi: ${data.message}`, 'warning');
+        }
+    } catch (error) {
+        console.error("Lỗi xác nhận OTP:", error);
+        showToast('Không thể kết nối đến máy chủ. Vui lòng kiểm tra mạng hoặc server!', 'warning');
+    }
+}
+
+// Hàm đóng bảng OTP
+function closeOtpModal() {
+    const otpModal = document.getElementById('otpModal');
+    if (otpModal) {
+        otpModal.classList.add('form-hidden');
+        document.getElementById('otpInput').value = ""; // Reset input
+    }
+}
+
 // Mặc định chạy khi load trang
-window.onload = function() {
+window.onload = function () {
     // Nếu user đã đăng nhập, có thể bạn muốn đá họ về trang chủ luôn?
     // if(localStorage.getItem('currentUser')) window.location.href = '/';
 };
@@ -191,14 +240,14 @@ function showToast(message, type = 'warning') {
         toastContainer.id = 'thong-bao-toast';
         document.body.appendChild(toastContainer);
     }
-    
+
     const toast = document.createElement('div');
     toast.className = `toast-item ${type}`;
-    
+
     let iconClass = 'fa-exclamation-circle';
     if (type === 'success') iconClass = 'fa-check-circle';
     if (type === 'info') iconClass = 'fa-info-circle';
-    
+
     toast.innerHTML = `
         <div class="toast-icon"><i class="fas ${iconClass}"></i></div>
         <div class="toast-content">
@@ -206,13 +255,13 @@ function showToast(message, type = 'warning') {
             <div class="toast-msg">${message}</div>
         </div>
     `;
-    
+
     toastContainer.appendChild(toast);
-    
+
     setTimeout(() => toast.classList.add('active'), 10);
-    
+
     setTimeout(() => {
         toast.classList.remove('active');
-        setTimeout(() => toast.remove(), 400); 
+        setTimeout(() => toast.remove(), 400);
     }, 3000);
 }

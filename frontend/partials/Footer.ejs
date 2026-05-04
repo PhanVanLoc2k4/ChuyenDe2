@@ -51,7 +51,7 @@
     .footer-social a {
         width: 40px;
         height: 40px;
-        background: rgba(255,255,255,0.1);
+        background: rgba(255, 255, 255, 0.1);
         border-radius: 50%;
         display: flex;
         align-items: center;
@@ -136,7 +136,7 @@
 
     .newsletter-input {
         display: flex;
-        background: rgba(255,255,255,0.1);
+        background: rgba(255, 255, 255, 0.1);
         border-radius: 40px;
         overflow: hidden;
     }
@@ -198,12 +198,14 @@
     /* =========================
        TỐI ƯU RESPONSIVE
     ========================= */
-    
+
     /* Cho Tablet (Màn hình vừa) */
     @media (max-width: 1024px) {
         .footer-main {
-            grid-template-columns: repeat(2, 1fr); /* Chuyển thành 2 cột */
-            gap: 40px 30px; /* Điều chỉnh khoảng cách dọc và ngang */
+            grid-template-columns: repeat(2, 1fr);
+            /* Chuyển thành 2 cột */
+            gap: 40px 30px;
+            /* Điều chỉnh khoảng cách dọc và ngang */
             padding: 50px 20px 30px;
         }
     }
@@ -211,19 +213,24 @@
     /* Cho Điện thoại (Màn hình nhỏ) */
     @media (max-width: 768px) {
         .footer {
-            margin-top: 40px; /* Giảm bớt khoảng cách phía trên footer */
+            margin-top: 40px;
+            /* Giảm bớt khoảng cách phía trên footer */
         }
 
         .footer-main {
-            grid-template-columns: 1fr; /* Trở về 1 cột duy nhất */
-            gap: 35px; /* Tạo không gian vừa phải giữa các khối */
-            text-align: center; /* Căn giữa toàn bộ chữ */
+            grid-template-columns: 1fr;
+            /* Trở về 1 cột duy nhất */
+            gap: 35px;
+            /* Tạo không gian vừa phải giữa các khối */
+            text-align: center;
+            /* Căn giữa toàn bộ chữ */
             padding: 40px 15px 20px;
         }
 
         .footer-title::after {
             left: 50%;
-            transform: translateX(-50%); /* Căn giữa vạch đỏ dưới tiêu đề */
+            transform: translateX(-50%);
+            /* Căn giữa vạch đỏ dưới tiêu đề */
         }
 
         /* Xử lý căn giữa cho các phần tử dùng flexbox */
@@ -232,20 +239,25 @@
         }
 
         .footer-links a {
-            justify-content: center; /* Căn giữa link và icon mũi tên */
+            justify-content: center;
+            /* Căn giữa link và icon mũi tên */
         }
 
         .footer-links a:hover {
-            transform: translateY(-3px); /* Đổi hiệu ứng di chuyển lên thay vì sang phải trên mobile */
+            transform: translateY(-3px);
+            /* Đổi hiệu ứng di chuyển lên thay vì sang phải trên mobile */
         }
 
         .footer-contact p {
-            justify-content: center; /* Căn giữa thông tin liên hệ và icon */
+            justify-content: center;
+            /* Căn giữa thông tin liên hệ và icon */
         }
 
         .newsletter-input {
-            max-width: 400px; /* Giới hạn chiều rộng thanh nhập email để không bị quá dài trên mobile ngang */
-            margin: 0 auto; /* Đưa thanh nhập email ra giữa */
+            max-width: 400px;
+            /* Giới hạn chiều rộng thanh nhập email để không bị quá dài trên mobile ngang */
+            margin: 0 auto;
+            /* Đưa thanh nhập email ra giữa */
         }
 
         .footer-bottom {
@@ -257,7 +269,8 @@
 
         .footer-bottom-links {
             justify-content: center;
-            flex-wrap: wrap; /* Cho phép rớt dòng nếu màn hình quá hẹp */
+            flex-wrap: wrap;
+            /* Cho phép rớt dòng nếu màn hình quá hẹp */
         }
     }
 
@@ -266,13 +279,14 @@
         .footer-logo {
             font-size: 24px;
         }
-        
+
         .footer-title {
             font-size: 16px;
         }
 
         .newsletter-input input {
-            padding: 10px 12px; /* Giảm padding để ô nhập liệu cân đối hơn */
+            padding: 10px 12px;
+            /* Giảm padding để ô nhập liệu cân đối hơn */
         }
     }
 </style>
@@ -282,15 +296,15 @@
 
 <footer class="footer">
     <div class="footer-wave"></div>
-    
+
     <div class="footer-main">
         <div>
             <div class="footer-logo">CLB Connect</div>
             <p class="footer-about">
-                Nền tảng kết nối sinh viên với các câu lạc bộ trong trường đại học. 
+                Nền tảng kết nối sinh viên với các câu lạc bộ trong trường đại học.
                 Nơi chia sẻ đam mê, kết nối sáng tạo và phát triển bản thân.
             </p>
-            </div>
+        </div>
 
         <div>
             <h3 class="footer-title">Khám phá</h3>
@@ -321,7 +335,7 @@
                 <p><i class="fas fa-phone-alt"></i> 024 1234 5678</p>
                 <p><i class="fas fa-envelope"></i> contact@clbconnect.vn</p>
             </div>
-            
+
             <div class="footer-newsletter">
                 <h4 style="margin-bottom: 15px; font-size: 16px;">Đăng ký nhận tin</h4>
                 <div class="newsletter-input">
@@ -332,20 +346,20 @@
         </div>
     </div>
 
-    </footer>
+</footer>
 
 <script>
     /* =========================
        FOOTER SCRIPTS ONLY
     ========================= */
-    document.addEventListener("DOMContentLoaded", function() {
+    document.addEventListener("DOMContentLoaded", function () {
         const btnSubscribe = document.getElementById("btn-subscribe");
         const emailInput = document.getElementById("newsletter-email");
 
         if (btnSubscribe && emailInput) {
-            btnSubscribe.addEventListener("click", function() {
+            btnSubscribe.addEventListener("click", function () {
                 const email = emailInput.value.trim();
-                
+
                 if (email === "") {
                     alert("Vui lòng nhập địa chỉ email của bạn!");
                     return;
@@ -368,7 +382,8 @@
 
 <!-- Chatbot UI Structure -->
 <div class="chatbot-launcher" id="chatbotLauncher">
-    <img src="images/ai-avatar.png" alt="AI Avatar" style="width: 100%; height: 100%; border-radius: 50%; padding: 5px;">
+    <img src="images/ai-avatar.png" alt="AI Avatar"
+        style="width: 100%; height: 100%; border-radius: 50%; padding: 5px;">
 </div>
 
 <div class="chatbot-container" id="chatbotContainer">
@@ -386,11 +401,11 @@
             <i class="fas fa-times" id="chatbotClose"></i>
         </div>
     </div>
-    
+
     <div class="chatbot-messages" id="chatbotMessages">
         <!-- Messages will be injected here by chatbot.js -->
     </div>
-    
+
     <div class="chatbot-input-area">
         <div class="chatbot-input-wrapper">
             <input type="text" id="chatbotInput" placeholder="Nhập câu hỏi của bạn...">
@@ -404,4 +419,3 @@
 <!-- Markdown Parser -->
 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 <script src="JS/chatbot.js"></script>
-

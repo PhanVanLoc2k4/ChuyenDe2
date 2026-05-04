@@ -62,15 +62,15 @@ function saveChatState() {
 function loadChatState() {
     const savedHistory = localStorage.getItem(STORAGE_KEYS.HISTORY);
     const savedIsOpen = localStorage.getItem(STORAGE_KEYS.IS_OPEN);
-    
+
     if (savedHistory) {
         chatHistory = JSON.parse(savedHistory);
         // Hiển thị lại các tin nhắn cũ lên UI
         chatHistory.forEach(msg => {
             if (msg.role === 'user' && !msg.parts[0].text.includes(SYSTEM_PROMPT)) {
-                 addMessage(msg.parts[0].text, 'user', false);
+                addMessage(msg.parts[0].text, 'user', false);
             } else if (msg.role === 'model') {
-                 addMessage(msg.parts[0].text, 'bot', false);
+                addMessage(msg.parts[0].text, 'bot', false);
             }
         });
     }
@@ -151,16 +151,16 @@ async function toggleChat() {
 function addMessage(text, side, shouldSave = true) {
     const msgDiv = document.createElement('div');
     msgDiv.className = `message ${side}`;
-    
+
     if (side === 'bot') {
         msgDiv.innerHTML = marked.parse(text);
     } else {
         msgDiv.textContent = text;
     }
-    
+
     chatMessages.appendChild(msgDiv);
     chatMessages.scrollTop = chatMessages.scrollHeight;
-    
+
     if (shouldSave) saveChatState();
 }
 
@@ -252,7 +252,7 @@ window.addEventListener('DOMContentLoaded', () => {
     loadUserContext();
     platformContext = localStorage.getItem(STORAGE_KEYS.CONTEXT) || "";
     loadChatState();
-    
+
     // Tải dữ liệu ngầm để làm mới context
     fetchPlatformData();
 });

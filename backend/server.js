@@ -8,11 +8,11 @@ const app = express();
 
 // ================= CONFIG EJS & STATIC FILES =================
 app.set("view engine", "ejs");
-app.set("views", path.join(__dirname, "../frontend")); 
+app.set("views", path.join(__dirname, "../frontend"));
 app.use(express.static(path.join(__dirname, "../frontend")));
 
 app.use(cors({ origin: "*" }));
-app.use(express.json({ limit: '50mb' })); 
+app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
 // ================= CONNECT DATABASE =================
@@ -30,7 +30,7 @@ app.use(ensureDB);
 
 // ================= VIEW ROUTES (Giao diện) =================
 const viewRoutes = require("./routes/viewRoutes");
-app.use("/", viewRoutes); 
+app.use("/", viewRoutes);
 
 // ================= API MODULES (PLATFORM CORE) =================
 const authRoutes = require("./routes/authRoutes");
