@@ -1,258 +1,307 @@
 /**
- * Chatbot AI for CLB Connect
- * Powered by Google Gemini 1.5 Flash
+ * Chatbot AI & Club Chat for CLB Connect
+ * Powered by Google Gemini 1.5 Flash & Socket.io
  */
 
-const GEMINI_API_KEY = "AIzaSyBg41GVTQ-S2jumeUQlHIImCv2qkrruY-8";
+const GEMINI_API_KEY = "AIzaSyBKBHOtsb1kfMVq5kkTMqK-j88O9JQDby8";
 const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${GEMINI_API_KEY}`;
+const BOT_LOGO = "images/chatbot-logo.png";
 
-// Chatbot UI Elements
+// UI Elements
 const launcher = document.getElementById('chatbotLauncher');
 const container = document.getElementById('chatbotContainer');
 const closeBtn = document.getElementById('chatbotClose');
 const chatMessages = document.getElementById('chatbotMessages');
 const chatInput = document.getElementById('chatbotInput');
 const sendBtn = document.getElementById('chatbotSend');
+const sidebar = document.getElementById('chatbotSidebar');
+const chatbotTitle = document.getElementById('chatbotTitle');
+const chatbotAvatar = document.getElementById('chatbotAvatar');
+const chatbotStatus = document.getElementById('chatbotStatus');
 
+// State
 let isChatOpen = false;
-let platformContext = ""; // Dữ liệu tóm tắt từ website
-const SYSTEM_PROMPT = "Bạn là trợ lý AI thông minh của CLB Connect. Nhiệm vụ của bạn là giúp đỡ sinh viên tìm kiếm câu lạc bộ, giải đáp thắc mắc về sự kiện và các hoạt động ngoại khóa tại trường Đại học Bình Dương (BDU). Hãy trả lời bằng tiếng Việt, thân thiện và chuyên nghiệp. Sử dụng dữ liệu thực tế được cung cấp trong ngữ cảnh để trả lời chính xác nhất. Nếu không biết câu trả lời, hãy hướng dẫn họ liên hệ với ban quản trị hoặc chuyển hướng tới trang liên quan.";
-
-let chatHistory = [];
-let userContext = ""; // Thông tin về người dùng hiện tại
-
-// Keys for LocalStorage
-const STORAGE_KEYS = {
-    HISTORY: 'clb_chat_history',
-    IS_OPEN: 'clb_chat_is_open',
-    CONTEXT: 'clb_platform_context'
+let currentChannel = 'ai';
+let joinedClubs = [];
+let messagesByChannel = {
+    'ai': []
 };
+let unreadCount = {};
+
+// Socket.io
+const socket = io();
+
+const SYSTEM_PROMPT = "Bạn là trợ lý AI thông minh của CLB Connect. Hãy giúp đỡ sinh viên tìm kiếm CLB, giải đáp thắc mắc về sự kiện và các hoạt động tại BDU.";
+let platformContext = "";
+let userContext = "";
+
+function getUser() {
+    const stored = localStorage.getItem('currentUser');
+    return stored ? JSON.parse(stored) : null;
+}
 
 /**
- * Lấy thông tin người dùng từ hệ thống
+ * Tải danh sách CLB và tham gia Rooms
  */
-function loadUserContext() {
+async function loadJoinedClubs() {
+    const user = getUser();
+    if (!user || !user.id) return;
+
     try {
-        const storedUser = localStorage.getItem('currentUser');
-        if (storedUser) {
-            const user = JSON.parse(storedUser);
-            if (user.isLoggedIn && user.name) {
-                userContext = `\n--- THÔNG TIN NGƯỜI DÙNG ---\n`;
-                userContext += `Tên người dùng: ${user.name}\n`;
-                userContext += `Vai trò: ${user.role || 'Thành viên'}\n`;
-                userContext += `Lưu ý: Bạn đang trò chuyện trực tiếp với ${user.name}. Hãy xưng hô thân thiện và phù hợp với vai trò của họ.\n`;
-                return;
-            }
+        const res = await fetch(`/api/user/clubs/${user.id}`);
+        const clubs = await res.json();
+
+        if (JSON.stringify(clubs) !== JSON.stringify(joinedClubs)) {
+            joinedClubs = clubs;
+            renderSidebar();
+
+            joinedClubs.forEach(club => {
+                socket.emit('join_club', club.id);
+                if (!messagesByChannel[club.id]) messagesByChannel[club.id] = [];
+            });
         }
-    } catch (e) { console.error("Lỗi đọc thônh tin user:", e); }
-    userContext = "\n--- THÔNG TIN NGƯỜI DÙNG ---\nNgười dùng chưa đăng nhập hoặc là khách ẩn danh.\n";
-}
-
-/**
- * Lưu trạng thái vào LocalStorage
- */
-function saveChatState() {
-    localStorage.setItem(STORAGE_KEYS.HISTORY, JSON.stringify(chatHistory));
-    localStorage.setItem(STORAGE_KEYS.IS_OPEN, isChatOpen);
-}
-
-/**
- * Tải trạng thái từ LocalStorage
- */
-function loadChatState() {
-    const savedHistory = localStorage.getItem(STORAGE_KEYS.HISTORY);
-    const savedIsOpen = localStorage.getItem(STORAGE_KEYS.IS_OPEN);
-
-    if (savedHistory) {
-        chatHistory = JSON.parse(savedHistory);
-        // Hiển thị lại các tin nhắn cũ lên UI
-        chatHistory.forEach(msg => {
-            if (msg.role === 'user' && !msg.parts[0].text.includes(SYSTEM_PROMPT)) {
-                addMessage(msg.parts[0].text, 'user', false);
-            } else if (msg.role === 'model') {
-                addMessage(msg.parts[0].text, 'bot', false);
-            }
-        });
-    }
-
-    if (savedIsOpen === 'true') {
-        isChatOpen = true;
-        container.classList.add('active');
+    } catch (e) {
+        console.error("Lỗi tải CLB:", e);
     }
 }
 
 /**
- * Lấy dữ liệu thực tế từ các API của nền tảng
+ * Render Sidebar Logo
  */
-async function fetchPlatformData() {
-    try {
-        console.log("🔍 Đang đồng bộ dữ liệu hệ thống...");
-        const [clubsRes, eventsRes, rankingsRes] = await Promise.all([
-            fetch('/api/clubs'),
-            fetch('/api/events'),
-            fetch('/api/rankings')
-        ]);
+function renderSidebar() {
+    sidebar.innerHTML = `
+        <div class="sidebar-item ${currentChannel === 'ai' ? 'active' : ''} ai-icon" onclick="switchChannel('ai')" title="Trợ lý AI">
+            <i class="fas fa-robot"></i>
+        </div>
+    `;
 
-        const clubs = await clubsRes.json();
-        const events = await eventsRes.json();
-        const rankings = await rankingsRes.json();
+    joinedClubs.forEach(club => {
+        const div = document.createElement('div');
+        div.className = `sidebar-item ${currentChannel == club.id ? 'active' : ''}`;
+        div.onclick = () => switchChannel('club', club.id);
+        div.title = club.club_name;
 
-        // Tạo chuỗi ngữ cảnh từ dữ liệu
-        let context = "\n--- DỮ LIỆU CÂU LẠC BỘ ---\n";
-        if (Array.isArray(clubs)) {
-            clubs.forEach(c => context += `- ${c.club_name}: ${c.description}\n`);
-        }
+        const count = unreadCount[club.id] || 0;
+        const logoPath = club.logo_url || BOT_LOGO;
 
-        context += "\n--- DANH SÁCH SỰ KIỆN ---\n";
-        if (Array.isArray(events)) {
-            events.slice(0, 10).forEach(e => context += `- ${e.event_name} (${e.club_name || 'Trường'}): ${e.location} - ${new Date(e.start_time).toLocaleDateString('vi-VN')}\n`);
-        }
+        div.innerHTML = `
+            <img src="${logoPath}" onerror="this.src='${BOT_LOGO}'">
+            ${count > 0 ? `<div class="badge">${count}</div>` : ''}
+        `;
+        sidebar.appendChild(div);
+    });
+}
 
-        context += "\n--- BẢNG XẾP HẠNG HỆ THỐNG ---\n";
-        if (rankings) {
-            context += "1. CLB năng động nhất: " + (rankings.mostActiveClubs?.[0]?.club_name || "N/A") + "\n";
-            context += "2. Top sinh viên rèn luyện: " + (rankings.topMembers?.map(m => m.full_name).slice(0, 3).join(", ") || "N/A") + "\n";
-            context += "3. CLB đông thành viên nhất: " + (rankings.biggestClubs?.[0]?.club_name || "N/A") + "\n";
-        }
+/**
+ * Chuyển đổi kênh chat
+ */
+function switchChannel(type, id = null) {
+    if (type === 'ai') {
+        currentChannel = 'ai';
+        chatbotTitle.textContent = "Trợ lý CLB Connect";
+        chatbotAvatar.innerHTML = `<img src="${BOT_LOGO}" alt="AI">`;
+        chatbotStatus.textContent = "Trực tuyến";
+        renderMessages();
+    } else {
+        const club = joinedClubs.find(c => c.id == id);
+        if (!club) return;
 
-        platformContext = context;
-        localStorage.setItem(STORAGE_KEYS.CONTEXT, platformContext);
-        console.log("✅ Đã cập nhật kiến thức hệ thống.");
-    } catch (error) {
-        console.error("Lỗi lấy dữ liệu nền tảng:", error);
-        platformContext = localStorage.getItem(STORAGE_KEYS.CONTEXT) || "";
+        currentChannel = id;
+        unreadCount[id] = 0;
+        chatbotTitle.textContent = club.club_name;
+        chatbotAvatar.innerHTML = `<img src="${club.logo_url || BOT_LOGO}" onerror="this.src='${BOT_LOGO}'">`;
+        chatbotStatus.textContent = "Đang tải tin nhắn...";
+
+        fetch(`/api/clubs/${id}/messages`)
+            .then(res => res.json())
+            .then(data => {
+                const currentUser = getUser();
+                messagesByChannel[id] = data.map(m => ({
+                    text: m.content,
+                    side: (currentUser && m.user_id == currentUser.id) ? 'user' : 'bot',
+                    avatar: m.userAvatar,
+                    name: m.userName
+                }));
+                chatbotStatus.textContent = "Thành viên CLB";
+                renderMessages();
+            })
+            .catch(err => {
+                console.error("Lỗi tải tin nhắn:", err);
+                chatbotStatus.textContent = "Thành viên CLB";
+                renderMessages();
+            });
+    }
+    renderSidebar();
+}
+
+/**
+ * Hiển thị toàn bộ tin nhắn của kênh
+ */
+function renderMessages() {
+    chatMessages.innerHTML = '';
+    const messages = messagesByChannel[currentChannel] || [];
+
+    messages.forEach(msg => {
+        addMessageUI(msg.text, msg.side, false, msg.avatar, msg.name);
+    });
+
+    if (messages.length === 0) {
+        const welcome = currentChannel === 'ai'
+            ? "Chào bạn! Tôi là trợ lý ảo của CLB Connect. Tôi có thể giúp gì cho bạn?"
+            : `Chào mừng bạn đến với kênh chat của ${chatbotTitle.textContent}! Hãy bắt đầu trò chuyện nhé.`;
+        addMessageUI(welcome, 'bot', false, BOT_LOGO, 'Hệ thống');
     }
 }
 
-// Khởi tạo lịch sử chat
-function initChatHistory() {
-    chatHistory = []; // Lịch sử không cần chứa system prompt vì đã gửi riêng trong request
-}
+/**
+ * Thêm tin nhắn đơn lẻ vào UI
+ */
+function addMessageUI(text, side, shouldSave = true, avatar = null, name = null) {
+    const msgContainer = document.createElement('div');
+    msgContainer.className = `msg-container ${side}`;
+    msgContainer.style.display = 'flex';
+    msgContainer.style.flexDirection = side === 'user' ? 'row-reverse' : 'row';
+    msgContainer.style.gap = '10px';
+    msgContainer.style.marginBottom = '12px';
+    msgContainer.style.alignItems = 'flex-end';
 
-// Toggle Chat Window
-async function toggleChat() {
-    isChatOpen = !isChatOpen;
-    container.classList.toggle('active', isChatOpen);
-    saveChatState();
+    const avatarImg = document.createElement('img');
+    avatarImg.src = avatar || (side === 'user' ? 'images/default-user.png' : BOT_LOGO);
+    avatarImg.style.width = '28px';
+    avatarImg.style.height = '28px';
+    avatarImg.style.borderRadius = '8px';
+    avatarImg.style.objectFit = 'cover';
+    avatarImg.style.border = '1px solid rgba(255,255,255,0.1)';
+    avatarImg.onerror = function () { this.src = BOT_LOGO; };
 
-    if (isChatOpen) {
-        chatInput.focus();
-
-        // Nếu là lần đầu hoặc dữ liệu trống, khởi tạo
-        if (chatMessages.children.length === 0) {
-            await Promise.all([fetchPlatformData(), loadUserContext()]);
-            initChatHistory();
-            addMessage("Chào bạn! Tôi là trợ lý ảo của CLB Connect. Tôi đã đồng bộ dữ liệu mới nhất. Tôi có thể giúp gì cho bạn?", 'bot');
-        }
-    }
-}
-
-// Add Message to UI
-function addMessage(text, side, shouldSave = true) {
     const msgDiv = document.createElement('div');
     msgDiv.className = `message ${side}`;
 
     if (side === 'bot') {
-        msgDiv.innerHTML = marked.parse(text);
+        msgDiv.innerHTML = (typeof marked !== 'undefined') ? marked.parse(text) : text;
     } else {
         msgDiv.textContent = text;
     }
 
-    chatMessages.appendChild(msgDiv);
+    msgContainer.appendChild(avatarImg);
+    msgContainer.appendChild(msgDiv);
+
+    chatMessages.appendChild(msgContainer);
     chatMessages.scrollTop = chatMessages.scrollHeight;
 
-    if (shouldSave) saveChatState();
-}
-
-// Show/Hide Typing Indicator
-function toggleTyping(show) {
-    const existing = document.getElementById('typingIndicator');
-    if (show && !existing) {
-        const typingDiv = document.createElement('div');
-        typingDiv.id = 'typingIndicator';
-        typingDiv.className = 'typing';
-        typingDiv.innerHTML = '<span></span><span></span><span></span>';
-        chatMessages.appendChild(typingDiv);
-        chatMessages.scrollTop = chatMessages.scrollHeight;
-    } else if (!show && existing) {
-        existing.remove();
+    if (shouldSave) {
+        if (!messagesByChannel[currentChannel]) messagesByChannel[currentChannel] = [];
+        messagesByChannel[currentChannel].push({ text, side, avatar, name });
     }
 }
 
-// Send Message to Gemini
+/**
+ * Gửi tin nhắn
+ */
 async function sendMessage() {
     const text = chatInput.value.trim();
     if (!text) return;
 
-    // User message
-    addMessage(text, 'user');
+    const user = getUser();
+    if (!user) return alert("Vui lòng đăng nhập!");
+
     chatInput.value = '';
 
-    // Add to history
-    chatHistory.push({ role: "user", parts: [{ text: text }] });
+    if (currentChannel === 'ai') {
+        addMessageUI(text, 'user', true, user.avatar, user.name);
+        handleGeminiChat(text);
+    } else {
+        socket.emit('send_club_message', {
+            clubId: currentChannel,
+            userId: user.id,
+            userName: user.name,
+            userAvatar: user.avatar,
+            message: text
+        });
+    }
+}
 
-    // Bot is thinking
+async function handleGeminiChat(text) {
     toggleTyping(true);
-
     try {
-        console.log("📤 Đang gửi yêu cầu tới Gemini AI...");
+        const history = (messagesByChannel['ai'] || []).map(m => ({
+            role: m.side === 'user' ? 'user' : 'model',
+            parts: [{ text: m.text }]
+        }));
+
         const response = await fetch(API_URL, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                system_instruction: {
-                    parts: [{ text: SYSTEM_PROMPT + userContext + platformContext }]
-                },
-                contents: chatHistory
+                system_instruction: { parts: [{ text: SYSTEM_PROMPT + userContext + platformContext }] },
+                contents: history
             })
         });
 
         const data = await response.json();
-
-        if (!response.ok) {
-            console.error("❌ Gemini API Error:", data);
-            toggleTyping(false);
-            const errorMsg = data.error ? data.error.message : "Lỗi không xác định từ API";
-            addMessage(`Lỗi API: ${errorMsg}`, 'bot');
-            return;
-        }
-
         toggleTyping(false);
-
-        if (data.candidates && data.candidates[0].content && data.candidates[0].content.parts) {
-            const botResponse = data.candidates[0].content.parts[0].text;
-            addMessage(botResponse, 'bot');
-
-            // Add to history
-            chatHistory.push({ role: "model", parts: [{ text: botResponse }] });
-        } else if (data.candidates && data.candidates[0].finishReason === "SAFETY") {
-            addMessage("Nội dung này bị chặn do vi phạm quy tắc an toàn. Vui lòng thử câu hỏi khác.", 'bot');
-        } else {
-            console.warn("⚠️ Phản hồi không có nội dung:", data);
-            addMessage("Tôi không nhận được câu trả lời từ AI. Có thể do nội dung không phù hợp hoặc lỗi hệ thống.", 'bot');
+        if (data.candidates?.[0]?.content) {
+            addMessageUI(data.candidates[0].content.parts[0].text, 'bot', true, BOT_LOGO, 'Gemini AI');
         }
-    } catch (error) {
-        console.error("❌ Lỗi mạng hoặc Runtime:", error);
+    } catch (e) {
         toggleTyping(false);
-        addMessage("Không thể kết nối với máy chủ AI. Vui lòng kiểm tra kết nối mạng của bạn.", 'bot');
+        addMessageUI("Lỗi AI.", 'bot');
     }
 }
 
-// Event Listeners
-launcher.addEventListener('click', toggleChat);
-closeBtn.addEventListener('click', toggleChat);
+function toggleTyping(show) {
+    const existing = document.getElementById('typingIndicator');
+    if (show && !existing) {
+        const div = document.createElement('div');
+        div.id = 'typingIndicator';
+        div.className = 'typing';
+        div.innerHTML = '<span></span><span></span><span></span>';
+        chatMessages.appendChild(div);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    } else if (!show && existing) existing.remove();
+}
 
-sendBtn.addEventListener('click', sendMessage);
-chatInput.addEventListener('keypress', (e) => {
-    if (e.key === 'Enter') sendMessage();
+// Socket Listener
+socket.on('receive_club_message', (data) => {
+    const { clubId, userId, userName, userAvatar, message } = data;
+    const currentUser = getUser();
+    const isMe = currentUser && userId == currentUser.id;
+
+    if (!messagesByChannel[clubId]) messagesByChannel[clubId] = [];
+
+    if (!isMe && currentChannel != clubId) {
+        unreadCount[clubId] = (unreadCount[clubId] || 0) + 1;
+        renderSidebar();
+    }
+
+    if (currentChannel == clubId) {
+        addMessageUI(message, isMe ? 'user' : 'bot', true, userAvatar, userName);
+    } else {
+        messagesByChannel[clubId].push({
+            text: message,
+            side: isMe ? 'user' : 'bot',
+            avatar: userAvatar,
+            name: userName
+        });
+    }
 });
 
-// Khởi tạo và khôi phục trạng thái khi trang load
-window.addEventListener('DOMContentLoaded', () => {
-    loadUserContext();
-    platformContext = localStorage.getItem(STORAGE_KEYS.CONTEXT) || "";
-    loadChatState();
+// UI Controls
+launcher.onclick = () => {
+    isChatOpen = !isChatOpen;
+    container.classList.toggle('active', isChatOpen);
+    if (isChatOpen) {
+        loadJoinedClubs();
+        chatInput.focus();
+    }
+};
 
-    // Tải dữ liệu ngầm để làm mới context
-    fetchPlatformData();
-});
+closeBtn.onclick = () => { container.classList.remove('active'); isChatOpen = false; };
+sendBtn.onclick = sendMessage;
+chatInput.onkeypress = (e) => { if (e.key === 'Enter') sendMessage(); };
+
+window.onload = () => {
+    const user = getUser();
+    if (user) userContext = `\nNgười dùng: ${user.name}`;
+    loadJoinedClubs();
+};

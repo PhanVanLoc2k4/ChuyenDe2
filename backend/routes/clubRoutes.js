@@ -12,6 +12,7 @@ router.get("/:id/rankings", clubController.getClubRankings);
 router.post("/join", clubController.joinClub);
 router.post("/leave", clubController.leaveClub); // Mới
 router.post("/requests/action", clubController.handleJoinRequest); 
+router.get("/:id/messages", clubController.getClubMessages);
 router.delete("/:id", clubController.deleteClub); // Mới
 
 module.exports = router;

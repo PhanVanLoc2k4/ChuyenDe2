@@ -131,8 +131,8 @@ const verifyAndRegister = async (req, res) => {
             .input("dob", sql.Date, record.dob)
             .input("gender", sql.NVarChar, record.gender || "Khác")
             .query(`
-                INSERT INTO users (user_code, full_name, email, password, dob, gender)
-                VALUES (@code, @name, @email, @password, @dob, @gender)
+                INSERT INTO users (user_code, full_name, email, password, dob, gender, role)
+                VALUES (@code, @name, @email, @password, @dob, @gender, 'student')
             `);
 
         // 5. Xóa dữ liệu tạm để giải phóng RAM và tránh lỗi lặp
@@ -156,11 +156,7 @@ const login = async (req, res) => {
         const result = await pool.request()
             .input("email", sql.VarChar, email)
             .query(`
-                SELECT u.*, r.role_name 
-                FROM users u
-                LEFT JOIN user_roles ur ON u.id = ur.user_id
-                LEFT JOIN roles r ON ur.role_id = r.id
-                WHERE u.email = @email
+                SELECT * FROM users WHERE email = @email
             `);
 
         const user = result.recordset[0];
@@ -174,7 +170,7 @@ const login = async (req, res) => {
         if (!match) return res.status(401).json({ message: "Mật khẩu không chính xác!" });
 
         const token = jwt.sign(
-            { id: user.id, email: user.email, role: user.role_name || 'student' },
+            { id: user.id, email: user.email, role: user.role || 'student' },
             JWT_SECRET,
             { expiresIn: "24h" }
         );
@@ -186,7 +182,7 @@ const login = async (req, res) => {
             user_code: user.user_code,
             name: user.full_name,
             avatar: user.avatar || null,
-            role: user.role_name || 'student'
+            role: user.role || 'student'
         });
 
     } catch (err) {

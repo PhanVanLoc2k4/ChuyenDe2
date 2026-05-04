@@ -56,7 +56,7 @@ async function loadMyClubs() {
     list.innerHTML = '<div class="loading-placeholder">Đang tải danh sách CLB...</div>';
 
     try {
-        const isAdmin = currentUser && (currentUser.role === 'admin' || currentUser.role_name === 'admin');
+        const isAdmin = currentUser && ['admin', 'university'].includes((currentUser.role || '').toLowerCase());
         const endpoint = isAdmin ? '/api/clubs' : `/api/user/clubs/${currentUser.user_id || currentUser.id}`;
         
         const response = await fetch(endpoint);
@@ -129,7 +129,7 @@ async function loadClubInfo() {
             isMember = currentUser && members.some(m => Number(m.id) === Number(currentUser.id || currentUser.user_id));
         }
 
-        const isAdmin = currentUser && (currentUser.role === 'admin' || currentUser.role_name === 'admin');
+        const isAdmin = currentUser && ['admin', 'university'].includes((currentUser.role || '').toLowerCase());
         const isLeader = currentUser && clubData && Number(currentUser.id) === Number(clubData.created_by);
         
         // Hiển thị các nút chức năng dựa trên quyền

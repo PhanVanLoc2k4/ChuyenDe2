@@ -8,9 +8,11 @@ let monthlyChart;
 document.addEventListener('DOMContentLoaded', async () => {
     // Kiểm tra quyền Admin
     const userStr = localStorage.getItem('currentUser');
-    if (!userStr) { window.location.href = '/login'; return; }
+    if (!userStr) { window.location.href = '/dangnhap'; return; }
     const currentUser = JSON.parse(userStr);
-    if (currentUser.role !== 'admin') {
+    const userRole = (currentUser.role || '').toLowerCase();
+    
+    if (userRole !== 'university' && userRole !== 'admin') {
         alert("Bạn không có quyền truy cập trang này!");
         window.location.href = '/';
         return;
@@ -59,7 +61,7 @@ async function refreshAllData() {
 async function fetchWithAuth(url, options = {}) {
     const user = JSON.parse(localStorage.getItem('currentUser') || '{}');
     const token = user.token;
-    if (!token) { window.location.href = '/login'; return null; }
+    if (!token) { window.location.href = '/dangnhap'; return null; }
 
     const defaultOptions = {
         headers: {
@@ -72,7 +74,7 @@ async function fetchWithAuth(url, options = {}) {
         const response = await fetch(url, { ...defaultOptions, ...options });
         if (response.status === 401 || response.status === 403) {
             localStorage.removeItem('currentUser');
-            window.location.href = '/login';
+            window.location.href = '/dangnhap';
             return null;
         }
         return response;

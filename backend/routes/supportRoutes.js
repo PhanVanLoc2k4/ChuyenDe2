@@ -8,7 +8,7 @@ router.post("/requests", verifyToken, supportController.createRequest);
 router.get("/my-requests", verifyToken, supportController.getMyRequests);
 
 // Admin nhà trường
-router.get("/admin/all", verifyToken, checkRole(['admin']), supportController.getAllRequests);
-router.put("/admin/reply/:id", verifyToken, checkRole(['admin']), supportController.replyRequest);
+router.get("/admin/all", verifyToken, checkRole(['admin', 'university']), supportController.getAllRequests);
+router.put("/admin/reply/:id", verifyToken, checkRole(['admin', 'university']), supportController.replyRequest);
 
 module.exports = router;

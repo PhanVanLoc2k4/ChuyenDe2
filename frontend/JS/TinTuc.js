@@ -220,7 +220,9 @@ function renderPostHTML(post) {
                         <div style="font-weight: 700; font-size: 13px; color: #1e293b;">${post.orig_post_author || 'Thành viên'}</div>
                     </div>
                     <div style="font-size: 14px; color: #475569; line-height: 1.5;">${post.orig_post_content || ''}</div>
-                    ${post.orig_post_image ? `<img src="${post.orig_post_image}" style="width:100%; border-radius: 8px; margin-top: 10px; max-height: 250px; object-fit: cover;">` : ''}
+                    ${post.orig_post_image ? (post.orig_post_image.startsWith('data:video') || post.orig_post_image.includes('.mp4') ? 
+                        `<video src="${post.orig_post_image}" style="width:100%; border-radius: 8px; margin-top: 10px; max-height: 250px; object-fit: cover;"></video>` : 
+                        `<img src="${post.orig_post_image}" style="width:100%; border-radius: 8px; margin-top: 10px; max-height: 250px; object-fit: cover;">`) : ''}
                 </div>
             ` : ''}
 
@@ -254,7 +256,7 @@ function renderPostHTML(post) {
                 </div>
             </div>
             
-            <div id="comments-section-${post.id}" class="premium-comments-section" style="display: none;">
+            <div id="comments-section-${post.id}" class="premium-comments-section" style="display: none;" data-author-id="${post.user_id}">
                 <div class="comments-divider"></div>
                 <div id="comments-list-${post.id}" class="comments-list">
                     <div class="loading-comments">Đang tải bình luận...</div>
@@ -369,7 +371,7 @@ function renderEventHTML(ev) {
             </button>
         </div>
 
-        <div id="event-comments-section-${ev.id}" class="premium-comments-section" style="display: none;">
+        <div id="event-comments-section-${ev.id}" class="premium-comments-section" style="display: none;" data-author-id="${ev.created_by}">
             <div class="comments-divider"></div>
             <div id="event-comments-list-${ev.id}" class="comments-list">
                 <div class="loading-comments">Đang tải bình luận...</div>
@@ -545,10 +547,23 @@ async function loadEventComments(eventId) {
                     <div class="comment-user-avatar" style="width: 28px; height: 28px; flex-shrink: 0; border-radius: 50%; overflow: hidden; background: #e2e8f0; display: flex; align-items: center; justify-content: center; font-size: 11px;">
                         ${r.author_avatar ? `<img src="${r.author_avatar}" style="width: 100%; height: 100%; object-fit: cover; display: block;">` : (r.author_name ? r.author_name[0] : '?')}
                     </div>
-                    <div class="comment-content-wrapper" style="background:#f1f5f9; padding:8px 12px; border-radius:10px; flex:1">
+                    <div class="comment-content-wrapper" style="background:#f1f5f9; padding:8px 12px; border-radius:10px; flex:1; position: relative;">
                         <div class="comment-user-name" style="font-weight:700; font-size:12px; color:#1e293b">${r.author_name}</div>
                         <div class="comment-text" style="font-size:13px; color:#475569; margin:2px 0; line-height: 1.4;">${r.content}</div>
                         <div class="comment-time" style="font-size:10px; color:#94a3b8">${new Date(r.created_at).toLocaleString('vi-VN')}</div>
+                        
+                        ${(currentUser && (
+                            currentUser.role === 'admin' || 
+                            currentUser.role_name === 'admin' || 
+                            String(r.user_id || r.userId || r.author_id) === String(currentUser.user_id || currentUser.id) || 
+                            String(document.getElementById(`event-comments-section-${eventId}`).getAttribute('data-author-id')) === String(currentUser.user_id || currentUser.id)
+                        )) ? `
+                            <button onclick="deleteComment(${r.id}, 'event', ${eventId})" 
+                                    style="position: absolute; top: 5px; right: 5px; margin-top: 17px; background: #fee2e2; border: none; color: #ef4444; cursor: pointer; font-size: 10px; width: 22px; height: 22px; border-radius: 4px; display: flex; align-items: center; justify-content: center; transition: 0.2s; z-index: 10;" 
+                                    title="Xóa phản hồi">
+                                <i class="fas fa-trash-alt"></i>
+                            </button>
+                        ` : ''}
                     </div>
                 </div>
             `).join('');
@@ -560,10 +575,23 @@ async function loadEventComments(eventId) {
                         ${p.author_avatar ? `<img src="${p.author_avatar}" style="width: 100%; height: 100%; object-fit: cover; display: block;">` : (p.author_name ? p.author_name[0] : '?')}
                     </div>
                     <div class="comment-content-wrapper" style="flex:1">
-                        <div style="background:#f8fafc; padding:10px 14px; border-radius:12px;">
+                        <div style="background:#f8fafc; padding:10px 14px; border-radius:12px; position: relative;">
                             <div class="comment-user-name" style="font-weight:700; font-size:13px; color:#1e293b">${p.author_name}</div>
                             <div class="comment-text" style="font-size:14px; color:#475569; margin:3px 0; line-height: 1.4;">${p.content}</div>
                             <div class="comment-time" style="font-size:11px; color:#94a3b8">${new Date(p.created_at).toLocaleString('vi-VN')}</div>
+                            
+                            ${(currentUser && (
+                                currentUser.role === 'admin' || 
+                                currentUser.role_name === 'admin' || 
+                                String(p.user_id || p.userId || p.author_id) === String(currentUser.user_id || currentUser.id) || 
+                                String(document.getElementById(`event-comments-section-${eventId}`).getAttribute('data-author-id')) === String(currentUser.user_id || currentUser.id)
+                            )) ? `
+                                <button onclick="deleteComment(${p.id}, 'event', ${eventId})" 
+                                        style="position: absolute; top: 8px; right: 8px; margin-top: 17px; background: #fee2e2; border: none; color: #ef4444; cursor: pointer; font-size: 12px; width: 26px; height: 26px; border-radius: 6px; display: flex; align-items: center; justify-content: center; transition: 0.2s; z-index: 10;" 
+                                        title="Xóa bình luận">
+                                    <i class="fas fa-trash-alt"></i>
+                                </button>
+                            ` : ''}
                         </div>
                         <div style="display: flex; gap: 15px; margin-top: 4px; margin-left: 10px;">
                              <button onclick="toggleReplyInput(${p.id}, ${eventId}, 'event')" style="background:none; border:none; color:#64748b; font-size:12px; font-weight:600; cursor:pointer; padding:0; transition:0.2s;" onmouseover="this.style.color='#3b82f6'" onmouseout="this.style.color='#64748b'">Trả lời</button>
@@ -653,6 +681,7 @@ async function loadComments(postId) {
             list.innerHTML = '<div style="font-size:13px; color:#94a3b8; text-align:center; padding: 10px;">Chưa có bình luận.</div>'; 
             return; 
         }
+        console.log(`[DEBUG COMMENT] Loaded ${allComments.length} comments for post ${postId}`, allComments);
 
         const parents = allComments.filter(c => !c.parent_id);
         const children = allComments.filter(c => c.parent_id);
@@ -664,12 +693,25 @@ async function loadComments(postId) {
                     <div class="comment-user-avatar" style="width: 28px; height: 28px; flex-shrink: 0; border-radius: 50%; overflow: hidden; background: #e2e8f0; display: flex; align-items: center; justify-content: center; font-size: 11px;">
                         ${r.author_avatar ? `<img src="${r.author_avatar}" style="width:100%;height:100%;object-fit:cover;">` : (r.author_name || 'U').charAt(0)}
                     </div>
-                    <div style="background: #f1f5f9; padding: 8px 12px; border-radius: 12px; border-top-left-radius: 4px; flex: 1;">
+                    <div style="background: #f1f5f9; padding: 8px 12px; border-radius: 12px; border-top-left-radius: 4px; flex: 1; position: relative;">
                         <div style="display: flex; justify-content: space-between; margin-bottom: 2px;">
                             <span style="font-weight: 600; font-size: 12px; color: #1e293b;">${r.author_name}</span>
                             <span style="font-size: 10px; color: #94a3b8;">${new Date(r.created_at).toLocaleDateString('vi-VN')}</span>
                         </div>
                         <div style="font-size: 13px; color: #334155; line-height: 1.4;">${r.content}</div>
+                        
+                        ${(currentUser && (
+                            currentUser.role === 'admin' || 
+                            currentUser.role_name === 'admin' || 
+                            String(r.user_id || r.userId || r.author_id) === String(currentUser.user_id || currentUser.id) || 
+                            String(document.getElementById(`comments-section-${postId}`).getAttribute('data-author-id')) === String(currentUser.user_id || currentUser.id)
+                        )) ? `
+                            <button onclick="deleteComment(${r.id}, 'post', ${postId})" 
+                                    style="position: absolute; top: 5px; right: 5px; margin-top: 17px; background: #fee2e2; border: none; color: #ef4444; cursor: pointer; font-size: 10px; width: 22px; height: 22px; border-radius: 4px; display: flex; align-items: center; justify-content: center; transition: 0.2s; z-index: 10;" 
+                                    title="Xóa phản hồi">
+                                <i class="fas fa-trash-alt"></i>
+                            </button>
+                        ` : ''}
                     </div>
                 </div>
             `).join('');
@@ -681,12 +723,25 @@ async function loadComments(postId) {
                         ${p.author_avatar ? `<img src="${p.author_avatar}" style="width:100%;height:100%;object-fit:cover;">` : (p.author_name || 'U').charAt(0)}
                     </div>
                     <div style="flex: 1;">
-                        <div style="background: #f8fafc; padding: 10px 14px; border-radius: 16px; border-top-left-radius: 4px;">
+                        <div style="background: #f8fafc; padding: 10px 14px; border-radius: 16px; border-top-left-radius: 4px; position: relative;">
                             <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
                                 <span style="font-weight: 600; font-size: 13px; color: #1e293b;">${p.author_name}</span>
                                 <span style="font-size: 11px; color: #94a3b8;">${new Date(p.created_at).toLocaleDateString('vi-VN')}</span>
                             </div>
                             <div style="font-size: 14px; color: #334155; line-height: 1.4;">${p.content}</div>
+                            
+                            ${(currentUser && (
+                                currentUser.role === 'admin' || 
+                                currentUser.role_name === 'admin' || 
+                                String(p.user_id) === String(currentUser.user_id || currentUser.id) || 
+                                String(document.getElementById(`comments-section-${postId}`).getAttribute('data-author-id')) === String(currentUser.user_id || currentUser.id)
+                            )) ? `
+                                <button onclick="deleteComment(${p.id}, 'post', ${postId})" 
+                                        style="position: absolute; top: 8px; right: 8px; margin-top: 17px; background: #fee2e2; border: none; color: #ef4444; cursor: pointer; font-size: 12px; width: 26px; height: 26px; border-radius: 6px; display: flex; align-items: center; justify-content: center; transition: 0.2s; z-index: 10;" 
+                                        title="Xóa bình luận">
+                                    <i class="fas fa-trash-alt"></i>
+                                </button>
+                            ` : ''}
                         </div>
                         <div style="display: flex; gap: 15px; margin-top: 4px; margin-left: 10px;">
                              <button onclick="toggleReplyInput(${p.id}, ${postId}, 'post')" style="background:none; border:none; color:#64748b; font-size:12px; font-weight:600; cursor:pointer; padding:0; transition:0.2s;" onmouseover="this.style.color='#2563eb'" onmouseout="this.style.color='#64748b'">Trả lời</button>
@@ -746,6 +801,29 @@ async function submitComment(postId, parentId = null) {
         console.error(err); 
     } finally {
         isSubmitting = false;
+    }
+}
+
+async function deleteComment(commentId, type, targetId) {
+    if (!confirm("Bạn có muốn xóa bình luận này không?")) return;
+    
+    try {
+        const url = type === 'post' ? `/api/posts/comments/${commentId}` : `/api/events/comments/${commentId}`;
+        const res = await fetch(url, { method: 'DELETE' });
+        if (res.ok) {
+            if (type === 'post') {
+                loadComments(targetId);
+                const countSpan = document.getElementById(`comment-count-${targetId}`);
+                if (countSpan) countSpan.textContent = Math.max(0, parseInt(countSpan.textContent) - 1);
+            } else {
+                loadEventComments(targetId);
+            }
+        } else {
+            alert("Không thể xóa bình luận.");
+        }
+    } catch (err) {
+        console.error(err);
+        alert("Lỗi kết nối.");
     }
 }
 

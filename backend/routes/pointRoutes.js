@@ -8,6 +8,6 @@ router.get("/history/:user_id", pointController.getPointHistory);
 
 // Admin-facing
 const { verifyToken, checkRole } = require("../middleware/authMiddleware");
-router.get("/all", verifyToken, checkRole(['admin']), pointController.getAllPointHistory);
+router.get("/all", verifyToken, checkRole(['admin', 'university']), pointController.getAllPointHistory);
 
 module.exports = router;

@@ -82,9 +82,9 @@ const getUserClubs = async (req, res) => {
         const result = await pool.request()
             .input("userId", sql.Int, req.params.userId)
             .query(`
-                SELECT id, club_name as name FROM clubs WHERE created_by = @userId
+                SELECT id, club_name, logo_url FROM clubs WHERE created_by = @userId
                 UNION
-                SELECT c.id, c.club_name as name 
+                SELECT c.id, c.club_name, c.logo_url
                 FROM clubs c
                 INNER JOIN club_members cm ON c.id = cm.club_id
                 WHERE cm.user_id = @userId AND cm.status = 'active'

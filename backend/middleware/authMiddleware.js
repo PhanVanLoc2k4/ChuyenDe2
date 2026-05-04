@@ -27,9 +27,10 @@ const checkRole = (roles) => {
         }
         
         // roles có thể là 1 string hoặc 1 array các roles hợp lệ
-        const allowedRoles = Array.isArray(roles) ? roles : [roles];
+        const allowedRoles = (Array.isArray(roles) ? roles : [roles]).map(r => r.toLowerCase());
+        const userRole = (req.user.role || '').toLowerCase();
         
-        if (!allowedRoles.includes(req.user.role)) {
+        if (!allowedRoles.includes(userRole)) {
             return res.status(403).json({ message: "Bạn không có quyền thực hiện hành động này!" });
         }
         next();

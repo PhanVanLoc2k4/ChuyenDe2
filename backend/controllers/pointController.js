@@ -4,6 +4,7 @@ const { createNotification } = require("../services/notificationService");
 // 1. Cộng điểm rèn luyện (Manual or Event based)
 const awardPoints = async (req, res) => {
     const { user_id, points, reason, created_by } = req.body;
+    console.log(`[awardPoints] Request: user_id=${user_id}, points=${points}, reason=${reason}`);
     const pool = getPool();
     try {
         const uId = parseInt(user_id);
@@ -39,14 +40,15 @@ const awardPoints = async (req, res) => {
 
         res.json({ message: "Cộng điểm thành công!", currentPointsAwarded: pts });
     } catch (err) {
-        console.error("Lỗi cộng điểm:", err);
-        res.status(500).json({ message: "Lỗi hệ thống khi cộng điểm" });
+        console.error("❌ [awardPoints] Error:", err.message);
+        res.status(500).json({ message: "Lỗi hệ thống khi cộng điểm: " + err.message });
     }
 };
 
 // 2. Điểm danh sự kiện & Tự động cộng điểm (5 điểm)
 const markAttendance = async (req, res) => {
     const { registration_id, status, admin_id } = req.body; // status: 'attended', 'absent'
+    console.log(`[markAttendance] Request: reg_id=${registration_id}, status=${status}, admin_id=${admin_id}`);
     const pool = getPool();
     try {
         // Lấy thông tin đăng ký
@@ -87,8 +89,8 @@ const markAttendance = async (req, res) => {
 
         res.json({ message: "Điểm danh thành công!" });
     } catch (err) {
-        console.error("Lỗi điểm danh:", err);
-        res.status(500).json({ message: "Lỗi hệ thống khi điểm danh" });
+        console.error("❌ [markAttendance] Error:", err.message);
+        res.status(500).json({ message: "Lỗi hệ thống khi điểm danh: " + err.message });
     }
 };
 

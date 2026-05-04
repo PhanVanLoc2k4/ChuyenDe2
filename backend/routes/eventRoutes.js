@@ -13,5 +13,6 @@ router.put("/:id", eventController.updateEvent); // Mới: Cập nhật sự ki�
 router.delete("/:id", eventController.deleteEvent); // Mới: Xóa sự kiện
 router.get("/:id/comments", eventController.getEventComments);
 router.post("/:id/comments", eventController.createEventComment);
+router.delete("/comments/:commentId", eventController.deleteEventComment); // Mới
 
 module.exports = router;

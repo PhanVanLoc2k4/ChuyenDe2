@@ -31,9 +31,7 @@ const getGlobalRankings = async (req, res) => {
                    SUM(h.points) as contribution_score
             FROM users u
             JOIN training_point_history h ON u.id = h.user_id
-            LEFT JOIN user_roles ur ON u.id = ur.user_id
-            LEFT JOIN roles r ON ur.role_id = r.id
-            WHERE ISNULL(r.role_name, 'user') != 'admin'
+            WHERE u.role NOT IN ('university', 'admin')
             GROUP BY u.id, u.full_name, u.avatar
             ORDER BY contribution_score DESC
         `;

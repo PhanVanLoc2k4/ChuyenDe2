@@ -1,1713 +1,804 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Dashboard - Quản lý hệ thống CLB & Sự kiện</title>
     <link rel="stylesheet" href="/CSS/bien.css?v=3">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@400;500;600;700;800&family=Playfair+Display:wght@700;800&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@400;500;600;700;800&family=Playfair+Display:wght@700;800&display=swap"
+        rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <style>
-        :root {
-            --primary: var(--primary-color);
-            --primary-light: #f56565;
-            --primary-dark: var(--primary-hover);
-            --bg-body: var(--bg-page);
-            --bg-sidebar: var(--secondary-color);
-            --sidebar-width: 280px;
-            --header-offset: 145px; /* Chiều cao xấp xỉ của newspaper header */
-            --sidebar-collapsed: 80px;
-            --card-bg: var(--bg-card);
-            --text-main: #1e293b;
-            --text-muted: #64748b;
-            --border-color: #e2e8f0;
-            --radius-xl: 30px;
-            --radius-lg: 20px;
-            --radius-md: 12px;
-            --shadow-sm: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
-            --shadow-md: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.02);
-            --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.05), 0 10px 10px -5px rgba(0, 0, 0, 0.02);
-            --glass-bg: rgba(255, 255, 255, 0.7);
-            --glass-border: rgba(255, 255, 255, 0.2);
-        }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Outfit', 'Inter', sans-serif;
-        }
-
-        body {
-            background: var(--bg-body);
-            color: var(--text-main);
-            overflow-x: hidden;
-            scrollbar-width: none !important; /* Firefox */
-            -ms-overflow-style: none !important; /* IE, Edge */
-        }
-
-        body::-webkit-scrollbar, 
-        .sidebar::-webkit-scrollbar, 
-        .modal-content::-webkit-scrollbar, 
-        div::-webkit-scrollbar {
-            display: none !important; /* Chrome, Safari, Opera */
-            width: 0 !important;
-            height: 0 !important;
-        }
-
-        * {
-            scrollbar-width: none !important;
-            -ms-overflow-style: none !important;
-        }
-
-        .admin-app {
-            display: flex;
-            min-height: 100vh;
-        }
-
-        /* Premium Sidebar */
-        .sidebar {
-            width: var(--sidebar-width);
-            background: var(--bg-sidebar);
-            color: white;
-            position: fixed;
-            top: var(--header-offset);
-            height: calc(100vh - var(--header-offset));
-            overflow-y: auto;
-            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-            z-index: 90;
-            display: flex;
-            flex-direction: column;
-            border-right: 1px solid rgba(255,255,255,0.05);
-            box-shadow: 4px 0 15px rgba(0,0,0,0.1);
-        }
-
-        .sidebar::-webkit-scrollbar {
-            width: 4px;
-        }
-        .sidebar::-webkit-scrollbar-thumb {
-            background: rgba(255,255,255,0.1);
-            border-radius: 10px;
-        }
-
-        .logo {
-            padding: 40px 30px;
-            display: flex;
-            flex-direction: column;
-            gap: 5px;
-        }
-
-        .logo h2 {
-            font-family: 'Outfit', sans-serif;
-            color: white;
-            font-size: 28px;
-            font-weight: 800;
-            letter-spacing: -1px;
-            background: linear-gradient(135deg, #fff 0%, #a0aec0 100%);
-            -webkit-background-clip: text;
-            background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        .logo p {
-            color: #94a3b8;
-            font-size: 13px;
-            font-weight: 500;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-        }
-
-        .admin-info {
-            margin: 0 20px 30px;
-            padding: 20px;
-            background: rgba(255,255,255,0.03);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255,255,255,0.05);
-            border-radius: var(--radius-lg);
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
-
-        .admin-avatar {
-            width: 48px;
-            height: 48px;
-            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
-            border-radius: 14px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 20px;
-            box-shadow: 0 4px 12px rgba(197, 48, 48, 0.3);
-        }
-
-        .admin-details h4 {
-            font-size: 15px;
-            font-weight: 700;
-            color: white;
-        }
-
-        .admin-details p {
-            color: #94a3b8;
-            font-size: 12px;
-            font-weight: 500;
-        }
-
-        .sidebar-nav {
-            padding: 0 15px 30px;
-            flex-grow: 1;
-        }
-
-        .nav-item {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            padding: 14px 18px;
-            border-radius: 15px;
-            color: #94a3b8;
-            margin-bottom: 5px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            font-weight: 600;
-            font-size: 14px;
-            text-decoration: none;
-        }
-
-        .nav-item i {
-            font-size: 18px;
-            width: 24px;
-            text-align: center;
-        }
-
-        .nav-item:hover {
-            background: rgba(255,255,255,0.05);
-            color: white;
-            transform: translateX(5px);
-        }
-
-        .nav-item.active {
-            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
-            color: white;
-            box-shadow: 0 8px 15px rgba(197, 48, 48, 0.2);
-        }
-
-        .menu-category {
-            color: #475569;
-            font-size: 11px;
-            text-transform: uppercase;
-            letter-spacing: 1.5px;
-            margin: 30px 15px 15px;
-            font-weight: 800;
-        }
-
-        .menu-item .badge {
-            margin-left: auto;
-            background: rgba(255,255,255,0.1);
-            color: white;
-            padding: 4px 10px;
-            border-radius: 10px;
-            font-size: 11px;
-            font-weight: 700;
-        }
-
-        /* Main Content */
-        .main-content {
-            flex: 1;
-            margin-left: var(--sidebar-width);
-            padding: 40px;
-            margin-top: 0;
-            transition: all 0.4s ease;
-            min-height: calc(100vh - var(--header-offset));
-        }
-
-        /* Premium Header */
-        .header {
-            background: var(--glass-bg);
-            backdrop-filter: blur(20px);
-            border: 1px solid var(--glass-border);
-            border-radius: var(--radius-xl);
-            padding: 24px 40px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 40px;
-            box-shadow: var(--shadow-md);
-        }
-
-        .header h1 {
-            font-size: 28px;
-            font-weight: 800;
-            color: var(--text-main);
-            letter-spacing: -0.5px;
-        }
-
-        .header p {
-            color: var(--text-muted);
-            font-size: 14px;
-            font-weight: 500;
-        }
-
-        .header-actions {
-            display: flex;
-            gap: 20px;
-            align-items: center;
-        }
-
-        .date-picker {
-            background: white;
-            padding: 12px 24px;
-            border-radius: 50px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            cursor: pointer;
-            box-shadow: var(--shadow-sm);
-            border: 1px solid var(--border-color);
-            transition: all 0.3s ease;
-            font-weight: 600;
-            font-size: 14px;
-        }
-
-        .date-picker:hover {
-            box-shadow: var(--shadow-md);
-            transform: translateY(-2px);
-        }
-
-        .notification-bell {
-            position: relative;
-            width: 48px;
-            height: 48px;
-            background: white;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 20px;
-            color: var(--text-main);
-            cursor: pointer;
-            box-shadow: var(--shadow-sm);
-            border: 1px solid var(--border-color);
-            transition: all 0.3s ease;
-        }
-
-        .notification-bell:hover {
-            background: var(--bg-body);
-            transform: rotate(15deg);
-        }
-
-        .notification-badge {
-            position: absolute;
-            top: 0;
-            right: 0;
-            background: var(--primary);
-            color: white;
-            font-size: 10px;
-            padding: 4px 7px;
-            border-radius: 50%;
-            font-weight: 800;
-            border: 2px solid white;
-        }
-
-        /* Stats Grid - Ultra Modern */
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-            gap: 25px;
-            margin-bottom: 40px;
-        }
-
-        .stat-card {
-            background: white;
-            border-radius: var(--radius-xl);
-            padding: 30px;
-            box-shadow: var(--shadow-md);
-            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            cursor: pointer;
-            position: relative;
-            overflow: hidden;
-            border: 1px solid transparent;
-        }
-
-        .stat-card:hover {
-            transform: translateY(-10px);
-            box-shadow: var(--shadow-lg);
-            border-color: var(--primary-light);
-        }
-
-        .stat-card::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: radial-gradient(circle, rgba(197, 48, 48, 0.05) 0%, transparent 70%);
-            opacity: 0;
-            transition: opacity 0.4s;
-        }
-
-        .stat-card:hover::before {
-            opacity: 1;
-        }
-
-        .stat-icon {
-            width: 60px;
-            height: 60px;
-            background: #f8fafc;
-            border-radius: 20px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: var(--primary);
-            font-size: 26px;
-            margin-bottom: 20px;
-            transition: all 0.3s ease;
-        }
-
-        .stat-card:hover .stat-icon {
-            background: var(--primary);
-            color: white;
-            transform: scale(1.1) rotate(-10deg);
-        }
-
-        .stat-number {
-            font-size: 36px;
-            font-weight: 800;
-            color: var(--text-main);
-            margin-bottom: 6px;
-            letter-spacing: -1px;
-        }
-
-        .stat-label {
-            color: var(--text-muted);
-            font-size: 15px;
-            font-weight: 600;
-        }
-
-        .stat-change {
-            font-size: 13px;
-            font-weight: 700;
-            margin-top: 12px;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-
-        .stat-change.up { color: #10b981; }
-        .stat-change.down { color: #ef4444; }
-
-        /* Charts & Tables Section */
-        .charts-row, .tables-section {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
-            gap: 25px;
-            margin-bottom: 40px;
-        }
-
-        .chart-card, .table-card {
-            background: white;
-            border-radius: var(--radius-xl);
-            padding: 30px;
-            box-shadow: var(--shadow-md);
-            border: 1px solid var(--border-color);
-        }
-
-        .chart-header, .table-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 30px;
-        }
-
-        .chart-header h3, .table-header h3 {
-            font-size: 20px;
-            font-weight: 800;
-            color: var(--text-main);
-            letter-spacing: -0.5px;
-        }
-
-        .chart-period {
-            display: flex;
-            gap: 10px;
-        }
-
-        .period-btn {
-            padding: 8px 18px;
-            border-radius: 50px;
-            background: #f1f5f9;
-            border: 1px solid var(--border-color);
-            cursor: pointer;
-            font-size: 13px;
-            font-weight: 600;
-            color: var(--text-muted);
-            transition: all 0.3s ease;
-        }
-
-        .period-btn:hover {
-            background: var(--bg-body);
-            color: var(--text-main);
-            border-color: var(--text-muted);
-        }
-
-        .period-btn.active {
-            background: var(--primary);
-            color: white;
-            border-color: var(--primary);
-            box-shadow: 0 4px 10px rgba(197, 48, 48, 0.2);
-        }
-
-        .chart-container {
-            height: 300px;
-            position: relative;
-        }
-
-        /* Premium Tables */
-        .view-link {
-            color: var(--primary);
-            cursor: pointer;
-            font-size: 13px;
-            font-weight: 700;
-            transition: all 0.2s;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-
-        .view-link:hover {
-            color: var(--primary-dark);
-            transform: translateX(3px);
-        }
-
-        table {
-            width: 100%;
-            border-collapse: separate;
-            border-spacing: 0 10px;
-            margin-top: -10px;
-        }
-
-        th {
-            text-align: left;
-            padding: 15px 20px;
-            color: var(--text-muted);
-            font-weight: 700;
-            font-size: 13px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-
-        td {
-            padding: 18px 20px;
-            background: white;
-            border-top: 1px solid var(--border-color);
-            border-bottom: 1px solid var(--border-color);
-            font-size: 14px;
-            font-weight: 500;
-            color: var(--text-main);
-        }
-
-        /* Compact tables inside Modals */
-        .modal td {
-            padding: 12px 15px;
-        }
-        .modal th {
-            padding: 10px 15px;
-        }
-
-        td:first-child {
-            border-left: 1px solid var(--border-color);
-            border-radius: 15px 0 0 15px;
-        }
-
-        td:last-child {
-            border-right: 1px solid var(--border-color);
-            border-radius: 0 15px 15px 0;
-        }
-
-        tr {
-            transition: all 0.3s ease;
-        }
-
-        tbody tr:hover td {
-            background: #f8fafc;
-            transform: scale(1.002);
-            border-color: var(--primary-light);
-        }
-
-        .status-badge {
-            padding: 6px 14px;
-            border-radius: 50px;
-            font-size: 11px;
-            font-weight: 800;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .status-active {
-            background: #ecfdf5;
-            color: #059669;
-        }
-
-        .status-pending {
-            background: #fffbeb;
-            color: #d97706;
-        }
-
-        .status-inactive {
-            background: #fef2f2;
-            color: #dc2626;
-        }
-
-        .action-buttons {
-            display: flex;
-            gap: 10px;
-        }
-
-        .action-btn {
-            width: 36px;
-            height: 36px;
-            border-radius: 12px;
-            border: 1px solid var(--border-color);
-            background: white;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 14px;
-        }
-
-        .btn-edit { color: #2563eb; }
-        .btn-delete { color: #dc2626; }
-        .btn-view { color: #059669; }
-
-        .action-btn:hover {
-            transform: translateY(-3px) scale(1.1);
-            box-shadow: var(--shadow-sm);
-            border-color: currentColor;
-        }
-
-        /* Glassmorphism Modals */
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(15, 23, 42, 0.6);
-            backdrop-filter: blur(8px);
-            display: none; /* Default hidden */
-            align-items: flex-start; /* Start from top to avoid cutting header */
-            justify-content: center;
-            z-index: 2000;
-            padding: 40px 20px;
-            overflow-y: auto; /* Allow modal container to scroll */
-            opacity: 0;
-            transition: opacity 0.3s ease;
-        }
-
-        .modal.active {
-            display: flex;
-            opacity: 1;
-        }
-
-        .modal-content {
-            background: white;
-            border-radius: var(--radius-xl);
-            padding: 30px 40px;
-            width: 800px;
-            max-width: 100%;
-            max-height: 85vh; /* Keep within screen */
-            overflow-y: auto;
-            position: relative;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-            transform: translateY(20px);
-            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            margin-bottom: 40px;
-        }
-
-        .modal.active .modal-content {
-            transform: translateY(0);
-        }
-
-        .modal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 25px;
-            position: sticky; /* Keep header visible */
-            top: -30px;
-            background: white;
-            z-index: 10;
-            padding: 10px 0;
-        }
-
-        .modal-header h2 {
-            font-size: 24px;
-            font-weight: 800;
-            letter-spacing: -0.5px;
-        }
-
-        .close-btn {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            border: none;
-            background: #f1f5f9;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: var(--text-muted);
-        }
-
-        .close-btn:hover {
-            background: var(--primary);
-            color: white;
-            transform: rotate(90deg);
-        }
-
-        .modal-form .form-group {
-            margin-bottom: 25px;
-        }
-
-        .modal-form label {
-            display: block;
-            font-weight: 700;
-            margin-bottom: 10px;
-            font-size: 14px;
-            color: var(--text-main);
-        }
-
-        .modal-form input,
-        .modal-form select,
-        .modal-form textarea {
-            width: 100%;
-            padding: 15px 20px;
-            border: 2px solid var(--border-color);
-            border-radius: 15px;
-            font-size: 14px;
-            font-weight: 500;
-            transition: all 0.3s ease;
-            background: #f8fafc;
-        }
-
-        .modal-form input:focus,
-        .modal-form select:focus,
-        .modal-form textarea:focus {
-            border-color: var(--primary);
-            background: white;
-            outline: none;
-            box-shadow: 0 0 0 4px rgba(197, 48, 48, 0.1);
-        }
-
-        .modal-form textarea {
-            height: 120px;
-            resize: vertical;
-        }
-
-        /* Support Reply Specific */
-        #adminReplyForm .form-group {
-            margin-bottom: 20px;
-        }
-        #adminReplyForm label {
-            display: block;
-            font-weight: 700;
-            margin-bottom: 8px;
-            font-size: 13px;
-            color: var(--text-main);
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-        .form-control-mod {
-            width: 100%;
-            padding: 12px 16px;
-            border: 2px solid #e2e8f0;
-            border-radius: 12px;
-            font-size: 14px;
-            transition: all 0.3s ease;
-            background: #f8fafc;
-            outline: none;
-        }
-        .form-control-mod:focus {
-            border-color: var(--primary);
-            background: white;
-            box-shadow: 0 0 0 4px rgba(197, 48, 48, 0.1);
-        }
-        .btn-submit-mod {
-            width: 100%;
-            padding: 14px;
-            background: var(--primary);
-            color: white;
-            border: none;
-            border-radius: 12px;
-            font-weight: 700;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-        }
-        .btn-submit-mod:hover {
-            background: var(--primary-dark);
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(197, 48, 48, 0.2);
-        }
-
-        .modal-actions {
-            display: flex;
-            gap: 15px;
-            margin-top: 35px;
-        }
-
-        .btn-save {
-            flex: 2;
-            padding: 16px;
-            background: var(--primary);
-            color: white;
-            border: none;
-            border-radius: 50px;
-            font-weight: 700;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 8px 15px rgba(197, 48, 48, 0.2);
-        }
-
-        .btn-save:hover {
-            background: var(--primary-dark);
-            transform: translateY(-2px);
-            box-shadow: 0 12px 20px rgba(197, 48, 48, 0.3);
-        }
-
-        .btn-cancel {
-            flex: 1;
-            padding: 16px;
-            background: #f1f5f9;
-            color: var(--text-main);
-            border: none;
-            border-radius: 50px;
-            font-weight: 700;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .btn-cancel:hover {
-            background: var(--border-color);
-        }
-
-        /* Summary Stats */
-        .summary-stats {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 24px;
-        }
-
-        .summary-card {
-            background: white;
-            border-radius: 24px;
-            padding: 24px;
-            box-shadow: 0 4px 6px -2px rgba(0,0,0,0.05);
-        }
-
-        .summary-title {
-            color: #64748b;
-            margin-bottom: 16px;
-        }
-
-        .summary-number {
-            font-size: 36px;
-            font-weight: 700;
-            color: #c53030;
-            margin-bottom: 8px;
-        }
-
-        .progress-bar {
-            height: 8px;
-            background: #e2e8f0;
-            border-radius: 10px;
-            overflow: hidden;
-            margin: 16px 0;
-        }
-
-        .progress-fill {
-            height: 100%;
-            background: #c53030;
-            border-radius: 10px;
-        }
-
-        /* Search and Filter */
-        .search-filter {
-            display: flex;
-            gap: 16px;
-            margin-bottom: 20px;
-        }
-
-        .search-box {
-            flex: 1;
-            display: flex;
-            align-items: center;
-            background: #f1f5f9;
-            padding: 12px 20px;
-            border-radius: 40px;
-        }
-
-        .search-box i {
-            color: #94a3b8;
-            margin-right: 10px;
-        }
-
-        .search-box input {
-            border: none;
-            background: transparent;
-            outline: none;
-            width: 100%;
-        }
-
-        .filter-select {
-            padding: 12px 24px;
-            border: 2px solid #e2e8f0;
-            border-radius: 40px;
-            background: white;
-            cursor: pointer;
-        }
-
-        /* Pagination */
-        .pagination {
-            display: flex;
-            justify-content: center;
-            gap: 8px;
-            margin-top: 24px;
-        }
-
-        .page-btn {
-            width: 40px;
-            height: 40px;
-            border-radius: 20px;
-            border: 1px solid #e2e8f0;
-            background: white;
-            cursor: pointer;
-        }
-
-        .page-btn.active {
-            background: #c53030;
-            color: white;
-            border-color: #c53030;
-        }
-
-        /* User Detail Page */
-        .detail-page {
-            background: white;
-            border-radius: 30px;
-            padding: 30px;
-            box-shadow: 0 4px 6px -2px rgba(0,0,0,0.05);
-        }
-
-        .detail-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 30px;
-        }
-
-        .back-btn {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            padding: 10px 20px;
-            background: #f1f5f9;
-            border: none;
-            border-radius: 30px;
-            cursor: pointer;
-        }
-
-        .user-profile-header {
-            display: flex;
-            gap: 30px;
-            align-items: center;
-            margin-bottom: 30px;
-        }
-
-        .user-avatar-large {
-            width: 100px;
-            height: 100px;
-            background: #c53030;
-            border-radius: 30px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 40px;
-            color: white;
-        }
-
-        /* Responsive */
-        @media (max-width: 1200px) {
-            .stats-grid,
-            .charts-row,
-            .tables-section,
-            .summary-stats {
-                grid-template-columns: 1fr;
-            }
-            
-            .sidebar {
-                width: 80px;
-            }
-            
-            .sidebar .logo p,
-            .sidebar .admin-details,
-            .sidebar .nav-item span {
-                display: none;
-            }
-            
-            .main-content {
-                margin-left: 80px;
-            }
-            
-            .nav-item {
-                justify-content: center;
-            }
-            
-            .nav-item i {
-                margin: 0;
-            }
-        }
-    </style>
+    <link rel="stylesheet" href="/CSS/admin.css?v=2">
 </head>
+
 <body>
     <%- include('partials/Header') %>
-    <div class="admin-app">
-        <!-- Sidebar -->
-        <div class="sidebar">
-            <!-- Logo removed for platform consistency, Header already has it -->
+        <div class="admin-app">
+            <!-- Sidebar -->
+            <div class="sidebar">
+                <!-- Logo removed for platform consistency, Header already has it -->
 
-            <div class="admin-info">
-                <div class="admin-avatar">
-                    <i class="fas fa-crown"></i>
-                </div>
-                <div class="admin-details">
-                    <h4>Admin System</h4>
-                    <p>Quản trị viên cấp cao</p>
-                </div>
-            </div>
-
-            <div class="sidebar-nav">
-                <div class="menu-category">Tổng quan</div>
-                <a href="#" class="nav-item active" onclick="showPage('dashboard')">
-                    <i class="fas fa-th-large"></i> <span>Tổng quan</span>
-                </a>
-                <a href="#" class="nav-item" onclick="showPage('users')">
-                    <i class="fas fa-users"></i> <span>Người dùng</span>
-                </a>
-                <a href="#" class="nav-item" onclick="showPage('clubs')">
-                    <i class="fas fa-university"></i> <span>Câu lạc bộ</span>
-                </a>
-                <a href="#" class="nav-item" onclick="showPage('events')">
-                    <i class="fas fa-calendar-alt"></i> <span>Sự kiện</span>
-                </a>
-                <a href="#" class="nav-item" onclick="showPage('settings')">
-                    <i class="fas fa-cog"></i> <span>Cài đặt</span>
-                </a>
-                <a href="#" class="nav-item" onclick="showPage('points')">
-                    <i class="fas fa-star"></i> <span>Điểm rèn luyện</span>
-                </a>
-                <a href="#" class="nav-item" onclick="showPage('support')">
-                    <i class="fas fa-headset"></i> <span>Hỗ trợ & Kết nối</span>
-                </a>
-            </div>
-        </div>
-
-        <!-- Support Reply Modal -->
-    <div class="modal" id="supportReplyModal">
-        <div class="modal-content" style="max-width: 600px;">
-            <div class="modal-header">
-                <h2>Phản hồi Yêu cầu</h2>
-                <button class="close-btn" onclick="closeModal('supportReplyModal')"><i class="fas fa-times"></i></button>
-            </div>
-            <div id="supportDetailView" style="margin-bottom: 25px; padding: 20px; background: #f8fafc; border-radius: 16px; border: 1px dashed #cbd5e1;">
-                <p style="font-size: 13px; color: #64748b; margin-bottom: 5px;" id="replySenderInfo">Người gửi: SV123 - Nguyễn Văn A</p>
-                <h4 id="replySubject" style="margin-bottom: 10px; color: #1e293b;">Tiêu đề yêu cầu</h4>
-                <p id="replyMessage" style="font-size: 14px; color: #475569; line-height: 1.6;">Nội dung yêu cầu chi tiết...</p>
-            </div>
-            <form id="adminReplyForm">
-                <input type="hidden" id="replyRequestId">
-                <div class="form-group">
-                    <label>Nội dung phản hồi</label>
-                    <textarea id="adminReplyContent" class="form-control-mod" style="min-height: 120px;" placeholder="Nhập nội dung phản hồi cho sinh viên..." required></textarea>
-                </div>
-                <div class="form-group">
-                    <label>Trạng thái mới</label>
-                    <select id="adminReplyStatus" class="form-control-mod">
-                        <option value="resolved">Đã phản hồi (Hoàn tất)</option>
-                        <option value="processing">Đang xử lý</option>
-                        <option value="closed">Đóng yêu cầu (Không giải quyết)</option>
-                    </select>
-                </div>
-                <button type="submit" class="btn-submit-mod">
-                    <i class="fas fa-paper-plane"></i> Gửi phản hồi ngay
-                </button>
-            </form>
-        </div>
-    </div>
-        <div class="main-content" id="mainContent">
-            <!-- Dashboard Page -->
-            <div id="dashboard-page">
-                <!-- Header -->
-                <div class="header">
-                    <div>
-                        <h1>Dashboard tổng quan</h1>
-                        <p id="dashboardDateText">Thống kê hệ thống toàn thời gian</p>
+                <div class="admin-info">
+                    <div class="admin-avatar">
+                        <i class="fas fa-crown"></i>
                     </div>
-                    <div class="header-actions">
-                        <div class="date-picker-container" style="position: relative;">
-                            <div class="date-picker" onclick="toggleDateDropdown()">
-                                <i class="fas fa-calendar" style="color: #c53030;"></i>
-                                <span id="currentDateDisplay">Tất cả thời gian</span>
-                                <i class="fas fa-chevron-down" style="font-size: 12px;"></i>
-                            </div>
-                            <!-- Simple Custom Date Dropdown -->
-                            <div id="dateDropdown" style="display: none; position: absolute; top: 100%; right: 0; background: white; border-radius: 12px; box-shadow: var(--shadow-lg); padding: 15px; z-index: 1001; min-width: 200px; margin-top: 10px; border: 1px solid var(--border-color);">
-                                <div style="margin-bottom: 10px;">
-                                    <label style="display: block; font-size: 12px; font-weight: 700; margin-bottom: 5px;">Chọn năm</label>
-                                    <select id="selectYear" style="width: 100%; padding: 8px; border-radius: 8px; border: 1px solid #e2e8f0;" onchange="handleDateFilterChange()">
-                                        <option value="all">Tất cả các năm</option>
-                                        <option value="2026">2026</option>
-                                        <option value="2025">2025</option>
-                                        <option value="2024">2024</option>
-                                    </select>
+                    <div class="admin-details">
+                        <h4>Nhà trường (University)</h4>
+                        <p>Quản trị viên cấp cao</p>
+                    </div>
+                </div>
+
+                <div class="sidebar-nav">
+                    <div class="menu-category">Tổng quan</div>
+                    <a href="#" class="nav-item active" onclick="showPage('dashboard')">
+                        <i class="fas fa-th-large"></i> <span>Tổng quan</span>
+                    </a>
+                    <a href="#" class="nav-item" onclick="showPage('users')">
+                        <i class="fas fa-users"></i> <span>Người dùng</span>
+                    </a>
+                    <a href="#" class="nav-item" onclick="showPage('clubs')">
+                        <i class="fas fa-university"></i> <span>Câu lạc bộ</span>
+                    </a>
+                    <a href="#" class="nav-item" onclick="showPage('events')">
+                        <i class="fas fa-calendar-alt"></i> <span>Sự kiện</span>
+                    </a>
+                    <a href="#" class="nav-item" onclick="showPage('settings')">
+                        <i class="fas fa-cog"></i> <span>Cài đặt</span>
+                    </a>
+                    <a href="#" class="nav-item" onclick="showPage('points')">
+                        <i class="fas fa-star"></i> <span>Điểm rèn luyện</span>
+                    </a>
+                    <a href="#" class="nav-item" onclick="showPage('support')">
+                        <i class="fas fa-headset"></i> <span>Hỗ trợ & Kết nối</span>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Support Reply Modal -->
+            <div class="modal" id="supportReplyModal">
+                <div class="modal-content" style="max-width: 600px;">
+                    <div class="modal-header">
+                        <h2>Phản hồi Yêu cầu</h2>
+                        <button class="close-btn" onclick="closeModal('supportReplyModal')"><i
+                                class="fas fa-times"></i></button>
+                    </div>
+                    <div id="supportDetailView"
+                        style="margin-bottom: 25px; padding: 20px; background: #f8fafc; border-radius: 16px; border: 1px dashed #cbd5e1;">
+                        <p style="font-size: 13px; color: #64748b; margin-bottom: 5px;" id="replySenderInfo">Người gửi:
+                            SV123 - Nguyễn Văn A</p>
+                        <h4 id="replySubject" style="margin-bottom: 10px; color: #1e293b;">Tiêu đề yêu cầu</h4>
+                        <p id="replyMessage" style="font-size: 14px; color: #475569; line-height: 1.6;">Nội dung yêu cầu
+                            chi tiết...</p>
+                    </div>
+                    <form id="adminReplyForm">
+                        <input type="hidden" id="replyRequestId">
+                        <div class="form-group">
+                            <label>Nội dung phản hồi</label>
+                            <textarea id="adminReplyContent" class="form-control-mod" style="min-height: 120px;"
+                                placeholder="Nhập nội dung phản hồi cho sinh viên..." required></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>Trạng thái mới</label>
+                            <select id="adminReplyStatus" class="form-control-mod">
+                                <option value="resolved">Đã phản hồi (Hoàn tất)</option>
+                                <option value="processing">Đang xử lý</option>
+                                <option value="closed">Đóng yêu cầu (Không giải quyết)</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="btn-submit-mod">
+                            <i class="fas fa-paper-plane"></i> Gửi phản hồi ngay
+                        </button>
+                    </form>
+                </div>
+            </div>
+            <div class="main-content" id="mainContent">
+                <!-- Dashboard Page -->
+                <div id="dashboard-page">
+                    <!-- Header -->
+                    <div class="header">
+                        <div>
+                            <h1>Dashboard tổng quan</h1>
+                            <p id="dashboardDateText">Thống kê hệ thống toàn thời gian</p>
+                        </div>
+                        <div class="header-actions">
+                            <div class="date-picker-container" style="position: relative;">
+                                <div class="date-picker" onclick="toggleDateDropdown()">
+                                    <i class="fas fa-calendar" style="color: #c53030;"></i>
+                                    <span id="currentDateDisplay">Tất cả thời gian</span>
+                                    <i class="fas fa-chevron-down" style="font-size: 12px;"></i>
                                 </div>
-                                <div id="monthFilterContainer" style="display: none;">
-                                    <label style="display: block; font-size: 12px; font-weight: 700; margin-bottom: 5px;">Chọn tháng</label>
-                                    <select id="selectMonth" style="width: 100%; padding: 8px; border-radius: 8px; border: 1px solid #e2e8f0;" onchange="handleDateFilterChange()">
-                                        <option value="all">Tất cả các tháng</option>
-                                        <option value="1">Tháng 1</option><option value="2">Tháng 2</option><option value="3">Tháng 3</option>
-                                        <option value="4">Tháng 4</option><option value="5">Tháng 5</option><option value="6">Tháng 6</option>
-                                        <option value="7">Tháng 7</option><option value="8">Tháng 8</option><option value="9">Tháng 9</option>
-                                        <option value="10">Tháng 10</option><option value="11">Tháng 11</option><option value="12">Tháng 12</option>
-                                    </select>
+                                <!-- Simple Custom Date Dropdown -->
+                                <div id="dateDropdown"
+                                    style="display: none; position: absolute; top: 100%; right: 0; background: white; border-radius: 12px; box-shadow: var(--shadow-lg); padding: 15px; z-index: 1001; min-width: 200px; margin-top: 10px; border: 1px solid var(--border-color);">
+                                    <div style="margin-bottom: 10px;">
+                                        <label
+                                            style="display: block; font-size: 12px; font-weight: 700; margin-bottom: 5px;">Chọn
+                                            năm</label>
+                                        <select id="selectYear"
+                                            style="width: 100%; padding: 8px; border-radius: 8px; border: 1px solid #e2e8f0;"
+                                            onchange="handleDateFilterChange()">
+                                            <option value="all">Tất cả các năm</option>
+                                            <option value="2026">2026</option>
+                                            <option value="2025">2025</option>
+                                            <option value="2024">2024</option>
+                                        </select>
+                                    </div>
+                                    <div id="monthFilterContainer" style="display: none;">
+                                        <label
+                                            style="display: block; font-size: 12px; font-weight: 700; margin-bottom: 5px;">Chọn
+                                            tháng</label>
+                                        <select id="selectMonth"
+                                            style="width: 100%; padding: 8px; border-radius: 8px; border: 1px solid #e2e8f0;"
+                                            onchange="handleDateFilterChange()">
+                                            <option value="all">Tất cả các tháng</option>
+                                            <option value="1">Tháng 1</option>
+                                            <option value="2">Tháng 2</option>
+                                            <option value="3">Tháng 3</option>
+                                            <option value="4">Tháng 4</option>
+                                            <option value="5">Tháng 5</option>
+                                            <option value="6">Tháng 6</option>
+                                            <option value="7">Tháng 7</option>
+                                            <option value="8">Tháng 8</option>
+                                            <option value="9">Tháng 9</option>
+                                            <option value="10">Tháng 10</option>
+                                            <option value="11">Tháng 11</option>
+                                            <option value="12">Tháng 12</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Stats Cards -->
+                    <div class="stats-grid">
+                        <div class="stat-card" onclick="showPage('users')">
+                            <div class="stat-icon"><i class="fas fa-users"></i></div>
+                            <div class="stat-number" id="statTotalUsers">0</div>
+                            <div class="stat-label">Tổng người dùng</div>
+                        </div>
+                        <div class="stat-card" onclick="showPage('clubs')">
+                            <div class="stat-icon"><i class="fas fa-university"></i></div>
+                            <div class="stat-number" id="statTotalClubs">0</div>
+                            <div class="stat-label">CLB đang hoạt động</div>
+                        </div>
+                        <div class="stat-card" onclick="showPage('events')">
+                            <div class="stat-icon"><i class="fas fa-calendar-check"></i></div>
+                            <div class="stat-number" id="statTotalEvents">0</div>
+                            <div class="stat-label">Sự kiện đã tổ chức</div>
+                        </div>
+                    </div>
+
+                    <!-- Charts Row -->
+                    <div class="charts-row">
+                        <div class="chart-card">
+                            <div class="chart-header">
+                                <h3>Thống kê theo tháng</h3>
+                                <div class="chart-period">
+                                    <button class="period-btn active" onclick="updateMonthlyChart('6months')">6
+                                        tháng</button>
+                                    <button class="period-btn" onclick="updateMonthlyChart('12months')">12
+                                        tháng</button>
+                                    <button class="period-btn" onclick="updateMonthlyChart('24months')">24
+                                        tháng</button>
+                                </div>
+                            </div>
+                            <div class="chart-container">
+                                <canvas id="monthlyChart"></canvas>
+                            </div>
+                        </div>
+
+                        <div class="chart-card">
+                            <div class="chart-header">
+                                <h3>Thống kê theo năm</h3>
+                                <div class="chart-period">
+                                    <button class="period-btn active" onclick="updateYearlyChart('2026')">2026</button>
+                                    <button class="period-btn" onclick="updateYearlyChart('2025')">2025</button>
+                                    <button class="period-btn" onclick="updateYearlyChart('2024')">2024</button>
+                                </div>
+                            </div>
+                            <div class="chart-container">
+                                <canvas id="yearlyChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tables -->
+                    <div class="tables-section">
+                        <!-- Top CLB -->
+                        <div class="table-card">
+                            <div class="table-header">
+                                <h3>CLB hoạt động nhiều nhất</h3>
+                                <span class="view-link" onclick="showPage('clubs')">Xem tất cả →</span>
+                            </div>
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>CLB</th>
+                                        <th>Thành viên</th>
+                                        <th>Sự kiện</th>
+                                        <th>Trạng thái</th>
+                                        <th>Thao tác</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="topClubsTableBody">
+                                    <!-- Dữ liệu sẽ được load từ API -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Summary Stats -->
+                    <div class="summary-stats">
+                        <div class="summary-card">
+                            <div class="summary-title">Người dùng theo vai trò</div>
+                            <div class="summary-number" id="summaryTotalUsers">0</div>
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: 70%"></div>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; font-size: 13px;">
+                                <span>Sinh viên: 2,200</span>
+                                <span>Ban tổ chức: 244</span>
+                                <span>Nhà trường: 12</span>
+                            </div>
+                        </div>
+
+                        <div class="summary-card" onclick="showPage('clubs')" style="cursor: pointer;">
+                            <div class="summary-title">CLB theo lĩnh vực</div>
+                            <div class="summary-number">48</div>
+                            <div style="margin-top: 16px;">
+                                <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                                    <span>Công nghệ</span>
+                                    <span>12 CLB</span>
+                                </div>
+                                <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                                    <span>Nghệ thuật</span>
+                                    <span>10 CLB</span>
+                                </div>
+                                <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                                    <span>Thể thao</span>
+                                    <span>8 CLB</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="summary-card">
+                            <div class="summary-title">Tổng quan năm 2026</div>
+                            <div class="summary-number">156</div>
+                            <div style="color: #64748b; font-size: 14px;">Sự kiện đã tổ chức</div>
+                            <div style="margin-top: 16px;">
+                                <div style="display: flex; justify-content: space-between;">
+                                    <span>Quý 1:</span>
+                                    <span>45 sự kiện</span>
+                                </div>
+                                <div style="display: flex; justify-content: space-between;">
+                                    <span>Quý 2 (dự kiến):</span>
+                                    <span>60 sự kiện</span>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Stats Cards -->
-                <div class="stats-grid">
-                    <div class="stat-card" onclick="showPage('users')">
-                        <div class="stat-icon"><i class="fas fa-users"></i></div>
-                        <div class="stat-number" id="statTotalUsers">0</div>
-                        <div class="stat-label">Tổng người dùng</div>
-                    </div>
-                    <div class="stat-card" onclick="showPage('clubs')">
-                        <div class="stat-icon"><i class="fas fa-university"></i></div>
-                        <div class="stat-number" id="statTotalClubs">0</div>
-                        <div class="stat-label">CLB đang hoạt động</div>
-                    </div>
-                    <div class="stat-card" onclick="showPage('events')">
-                        <div class="stat-icon"><i class="fas fa-calendar-check"></i></div>
-                        <div class="stat-number" id="statTotalEvents">0</div>
-                        <div class="stat-label">Sự kiện đã tổ chức</div>
-                    </div>
-                </div>
-
-                <!-- Charts Row -->
-                <div class="charts-row">
-                    <div class="chart-card">
-                        <div class="chart-header">
-                            <h3>Thống kê theo tháng</h3>
-                            <div class="chart-period">
-                                <button class="period-btn active" onclick="updateMonthlyChart('6months')">6 tháng</button>
-                                <button class="period-btn" onclick="updateMonthlyChart('12months')">12 tháng</button>
-                                <button class="period-btn" onclick="updateMonthlyChart('24months')">24 tháng</button>
-                            </div>
+                <!-- Page: Hỗ trợ & Kết nối -->
+                <div id="support-page" style="display: none;">
+                    <div class="header">
+                        <div>
+                            <h1>Quản lý Hỗ trợ & Kết nối</h1>
+                            <p>Xử lý yêu cầu và phản hồi từ sinh viên & CLB</p>
                         </div>
-                        <div class="chart-container">
-                            <canvas id="monthlyChart"></canvas>
+                        <div class="header-actions">
+                            <button class="nut-bam-premium nut-chinh" onclick="loadSupportRequests()"><i
+                                    class="fas fa-sync"></i> Làm mới</button>
                         </div>
                     </div>
 
-                    <div class="chart-card">
-                        <div class="chart-header">
-                            <h3>Thống kê theo năm</h3>
-                            <div class="chart-period">
-                                <button class="period-btn active" onclick="updateYearlyChart('2026')">2026</button>
-                                <button class="period-btn" onclick="updateYearlyChart('2025')">2025</button>
-                                <button class="period-btn" onclick="updateYearlyChart('2024')">2024</button>
-                            </div>
-                        </div>
-                        <div class="chart-container">
-                            <canvas id="yearlyChart"></canvas>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Tables -->
-                <div class="tables-section">
-                    <!-- Top CLB -->
-                    <div class="table-card">
+                    <div class="table-card" style="margin-top: 30px;">
                         <div class="table-header">
-                            <h3>CLB hoạt động nhiều nhất</h3>
-                            <span class="view-link" onclick="showPage('clubs')">Xem tất cả →</span>
+                            <h3>Yêu cầu đang chờ xử lý</h3>
                         </div>
                         <table>
                             <thead>
                                 <tr>
+                                    <th>Người gửi</th>
+                                    <th>Phân loại</th>
+                                    <th>Tiêu đề</th>
+                                    <th>Ngày gửi</th>
+                                    <th>Trạng thái</th>
+                                    <th>Thao tác</th>
+                                </tr>
+                            </thead>
+                            <tbody id="adminSupportTableBody">
+                                <!-- Data populated by JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Page: Điểm rèn luyện -->
+                <div id="points-page" style="display: none;">
+                    <div class="header">
+                        <div>
+                            <h1>Quản lý Điểm rèn luyện</h1>
+                            <p>Danh sách lịch sử cộng điểm rèn luyện toàn hệ thống</p>
+                        </div>
+                        <div class="header-actions">
+                            <button class="date-picker" onclick="showAwardPointsModal()">
+                                <i class="fas fa-plus"></i>
+                                <span>Cộng điểm thủ công</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="table-card" style="margin-top: 30px;">
+                        <div class="table-header">
+                            <h3>Lịch sử cộng điểm gần đây</h3>
+                            <button class="action-btn" onclick="loadPointsData()" title="Làm mới"><i
+                                    class="fas fa-sync"></i></button>
+                        </div>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Sinh viên</th>
+                                    <th>Số điểm</th>
+                                    <th>Lý do</th>
+                                    <th>Người cộng</th>
+                                    <th>Ngày cộng</th>
+                                </tr>
+                            </thead>
+                            <tbody id="pointsTableBody">
+                                <!-- Data populated by JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Users Management Page (ẩn mặc định) -->
+                <div id="users-page" style="display: none;">
+                    <div class="header">
+                        <div>
+                            <h1>Quản lý người dùng</h1>
+                            <p>Danh sách tất cả người dùng trong hệ thống</p>
+                        </div>
+                        <div class="header-actions">
+                            <!-- Nút Thêm người dùng đã được gỡ bỏ theo yêu cầu -->
+                        </div>
+                    </div>
+
+                    <div class="search-filter">
+                        <div class="search-box">
+                            <i class="fas fa-search"></i>
+                            <input type="text" placeholder="Tìm kiếm người dùng..." id="searchUser">
+                        </div>
+                        <select class="filter-select" id="filterRole" onchange="loadUsersTable()">
+                            <option value="all">Tất cả vai trò</option>
+                            <option value="user">User</option>
+                            <option value="leader">Leader</option>
+                            <option value="university">Nhà trường</option>
+                        </select>
+                    </div>
+
+                    <div class="table-card">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Người dùng</th>
+                                    <th>Email</th>
+                                    <th>Vai trò</th>
+                                    <th>Ngày tham gia</th>
+                                    <th>Trạng thái</th>
+                                    <th>Thao tác</th>
+                                </tr>
+                            </thead>
+                            <tbody id="userTableBody">
+                                <!-- Dữ liệu sẽ được load từ API -->
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="pagination">
+                        <button class="page-btn"><i class="fas fa-chevron-left"></i></button>
+                        <button class="page-btn active">1</button>
+                        <button class="page-btn">2</button>
+                        <button class="page-btn">3</button>
+                        <button class="page-btn">4</button>
+                        <button class="page-btn">5</button>
+                        <button class="page-btn"><i class="fas fa-chevron-right"></i></button>
+                    </div>
+                </div>
+
+                <!-- Clubs Management Page -->
+                <div id="clubs-page" style="display: none;">
+                    <div class="header">
+                        <div>
+                            <h1>Quản lý câu lạc bộ</h1>
+                            <p>Danh sách các CLB trong hệ thống</p>
+                        </div>
+                        <div class="header-actions">
+                            <button class="date-picker" onclick="showAddClubModal()">
+                                <i class="fas fa-plus"></i>
+                                <span>Thêm CLB</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="search-filter">
+                        <div class="search-box">
+                            <i class="fas fa-search"></i>
+                            <input type="text" placeholder="Tìm kiếm CLB...">
+                        </div>
+                        <select class="filter-select">
+                            <option>Tất cả lĩnh vực</option>
+                            <option>Công nghệ</option>
+                            <option>Nghệ thuật</option>
+                            <option>Thể thao</option>
+                            <option>Tình nguyện</option>
+                        </select>
+                    </div>
+
+                    <div class="table-card">
+                        <table>
+                            <thead>
+                                <tr>
                                     <th>CLB</th>
+                                    <th>Lĩnh vực</th>
+                                    <th>Chủ nhiệm</th>
                                     <th>Thành viên</th>
                                     <th>Sự kiện</th>
                                     <th>Trạng thái</th>
                                     <th>Thao tác</th>
                                 </tr>
                             </thead>
-                            <tbody id="topClubsTableBody">
+                            <tbody id="clubTableBody">
                                 <!-- Dữ liệu sẽ được load từ API -->
                             </tbody>
                         </table>
                     </div>
                 </div>
 
-                <!-- Summary Stats -->
-                <div class="summary-stats">
-                    <div class="summary-card">
-                        <div class="summary-title">Người dùng theo vai trò</div>
-                        <div class="summary-number" id="summaryTotalUsers">0</div>
-                        <div class="progress-bar"><div class="progress-fill" style="width: 70%"></div></div>
-                        <div style="display: flex; justify-content: space-between; font-size: 13px;">
-                            <span>Sinh viên: 2,200</span>
-                            <span>Ban tổ chức: 244</span>
-                            <span>Admin: 12</span>
+                <!-- Events Management Page -->
+                <div id="events-page" style="display: none;">
+                    <div class="header">
+                        <div>
+                            <h1>Quản lý sự kiện</h1>
+                            <p>Danh sách các sự kiện trong hệ thống</p>
+                        </div>
+                        <div class="header-actions">
+                            <button class="date-picker" onclick="showAddEventModal()">
+                                <i class="fas fa-plus"></i>
+                                <span>Thêm sự kiện</span>
+                            </button>
                         </div>
                     </div>
 
-                    <div class="summary-card" onclick="showPage('clubs')" style="cursor: pointer;">
-                        <div class="summary-title">CLB theo lĩnh vực</div>
-                        <div class="summary-number">48</div>
-                        <div style="margin-top: 16px;">
-                            <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
-                                <span>Công nghệ</span>
-                                <span>12 CLB</span>
-                            </div>
-                            <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
-                                <span>Nghệ thuật</span>
-                                <span>10 CLB</span>
-                            </div>
-                            <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
-                                <span>Thể thao</span>
-                                <span>8 CLB</span>
-                            </div>
+                    <div class="table-card">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Sự kiện</th>
+                                    <th>CLB tổ chức</th>
+                                    <th>Ngày diễn ra</th>
+                                    <th>Địa điểm</th>
+                                    <th>Đăng ký</th>
+                                    <th>Trạng thái</th>
+                                    <th>Thao tác</th>
+                                </tr>
+                            </thead>
+                            <tbody id="eventTableBody">
+                                <!-- Dữ liệu sẽ được load từ API -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Monthly Report Page -->
+                <div id="monthly-report-page" style="display: none;">
+                    <div class="header">
+                        <div>
+                            <h1>Báo cáo theo tháng</h1>
+                            <p>Thống kê chi tiết từng tháng</p>
+                        </div>
+                        <div class="header-actions">
+                            <button class="date-picker" onclick="exportReport()">
+                                <i class="fas fa-download"></i>
+                                <span>Xuất báo cáo</span>
+                            </button>
                         </div>
                     </div>
 
-                    <div class="summary-card">
-                        <div class="summary-title">Tổng quan năm 2026</div>
-                        <div class="summary-number">156</div>
-                        <div style="color: #64748b; font-size: 14px;">Sự kiện đã tổ chức</div>
-                        <div style="margin-top: 16px;">
-                            <div style="display: flex; justify-content: space-between;">
-                                <span>Quý 1:</span>
-                                <span>45 sự kiện</span>
-                            </div>
-                            <div style="display: flex; justify-content: space-between;">
-                                <span>Quý 2 (dự kiến):</span>
-                                <span>60 sự kiện</span>
-                            </div>
+                    <div class="chart-card" style="height: 400px;">
+                        <canvas id="monthlyDetailChart"></canvas>
+                    </div>
+
+                    <div class="stats-grid" style="margin-top: 24px;">
+                        <div class="stat-card">
+                            <div class="stat-number">156</div>
+                            <div class="stat-label">Tổng sự kiện</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number">48</div>
+                            <div class="stat-label">CLB hoạt động</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number">2,456</div>
+                            <div class="stat-label">Lượt tham gia</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number">89%</div>
+                            <div class="stat-label">Tỷ lệ tham dự</div>
                         </div>
                     </div>
                 </div>
-            </div>
 
-            <!-- Page: Hỗ trợ & Kết nối -->
-            <div id="support-page" style="display: none;">
-                <div class="header">
-                    <div>
-                        <h1>Quản lý Hỗ trợ & Kết nối</h1>
-                        <p>Xử lý yêu cầu và phản hồi từ sinh viên & CLB</p>
+                <!-- Yearly Report Page -->
+                <div id="yearly-report-page" style="display: none;">
+                    <div class="header">
+                        <div>
+                            <h1>Báo cáo theo năm</h1>
+                            <p>Thống kê chi tiết theo năm</p>
+                        </div>
                     </div>
-                    <div class="header-actions">
-                        <button class="nut-bam-premium nut-chinh" onclick="loadSupportRequests()"><i class="fas fa-sync"></i> Làm mới</button>
-                    </div>
-                </div>
 
-                <div class="table-card" style="margin-top: 30px;">
-                    <div class="table-header">
-                        <h3>Yêu cầu đang chờ xử lý</h3>
+                    <div class="chart-card" style="height: 400px;">
+                        <canvas id="yearlyDetailChart"></canvas>
                     </div>
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Người gửi</th>
-                                <th>Phân loại</th>
-                                <th>Tiêu đề</th>
-                                <th>Ngày gửi</th>
-                                <th>Trạng thái</th>
-                                <th>Thao tác</th>
-                            </tr>
-                        </thead>
-                        <tbody id="adminSupportTableBody">
-                            <!-- Data populated by JS -->
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-            <!-- Page: Điểm rèn luyện -->
-            <div id="points-page" style="display: none;">
-                <div class="header">
-                    <div>
-                        <h1>Quản lý Điểm rèn luyện</h1>
-                        <p>Danh sách lịch sử cộng điểm rèn luyện toàn hệ thống</p>
-                    </div>
-                    <div class="header-actions">
-                        <button class="date-picker" onclick="showAwardPointsModal()">
-                            <i class="fas fa-plus"></i>
-                            <span>Cộng điểm thủ công</span>
-                        </button>
-                    </div>
-                </div>
-
-                <div class="table-card" style="margin-top: 30px;">
-                    <div class="table-header">
-                        <h3>Lịch sử cộng điểm gần đây</h3>
-                        <button class="action-btn" onclick="loadPointsData()" title="Làm mới"><i class="fas fa-sync"></i></button>
-                    </div>
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Sinh viên</th>
-                                <th>Số điểm</th>
-                                <th>Lý do</th>
-                                <th>Người cộng</th>
-                                <th>Ngày cộng</th>
-                            </tr>
-                        </thead>
-                        <tbody id="pointsTableBody">
-                            <!-- Data populated by JS -->
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-            <!-- Users Management Page (ẩn mặc định) -->
-            <div id="users-page" style="display: none;">
-                <div class="header">
-                    <div>
-                        <h1>Quản lý người dùng</h1>
-                        <p>Danh sách tất cả người dùng trong hệ thống</p>
-                    </div>
-                    <div class="header-actions">
-                        <!-- Nút Thêm người dùng đã được gỡ bỏ theo yêu cầu -->
-                    </div>
-                </div>
-
-                <div class="search-filter">
-                    <div class="search-box">
-                        <i class="fas fa-search"></i>
-                        <input type="text" placeholder="Tìm kiếm người dùng..." id="searchUser">
-                    </div>
-                    <select class="filter-select" id="filterRole" onchange="loadUsersTable()">
-                        <option value="all">Tất cả vai trò</option>
-                        <option value="user">User</option>
-                        <option value="leader">Leader</option>
-                        <option value="admin">Admin</option>
-                    </select>
-                </div>
-
-                <div class="table-card">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Người dùng</th>
-                                <th>Email</th>
-                                <th>Vai trò</th>
-                                <th>Ngày tham gia</th>
-                                <th>Trạng thái</th>
-                                <th>Thao tác</th>
-                            </tr>
-                        </thead>
-                        <tbody id="userTableBody">
-                            <!-- Dữ liệu sẽ được load từ API -->
-                        </tbody>
-                    </table>
-                </div>
-
-                <div class="pagination">
-                    <button class="page-btn"><i class="fas fa-chevron-left"></i></button>
-                    <button class="page-btn active">1</button>
-                    <button class="page-btn">2</button>
-                    <button class="page-btn">3</button>
-                    <button class="page-btn">4</button>
-                    <button class="page-btn">5</button>
-                    <button class="page-btn"><i class="fas fa-chevron-right"></i></button>
-                </div>
-            </div>
-
-            <!-- Clubs Management Page -->
-            <div id="clubs-page" style="display: none;">
-                <div class="header">
-                    <div>
-                        <h1>Quản lý câu lạc bộ</h1>
-                        <p>Danh sách các CLB trong hệ thống</p>
-                    </div>
-                    <div class="header-actions">
-                        <button class="date-picker" onclick="showAddClubModal()">
-                            <i class="fas fa-plus"></i>
-                            <span>Thêm CLB</span>
-                        </button>
-                    </div>
-                </div>
-
-                <div class="search-filter">
-                    <div class="search-box">
-                        <i class="fas fa-search"></i>
-                        <input type="text" placeholder="Tìm kiếm CLB...">
-                    </div>
-                    <select class="filter-select">
-                        <option>Tất cả lĩnh vực</option>
-                        <option>Công nghệ</option>
-                        <option>Nghệ thuật</option>
-                        <option>Thể thao</option>
-                        <option>Tình nguyện</option>
-                    </select>
-                </div>
-
-                <div class="table-card">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>CLB</th>
-                                <th>Lĩnh vực</th>
-                                <th>Chủ nhiệm</th>
-                                <th>Thành viên</th>
-                                <th>Sự kiện</th>
-                                <th>Trạng thái</th>
-                                <th>Thao tác</th>
-                            </tr>
-                        </thead>
-                        <tbody id="clubTableBody">
-                            <!-- Dữ liệu sẽ được load từ API -->
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-            <!-- Events Management Page -->
-            <div id="events-page" style="display: none;">
-                <div class="header">
-                    <div>
-                        <h1>Quản lý sự kiện</h1>
-                        <p>Danh sách các sự kiện trong hệ thống</p>
-                    </div>
-                    <div class="header-actions">
-                        <button class="date-picker" onclick="showAddEventModal()">
-                            <i class="fas fa-plus"></i>
-                            <span>Thêm sự kiện</span>
-                        </button>
-                    </div>
-                </div>
-
-                <div class="table-card">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Sự kiện</th>
-                                <th>CLB tổ chức</th>
-                                <th>Ngày diễn ra</th>
-                                <th>Địa điểm</th>
-                                <th>Đăng ký</th>
-                                <th>Trạng thái</th>
-                                <th>Thao tác</th>
-                            </tr>
-                        </thead>
-                        <tbody id="eventTableBody">
-                            <!-- Dữ liệu sẽ được load từ API -->
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-            <!-- Monthly Report Page -->
-            <div id="monthly-report-page" style="display: none;">
-                <div class="header">
-                    <div>
-                        <h1>Báo cáo theo tháng</h1>
-                        <p>Thống kê chi tiết từng tháng</p>
-                    </div>
-                    <div class="header-actions">
-                        <button class="date-picker" onclick="exportReport()">
-                            <i class="fas fa-download"></i>
-                            <span>Xuất báo cáo</span>
-                        </button>
-                    </div>
-                </div>
-
-                <div class="chart-card" style="height: 400px;">
-                    <canvas id="monthlyDetailChart"></canvas>
-                </div>
-
-                <div class="stats-grid" style="margin-top: 24px;">
-                    <div class="stat-card">
-                        <div class="stat-number">156</div>
-                        <div class="stat-label">Tổng sự kiện</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-number">48</div>
-                        <div class="stat-label">CLB hoạt động</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-number">2,456</div>
-                        <div class="stat-label">Lượt tham gia</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-number">89%</div>
-                        <div class="stat-label">Tỷ lệ tham dự</div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Yearly Report Page -->
-            <div id="yearly-report-page" style="display: none;">
-                <div class="header">
-                    <div>
-                        <h1>Báo cáo theo năm</h1>
-                        <p>Thống kê chi tiết theo năm</p>
-                    </div>
-                </div>
-
-                <div class="chart-card" style="height: 400px;">
-                    <canvas id="yearlyDetailChart"></canvas>
                 </div>
             </div>
         </div>
-    </div>
 
-    <!-- Add User Modal -->
-    <div class="modal" id="addUserModal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2>Thêm người dùng mới</h2>
-                <button class="close-btn" onclick="closeModal('addUserModal')"><i class="fas fa-times"></i></button>
-            </div>
-            <div class="modal-form">
-                <div class="form-group">
-                    <label>Họ và tên</label>
-                    <input type="text" placeholder="Nhập họ tên...">
+        <!-- Add User Modal -->
+        <div class="modal" id="addUserModal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>Thêm người dùng mới</h2>
+                    <button class="close-btn" onclick="closeModal('addUserModal')"><i class="fas fa-times"></i></button>
                 </div>
-                <div class="form-group">
-                    <label>Email</label>
-                    <input type="email" placeholder="Nhập email...">
-                </div>
-                <div class="form-group">
-                    <label>Mã số sinh viên</label>
-                    <input type="text" placeholder="Nhập MSSV...">
-                </div>
-                <div class="form-group">
-                    <label>Vai trò</label>
-                    <select>
-                        <option>Sinh viên</option>
-                        <option>Ban tổ chức</option>
-                        <option>Admin</option>
-                    </select>
-                </div>
-                <div class="modal-actions">
-                    <button class="btn-save" onclick="saveUser()">Thêm người dùng</button>
-                    <button class="btn-cancel" onclick="closeModal('addUserModal')">Hủy</button>
+                <div class="modal-form">
+                    <div class="form-group">
+                        <label>Họ và tên</label>
+                        <input type="text" placeholder="Nhập họ tên...">
+                    </div>
+                    <div class="form-group">
+                        <label>Email</label>
+                        <input type="email" placeholder="Nhập email...">
+                    </div>
+                    <div class="form-group">
+                        <label>Mã số sinh viên</label>
+                        <input type="text" placeholder="Nhập MSSV...">
+                    </div>
+                    <div class="form-group">
+                        <label>Vai trò</label>
+                        <select>
+                            <option>Sinh viên</option>
+                            <option>Ban tổ chức</option>
+                            <option>Admin</option>
+                        </select>
+                    </div>
+                    <div class="modal-actions">
+                        <button class="btn-save" onclick="saveUser()">Thêm người dùng</button>
+                        <button class="btn-cancel" onclick="closeModal('addUserModal')">Hủy</button>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
 
-    <!-- Add Club Modal -->
-    <div class="modal" id="addClubModal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2>Thêm CLB mới</h2>
-                <button class="close-btn" onclick="closeModal('addClubModal')"><i class="fas fa-times"></i></button>
-            </div>
-            <div class="modal-form">
-                <div class="form-group">
-                    <label>Tên CLB</label>
-                    <input type="text" placeholder="Nhập tên CLB...">
+        <!-- Add Club Modal -->
+        <div class="modal" id="addClubModal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>Thêm CLB mới</h2>
+                    <button class="close-btn" onclick="closeModal('addClubModal')"><i class="fas fa-times"></i></button>
                 </div>
-                <div class="form-group">
-                    <label>Lĩnh vực</label>
-                    <select>
-                        <option>Công nghệ</option>
-                        <option>Nghệ thuật</option>
-                        <option>Thể thao</option>
-                        <option>Tình nguyện</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>Chủ nhiệm</label>
-                    <input type="text" placeholder="Tên chủ nhiệm...">
-                </div>
-                <div class="form-group">
-                    <label>Mô tả</label>
-                    <textarea placeholder="Mô tả về CLB..."></textarea>
-                </div>
-                <div class="modal-actions">
-                    <button class="btn-save" onclick="saveClub()">Thêm CLB</button>
-                    <button class="btn-cancel" onclick="closeModal('addClubModal')">Hủy</button>
+                <div class="modal-form">
+                    <div class="form-group">
+                        <label>Tên CLB</label>
+                        <input type="text" placeholder="Nhập tên CLB...">
+                    </div>
+                    <div class="form-group">
+                        <label>Lĩnh vực</label>
+                        <select>
+                            <option>Công nghệ</option>
+                            <option>Nghệ thuật</option>
+                            <option>Thể thao</option>
+                            <option>Tình nguyện</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Chủ nhiệm</label>
+                        <input type="text" placeholder="Tên chủ nhiệm...">
+                    </div>
+                    <div class="form-group">
+                        <label>Mô tả</label>
+                        <textarea placeholder="Mô tả về CLB..."></textarea>
+                    </div>
+                    <div class="modal-actions">
+                        <button class="btn-save" onclick="saveClub()">Thêm CLB</button>
+                        <button class="btn-cancel" onclick="closeModal('addClubModal')">Hủy</button>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
 
-    <!-- User Detail Modal -->
-    <div class="modal" id="userDetailModal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2>Chi tiết người dùng</h2>
-                <button class="close-btn" onclick="closeModal('userDetailModal')"><i class="fas fa-times"></i></button>
-            </div>
-            <div class="user-profile-header">
-                <div class="user-avatar-large">NA</div>
-                <div>
-                    <h3 id="detailUserName">Nguyễn Văn An</h3>
-                    <p>MSSV: 20210001</p>
-                    <p>Email: an.nguyen@student.edu</p>
+        <!-- User Detail Modal -->
+        <div class="modal" id="userDetailModal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>Chi tiết người dùng</h2>
+                    <button class="close-btn" onclick="closeModal('userDetailModal')"><i
+                            class="fas fa-times"></i></button>
                 </div>
-            </div>
-            <div style="margin-top: 20px;">
-                <h4>Hoạt động gần đây</h4>
-                <table class="table">
-                    <tr>
-                        <td>Tham gia CLB Tin học</td>
-                        <td>01/03/2026</td>
-                    </tr>
-                    <tr>
-                        <td>Đăng ký Workshop React</td>
-                        <td>15/03/2026</td>
-                    </tr>
-                </table>
-            </div>
-        </div>
-    </div>
-
-    <!-- Club Detail Modal -->
-    <div class="modal" id="clubDetailModal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2 id="detailClubName">Chi tiết Câu lạc bộ</h2>
-                <button class="close-btn" onclick="closeModal('clubDetailModal')"><i class="fas fa-times"></i></button>
-            </div>
-            <div class="club-profile-header" style="display: flex; gap: 20px; align-items: center; padding: 20px; background: #f8fafc; border-radius: 12px; margin-bottom: 20px;">
-                <img id="detailClubLogo" src="/placeholder-club.png" style="width: 100px; height: 100px; border-radius: 12px; object-fit: cover; border: 3px solid white; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);">
-                <div>
-                    <h3 id="detailClubTitle" style="font-size: 24px; color: #1e293b; margin-bottom: 5px;">CLB Tên</h3>
-                    <p id="detailClubCategory" style="color: #64748b; font-weight: 500;"><i class="fas fa-tag"></i> <span>Chuyên mục</span></p>
-                    <p id="detailClubCreator" style="color: #64748b; font-size: 14px;"><i class="fas fa-user-edit"></i> Người tạo: <span>Tên người tạo</span></p>
+                <div class="user-profile-header">
+                    <div class="user-avatar-large">NA</div>
+                    <div>
+                        <h3 id="detailUserName">Nguyễn Văn An</h3>
+                        <p>MSSV: 20210001</p>
+                        <p>Email: an.nguyen@student.edu</p>
+                    </div>
                 </div>
-            </div>
-            <div class="grid" style="grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 25px;">
-                <div class="card" style="padding: 15px; text-align: center; background: #fff1f2; border: 1px solid #fecdd3;">
-                    <div style="font-size: 20px; font-weight: 700; color: #e11d48;" id="detailMemberCount">0</div>
-                    <div style="font-size: 12px; color: #9f1239;">Thành viên</div>
-                </div>
-                <div class="card" style="padding: 15px; text-align: center; background: #eff6ff; border: 1px solid #bfdbfe;">
-                    <div style="font-size: 20px; font-weight: 700; color: #2563eb;" id="detailEventCount">0</div>
-                    <div style="font-size: 12px; color: #1e40af;">Sự kiện</div>
-                </div>
-                <div class="card" style="padding: 15px; text-align: center; background: #f0fdf4; border: 1px solid #bbf7d0;">
-                    <div style="font-size: 20px; font-weight: 700; color: #16a34a;" id="detailPostCount">0</div>
-                    <div style="font-size: 12px; color: #166534;">Bài viết</div>
-                </div>
-            </div>
-            
-            <div style="margin-top: 20px;">
-                <h4 style="margin-bottom: 10px; border-bottom: 2px solid #ef4444; display: inline-block;">Danh sách thành viên</h4>
-                <div style="max-height: 250px; overflow-y: auto;">
-                    <table class="table" id="clubMembersTable">
-                        <thead>
-                            <tr>
-                                <th>Thành viên</th>
-                                <th>Vai trò</th>
-                                <th>Ngày tham gia</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <!-- Data populated by JS -->
-                        </tbody>
+                <div style="margin-top: 20px;">
+                    <h4>Hoạt động gần đây</h4>
+                    <table class="table">
+                        <tr>
+                            <td>Tham gia CLB Tin học</td>
+                            <td>01/03/2026</td>
+                        </tr>
+                        <tr>
+                            <td>Đăng ký Workshop React</td>
+                            <td>15/03/2026</td>
+                        </tr>
                     </table>
                 </div>
             </div>
         </div>
-    </div>
 
-    <!-- Event Detail Modal -->
-    <div class="modal" id="eventDetailModal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2 id="detailEventTitleHead">Chi tiết Sự kiện</h2>
-                <button class="close-btn" onclick="closeModal('eventDetailModal')"><i class="fas fa-times"></i></button>
-            </div>
-            <div class="event-profile-header" style="padding: 20px; background: #f8fafc; border-radius: 12px; margin-bottom: 20px;">
-                <h3 id="detailEventName" style="font-size: 24px; color: #1e293b; margin-bottom: 10px;">Tên Sự kiện</h3>
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: 14px; color: #64748b;">
-                    <p id="detailEventClub"><i class="fas fa-university"></i> Tổ chức: <span>Tên CLB</span></p>
-                    <p id="detailEventLocation"><i class="fas fa-map-marker-alt"></i> Địa điểm: <span>Địa điểm</span></p>
-                    <p id="detailEventTime"><i class="fas fa-clock"></i> Thời gian: <span>Thời gian</span></p>
-                    <p id="detailEventCreator"><i class="fas fa-user"></i> Người tạo: <span>Tên người tạo</span></p>
+        <!-- Club Detail Modal -->
+        <div class="modal" id="clubDetailModal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2 id="detailClubName">Chi tiết Câu lạc bộ</h2>
+                    <button class="close-btn" onclick="closeModal('clubDetailModal')"><i
+                            class="fas fa-times"></i></button>
                 </div>
-                <div id="detailEventDesc" style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #e2e8f0; font-size: 14px; color: #475569; line-height: 1.6;">
-                    Mô tả sự kiện...
+                <div class="club-profile-header"
+                    style="display: flex; gap: 20px; align-items: center; padding: 20px; background: #f8fafc; border-radius: 12px; margin-bottom: 20px;">
+                    <img id="detailClubLogo" src="/placeholder-club.png"
+                        style="width: 100px; height: 100px; border-radius: 12px; object-fit: cover; border: 3px solid white; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);">
+                    <div>
+                        <h3 id="detailClubTitle" style="font-size: 24px; color: #1e293b; margin-bottom: 5px;">CLB Tên
+                        </h3>
+                        <p id="detailClubCategory" style="color: #64748b; font-weight: 500;"><i class="fas fa-tag"></i>
+                            <span>Chuyên mục</span>
+                        </p>
+                        <p id="detailClubCreator" style="color: #64748b; font-size: 14px;"><i
+                                class="fas fa-user-edit"></i> Người tạo: <span>Tên người tạo</span></p>
+                    </div>
                 </div>
-            </div>
-            
-            <div style="margin-top: 20px;">
-                <h4 style="margin-bottom: 10px; border-bottom: 2px solid #2563eb; display: inline-block;">Danh sách đăng ký (<span id="detailRegCount">0</span>)</h4>
-                <div style="max-height: 300px; overflow-y: auto;">
-                    <table class="table" id="eventRegTable">
-                        <thead>
-                            <tr>
-                                <th>Người dùng</th>
-                                <th>Email</th>
-                                <th>Ngày đăng ký</th>
-                                <th>Trạng thái</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <!-- Data populated by JS -->
-                        </tbody>
-                    </table>
+                <div class="grid" style="grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 25px;">
+                    <div class="card"
+                        style="padding: 15px; text-align: center; background: #fff1f2; border: 1px solid #fecdd3;">
+                        <div style="font-size: 20px; font-weight: 700; color: #e11d48;" id="detailMemberCount">0</div>
+                        <div style="font-size: 12px; color: #9f1239;">Thành viên</div>
+                    </div>
+                    <div class="card"
+                        style="padding: 15px; text-align: center; background: #eff6ff; border: 1px solid #bfdbfe;">
+                        <div style="font-size: 20px; font-weight: 700; color: #2563eb;" id="detailEventCount">0</div>
+                        <div style="font-size: 12px; color: #1e40af;">Sự kiện</div>
+                    </div>
+                    <div class="card"
+                        style="padding: 15px; text-align: center; background: #f0fdf4; border: 1px solid #bbf7d0;">
+                        <div style="font-size: 20px; font-weight: 700; color: #16a34a;" id="detailPostCount">0</div>
+                        <div style="font-size: 12px; color: #166534;">Bài viết</div>
+                    </div>
+                </div>
+
+                <div style="margin-top: 20px;">
+                    <h4 style="margin-bottom: 10px; border-bottom: 2px solid #ef4444; display: inline-block;">Danh sách
+                        thành viên</h4>
+                    <div style="max-height: 250px; overflow-y: auto;">
+                        <table class="table" id="clubMembersTable">
+                            <thead>
+                                <tr>
+                                    <th>Thành viên</th>
+                                    <th>Vai trò</th>
+                                    <th>Ngày tham gia</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Data populated by JS -->
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
-    
-    <div style="margin-left: var(--sidebar-width);">
-        <%- include('partials/Footer') %>
-    </div>
-    <!-- Core Admin Logic -->
-    <!-- Award Points Modal -->
-    <div class="modal" id="awardPointsModal">
-        <div class="modal-content" style="max-width: 500px;">
-            <div class="modal-header">
-                <h2>Cộng điểm rèn luyện</h2>
-                <button class="close-btn" onclick="closeModal('awardPointsModal')"><i class="fas fa-times"></i></button>
-            </div>
-            <form id="awardPointsForm">
-                <div class="form-group">
-                    <label>MSSV hoặc Email sinh viên</label>
-                    <input type="text" id="awardPointsUser" placeholder="Gõ để tìm sinh viên..." required list="studentList">
-                    <datalist id="studentList"></datalist>
-                </div>
-                <div class="form-group">
-                    <label>Số điểm cộng</label>
-                    <input type="number" id="awardPointsValue" value="5" min="1" max="100" required>
-                </div>
-                <div class="form-group">
-                    <label>Lý do cộng điểm</label>
-                    <textarea id="awardPointsReason" placeholder="Ví dụ: Tham gia tích cực hoạt động tình nguyện..." required></textarea>
-                </div>
-                <button type="submit" class="btn-submit-mod">
-                    <i class="fas fa-star"></i> Xác nhận cộng điểm
-                </button>
-            </form>
-        </div>
-    </div>
 
-    <script src="/JS/admin.js?v=3"></script>
+        <!-- Event Detail Modal -->
+        <div class="modal" id="eventDetailModal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2 id="detailEventTitleHead">Chi tiết Sự kiện</h2>
+                    <button class="close-btn" onclick="closeModal('eventDetailModal')"><i
+                            class="fas fa-times"></i></button>
+                </div>
+                <div class="event-profile-header"
+                    style="padding: 20px; background: #f8fafc; border-radius: 12px; margin-bottom: 20px;">
+                    <h3 id="detailEventName" style="font-size: 24px; color: #1e293b; margin-bottom: 10px;">Tên Sự kiện
+                    </h3>
+                    <div
+                        style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: 14px; color: #64748b;">
+                        <p id="detailEventClub"><i class="fas fa-university"></i> Tổ chức: <span>Tên CLB</span></p>
+                        <p id="detailEventLocation"><i class="fas fa-map-marker-alt"></i> Địa điểm: <span>Địa
+                                điểm</span></p>
+                        <p id="detailEventTime"><i class="fas fa-clock"></i> Thời gian: <span>Thời gian</span></p>
+                        <p id="detailEventCreator"><i class="fas fa-user"></i> Người tạo: <span>Tên người tạo</span></p>
+                    </div>
+                    <div id="detailEventDesc"
+                        style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #e2e8f0; font-size: 14px; color: #475569; line-height: 1.6;">
+                        Mô tả sự kiện...
+                    </div>
+                </div>
+
+                <div style="margin-top: 20px;">
+                    <h4 style="margin-bottom: 10px; border-bottom: 2px solid #2563eb; display: inline-block;">Danh sách
+                        đăng ký (<span id="detailRegCount">0</span>)</h4>
+                    <div style="max-height: 300px; overflow-y: auto;">
+                        <table class="table" id="eventRegTable">
+                            <thead>
+                                <tr>
+                                    <th>Người dùng</th>
+                                    <th>Email</th>
+                                    <th>Ngày đăng ký</th>
+                                    <th>Trạng thái</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Data populated by JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div style="margin-left: var(--sidebar-width);">
+            <%- include('partials/Footer') %>
+        </div>
+        <!-- Core Admin Logic -->
+        <!-- Award Points Modal -->
+        <div class="modal" id="awardPointsModal">
+            <div class="modal-content" style="max-width: 500px;">
+                <div class="modal-header">
+                    <h2>Cộng điểm rèn luyện</h2>
+                    <button class="close-btn" onclick="closeModal('awardPointsModal')"><i
+                            class="fas fa-times"></i></button>
+                </div>
+                <form id="awardPointsForm">
+                    <div class="form-group">
+                        <label>MSSV hoặc Email sinh viên</label>
+                        <input type="text" id="awardPointsUser" placeholder="Gõ để tìm sinh viên..." required
+                            list="studentList">
+                        <datalist id="studentList"></datalist>
+                    </div>
+                    <div class="form-group">
+                        <label>Số điểm cộng</label>
+                        <input type="number" id="awardPointsValue" value="5" min="1" max="100" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Lý do cộng điểm</label>
+                        <textarea id="awardPointsReason" placeholder="Ví dụ: Tham gia tích cực hoạt động tình nguyện..."
+                            required></textarea>
+                    </div>
+                    <button type="submit" class="btn-submit-mod">
+                        <i class="fas fa-star"></i> Xác nhận cộng điểm
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <script src="/JS/admin.js?v=4"></script>
 </body>
+
 </html>

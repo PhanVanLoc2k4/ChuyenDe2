@@ -39,6 +39,57 @@ const initSocket = (server) => {
                 }
             }
         });
+
+        // --- Club Chat Logic ---
+        socket.on("join_club", (clubId) => {
+            const roomName = `club_${clubId}`;
+            socket.join(roomName);
+            console.log(`📢 Socket ${socket.id} joined room: ${roomName}`);
+        });
+
+        socket.on("send_club_message", async (data) => {
+            const { clubId, userId, userName, userAvatar, message } = data;
+            const roomName = `club_${clubId}`;
+            
+            try {
+                const { getPool, sql } = require("../config/database");
+                const pool = getPool();
+                
+                // Lưu vào Database
+                await pool.request()
+                    .input("clubId", sql.Int, clubId)
+                    .input("userId", sql.Int, userId)
+                    .input("content", sql.NVarChar(sql.MAX), message)
+                    .query(`
+                        IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[club_messages]') AND type in (N'U'))
+                        BEGIN
+                            CREATE TABLE [dbo].[club_messages] (
+                                [id] INT PRIMARY KEY IDENTITY(1,1),
+                                [club_id] INT NOT NULL,
+                                [user_id] INT NOT NULL,
+                                [content] NVARCHAR(MAX) NOT NULL,
+                                [created_at] DATETIME DEFAULT GETDATE()
+                            )
+                        END
+                        
+                        INSERT INTO club_messages (club_id, user_id, content, created_at) 
+                        VALUES (@clubId, @userId, @content, GETDATE())
+                    `);
+
+                console.log(`💬 Saved & Broadcasting message in ${roomName} from ${userName}`);
+                
+                io.to(roomName).emit("receive_club_message", {
+                    clubId,
+                    userId,
+                    userName,
+                    userAvatar,
+                    message,
+                    timestamp: new Date()
+                });
+            } catch (err) {
+                console.error("❌ Lỗi lưu tin nhắn CLB:", err);
+            }
+        });
     });
 
     return io;

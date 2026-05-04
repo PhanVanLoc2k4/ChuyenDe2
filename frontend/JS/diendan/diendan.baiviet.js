@@ -38,7 +38,7 @@ async function loadPosts() {
 
             const isLeader = currentUser && clubData && Number(currentUser.id) === Number(clubData.created_by);
             const isAuthor = currentUser && post.author_name === currentUser.full_name;
-            const isAdmin = currentUser && currentUser.role === 'admin';
+            const isAdmin = currentUser && ['admin', 'university'].includes((currentUser.role || '').toLowerCase());
             const canManage = isLeader || isAuthor || isAdmin;
 
             const manageHtml = canManage ? `

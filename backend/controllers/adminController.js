@@ -106,11 +106,9 @@ const getAllUsers = async (req, res) => {
     try {
         let query = `
             SELECT 
-                u.id, u.full_name, u.email, ISNULL(r.role_name, 'user') as [role], 
+                u.id, u.full_name, u.email, u.role, 
                 ISNULL(u.created_at, GETDATE()) as created_at, u.avatar, u.status
             FROM users u
-            LEFT JOIN user_roles ur ON u.id = ur.user_id
-            LEFT JOIN roles r ON ur.role_id = r.id 
             WHERE 1=1
         `;
         let request = pool.request();
@@ -126,30 +124,19 @@ const getAllUsers = async (req, res) => {
 
         // Lọc theo tìm kiếm (tên, email hoặc vai trò)
         if (search) {
-            query += " AND (u.full_name LIKE @search OR u.email LIKE @search OR r.role_name LIKE @search) ";
+            query += " AND (u.full_name LIKE @search OR u.email LIKE @search OR u.role LIKE @search) ";
             request.input("search", sql.NVarChar, `%${search}%`);
         }
 
-        // Lọc theo vai trò (Xử lý đặc biệt cho 'user' bao gồm 'member' hoặc null)
+        // Lọc theo vai trò
         if (role && role !== 'all') {
-            if (role === 'user') {
-                query += " AND (r.role_name = 'member' OR r.role_name IS NULL) ";
-            } else {
-                query += " AND r.role_name = @role ";
-                request.input("role", sql.NVarChar, role);
-            }
+            query += " AND u.role = @role ";
+            request.input("role", sql.NVarChar, role);
         }
 
         query += " ORDER BY u.created_at DESC ";
         const result = await request.query(query);
-
-        // Chuẩn hóa dữ liệu trả về: Chuyển 'member' hoặc null thành 'user' cho giao diện
-        const formattedUsers = result.recordset.map(u => ({
-            ...u,
-            role: (u.role === 'member' || !u.role) ? 'user' : u.role
-        }));
-
-        res.json(formattedUsers);
+        res.json(result.recordset);
     } catch (err) {
         console.error("Lỗi lấy danh sách người dùng:", err);
         res.status(500).json({ message: "Lỗi lấy danh sách người dùng" });

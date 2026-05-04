@@ -19,7 +19,7 @@ async function loadEvents() {
         }
 
         const isLeader = currentUser && clubData && Number(currentUser.id) === Number(clubData.created_by);
-        const isAdmin = currentUser && currentUser.role === 'admin';
+        const isAdmin = currentUser && ['admin', 'university'].includes((currentUser.role || '').toLowerCase());
         const canManageEvent = isLeader || isAdmin;
 
         list.innerHTML = events.map(ev => {

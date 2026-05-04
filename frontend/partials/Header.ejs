@@ -582,11 +582,12 @@
             if (user.isLoggedIn && user.name) {
                 usernameEl.textContent = user.name;
 
-                // KIỂM TRA ROLE ADMIN ĐỂ HIỂN THỊ LINK QUẢN TRỊ
-                if (user.role === 'admin') {
+                // KIỂM TRA ROLE UNIVERSITY (ADMIN) ĐỂ HIỂN THỊ LINK QUẢN TRỊ
+                const userRole = (user.role || '').toLowerCase();
+                if (userRole === 'university' || userRole === 'admin') {
                     const adminLink = document.createElement('a');
                     adminLink.href = '/admin';
-                    adminLink.innerHTML = `<i class="fas fa-user-shield" style="color: #c53030;"></i> Quản trị hệ thống`;
+                    adminLink.innerHTML = `<i class="fas fa-university" style="color: #c53030;"></i> Quản trị hệ thống`;
                     dropdown.prepend(adminLink);
                 }
 

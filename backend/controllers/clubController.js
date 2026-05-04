@@ -88,19 +88,10 @@ const createClub = async (req, res) => {
                     INSERT INTO club_members (club_id, user_id, status, role)
                     VALUES (@new_club_id, @uid, 'active', 'leader');
 
-                    -- Cập nhật vai trò hệ thống thành 'leader' (ID: 2) nếu không phải là admin (3) hoặc leader (2)
-                    IF EXISTS (SELECT 1 FROM user_roles WHERE user_id = @uid)
-                    BEGIN
-                        -- Chỉ cập nhật nếu vai trò hiện tại không phải là leader hoặc admin
-                        UPDATE user_roles 
-                        SET role_id = 2 
-                        WHERE user_id = @uid AND role_id NOT IN (2, 3);
-                    END
-                    ELSE
-                    BEGIN
-                        -- Nếu chưa có vai trò nào thì thêm vai trò leader
-                        INSERT INTO user_roles (user_id, role_id) VALUES (@uid, 2);
-                    END
+                    -- Cập nhật vai trò hệ thống thành 'leader' nếu đang là student
+                    UPDATE users 
+                    SET role = 'leader' 
+                    WHERE id = @uid AND (role = 'student' OR role IS NULL);
                 `);
         } catch (err) {
             console.error("Lỗi thêm leader:", err);
@@ -203,17 +194,29 @@ const joinClub = async (req, res) => {
         const checkRequest = await pool.request()
             .input("c", sql.Int, club_id)
             .input("u", sql.Int, user_id)
-            .query("SELECT * FROM join_requests WHERE club_id = @c AND user_id = @u AND status = 'pending'");
+            .query("SELECT * FROM requests WHERE target_id = @c AND user_id = @u AND type = 'club_join' AND status = 'pending'");
 
         if (checkRequest.recordset.length > 0) {
             return res.status(400).json({ message: " Đơn xin gia nhập của bạn đang chờ duyệt!" });
+        }
+
+        // KIỂM TRA ROLE GIÁO VIÊN
+        const userQuery = await pool.request().input("uid", sql.Int, user_id).query("SELECT role FROM users WHERE id = @uid");
+        const userRole = (userQuery.recordset[0]?.role || '').toLowerCase();
+
+        if (userRole === 'university') {
+            await pool.request()
+                .input("c", sql.Int, club_id)
+                .input("u", sql.Int, user_id)
+                .query("INSERT INTO club_members (club_id, user_id, status, role) VALUES (@c, @u, 'active', 'university')");
+            return res.json({ message: "Chào mừng Nhà trường! Bạn đã tham gia CLB với quyền hạn cao nhất." });
         }
 
         await pool.request()
             .input("c", sql.Int, club_id)
             .input("u", sql.Int, user_id)
             .input("r", sql.NVarChar, reason || "")
-            .query("INSERT INTO join_requests (club_id, user_id, status, reason, requested_at) VALUES (@c, @u, 'pending', @r, GETDATE())");
+            .query("INSERT INTO requests (target_id, user_id, type, status, message, created_at) VALUES (@c, @u, 'club_join', 'pending', @r, GETDATE())");
         
         // --- THÔNG BÁO CHO TRƯỞNG CLB ---
         const { createNotification } = require("../services/notificationService");
@@ -303,7 +306,7 @@ const deleteClub = async (req, res) => {
 
             // 3. Xóa dữ liệu thành viên và yêu cầu tham gia
             await request.query("DELETE FROM club_members WHERE club_id = @id");
-            await request.query("DELETE FROM join_requests WHERE club_id = @id");
+            await request.query("DELETE FROM requests WHERE target_id = @id AND type = 'club_join'");
             await request.query("DELETE FROM club_stats WHERE club_id = @id");
 
             // 4. Cuối cùng mới xóa Câu lạc bộ
@@ -329,11 +332,11 @@ const getClubRequests = async (req, res) => {
         const result = await pool.request()
             .input("id", sql.Int, clubId)
             .query(`
-                SELECT jr.id as request_id, jr.user_id, jr.reason, jr.requested_at, u.full_name as name, u.email, u.avatar
-                FROM join_requests jr
-                JOIN users u ON jr.user_id = u.id
-                WHERE jr.club_id = @id AND jr.status = 'pending'
-                ORDER BY jr.requested_at DESC
+                SELECT r.id as request_id, r.user_id, r.message as reason, r.created_at as requested_at, u.full_name as name, u.email, u.avatar
+                FROM requests r
+                JOIN users u ON r.user_id = u.id
+                WHERE r.target_id = @id AND r.type = 'club_join' AND r.status = 'pending'
+                ORDER BY r.created_at DESC
             `);
         res.json(result.recordset);
     } catch (err) {
@@ -351,18 +354,18 @@ const handleJoinRequest = async (req, res) => {
         // Lấy thông tin request trước
         const reqData = await pool.request()
             .input("id", sql.Int, request_id)
-            .query("SELECT * FROM join_requests WHERE id = @id");
+            .query("SELECT * FROM requests WHERE id = @id");
         
         if (reqData.recordset.length === 0) return res.status(404).json({ message: "Không tìm thấy yêu cầu" });
         const request = reqData.recordset[0];
 
         if (action === 'approve') {
-            // 1. Cập nhật trạng thái join_requests
-            await pool.request().input("id", sql.Int, request_id).query("UPDATE join_requests SET status = 'approved' WHERE id = @id");
+            // 1. Cập nhật trạng thái requests
+            await pool.request().input("id", sql.Int, request_id).query("UPDATE requests SET status = 'approved' WHERE id = @id");
             
             // 2. Thêm vào club_members
             await pool.request()
-                .input("cid", sql.Int, request.club_id)
+                .input("cid", sql.Int, request.target_id)
                 .input("uid", sql.Int, request.user_id)
                 .query("INSERT INTO club_members (club_id, user_id, status, role) VALUES (@cid, @uid, 'active', 'member')");
             
@@ -372,7 +375,7 @@ const handleJoinRequest = async (req, res) => {
                 "Yêu cầu tham gia CLB", 
                 "Chúc mừng! Yêu cầu gia nhập CLB của bạn đã được duyệt.", 
                 "membership", 
-                `/DienDan?id=${request.club_id}`
+                `/DienDan?id=${request.target_id}`
             );
             
             res.json({ message: "Đã duyệt thành viên thành công!" });
@@ -381,7 +384,7 @@ const handleJoinRequest = async (req, res) => {
             await pool.request()
                 .input("id", sql.Int, request_id)
                 .input("r", sql.NVarChar, reason || "")
-                .query("UPDATE join_requests SET status = 'rejected', reason = @r WHERE id = @id");
+                .query("UPDATE requests SET status = 'rejected', reply_message = @r WHERE id = @id");
 
             await createNotification(
                 request.user_id, 
@@ -478,6 +481,26 @@ const getClubRankings = async (req, res) => {
     }
 };
 
+// 14. Lấy lịch sử tin nhắn CLB
+const getClubMessages = async (req, res) => {
+    const clubId = req.params.id;
+    const pool = getPool();
+    try {
+        const result = await pool.request()
+            .input("clubId", sql.Int, clubId)
+            .query(`
+                SELECT m.id, m.content, m.created_at, m.user_id, u.full_name as userName, u.avatar as userAvatar
+                FROM club_messages m
+                JOIN users u ON m.user_id = u.id
+                WHERE m.club_id = @clubId
+                ORDER BY m.created_at ASC
+            `);
+        res.json(result.recordset);
+    } catch (err) {
+        res.json([]);
+    }
+};
+
 module.exports = {
     getAllClubs,
     createClub,
@@ -489,5 +512,6 @@ module.exports = {
     getClubRequests,
     handleJoinRequest,
     leaveClub,
-    deleteClub
+    deleteClub,
+    getClubMessages
 };

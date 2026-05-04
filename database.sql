@@ -17,10 +17,10 @@ IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'roles')
 BEGIN
     CREATE TABLE roles (
         id INT IDENTITY(1,1) PRIMARY KEY,
-        role_name NVARCHAR(50) NOT NULL UNIQUE
+        role NVARCHAR(50) NOT NULL UNIQUE
     );
     -- Thêm dữ liệu mặc định cho roles
-    INSERT INTO roles (role_name) VALUES ('admin'), ('user'), ('student'), ('teacher');
+    INSERT INTO roles (role) VALUES ('university'), ('leader'), ('student');
 END
 
 -- 3. Tạo bảng Categories (Chuyên mục CLB)
@@ -48,17 +48,9 @@ BEGIN
         hobbies NVARCHAR(MAX),
         avatar NVARCHAR(MAX),
         training_points INT DEFAULT 0,
+        status NVARCHAR(50) DEFAULT 'active', -- active, locked
+        role NVARCHAR(50) DEFAULT 'student',  -- university, leader, student
         created_at DATETIME DEFAULT GETDATE()
-    );
-END
-
--- 5. Tạo bảng trung gian User_Roles (Phân quyền người dùng)
-IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'user_roles')
-BEGIN
-    CREATE TABLE user_roles (
-        id INT IDENTITY(1,1) PRIMARY KEY,
-        user_id INT NOT NULL FOREIGN KEY REFERENCES users(id) ON DELETE CASCADE,
-        role_id INT NOT NULL FOREIGN KEY REFERENCES roles(id) ON DELETE CASCADE
     );
 END
 
@@ -110,27 +102,30 @@ BEGIN
     );
 END
 
--- 9. Tạo bảng Comments (Bình luận bài viết)
+-- 9. Tạo bảng Comments (Bình luận đa hình)
 IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'comments')
 BEGIN
     CREATE TABLE comments (
         id INT IDENTITY(1,1) PRIMARY KEY,
-        post_id INT NOT NULL FOREIGN KEY REFERENCES posts(id) ON DELETE CASCADE,
+        commentable_id INT NOT NULL, -- ID của Post hoặc Event
+        commentable_type NVARCHAR(50) NOT NULL, -- 'post' hoặc 'event'
         user_id INT NOT NULL FOREIGN KEY REFERENCES users(id),
         content NVARCHAR(MAX) NOT NULL,
+        parent_id INT NULL FOREIGN KEY REFERENCES comments(id), -- Cho bình luận phân cấp
         created_at DATETIME DEFAULT GETDATE()
     );
 END
 
--- 10. Tạo bảng Post_Likes (Lượt thích bài viết)
-IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'post_likes')
+-- 10. Tạo bảng Likes (Lượt thích đa hình)
+IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'likes')
 BEGIN
-    CREATE TABLE post_likes (
+    CREATE TABLE likes (
         id INT IDENTITY(1,1) PRIMARY KEY,
-        post_id INT NOT NULL FOREIGN KEY REFERENCES posts(id) ON DELETE CASCADE,
+        likeable_id INT NOT NULL, -- ID của Post hoặc Event
+        likeable_type NVARCHAR(50) NOT NULL, -- 'post' hoặc 'event'
         user_id INT NOT NULL FOREIGN KEY REFERENCES users(id),
         created_at DATETIME DEFAULT GETDATE(),
-        CONSTRAINT uq_post_like UNIQUE (post_id, user_id)
+        CONSTRAINT uq_like_user UNIQUE (likeable_id, likeable_type, user_id)
     );
 END
 
@@ -163,44 +158,31 @@ BEGIN
         event_id INT NOT NULL FOREIGN KEY REFERENCES events(id) ON DELETE CASCADE,
         user_id INT NOT NULL FOREIGN KEY REFERENCES users(id) ON DELETE CASCADE,
         status NVARCHAR(50) DEFAULT 'registered', -- pending, approved, rejected
+        attendance NVARCHAR(50) DEFAULT 'registered', -- registered, attended, absent
         registered_at DATETIME DEFAULT GETDATE()
     );
 END
 
--- 12.1 Tạo bảng Event_Likes (Lượt thích sự kiện)
-IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'event_likes')
-BEGIN
-    CREATE TABLE event_likes (
-        id INT IDENTITY(1,1) PRIMARY KEY,
-        event_id INT NOT NULL FOREIGN KEY REFERENCES events(id) ON DELETE CASCADE,
-        user_id INT NOT NULL FOREIGN KEY REFERENCES users(id),
-        created_at DATETIME DEFAULT GETDATE(),
-        CONSTRAINT uq_event_like UNIQUE (event_id, user_id)
-    );
-END
+-- (Đã gộp vào bảng likes)
 
--- 12.2 Tạo bảng Event_Comments (Bình luận sự kiện)
-IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'event_comments')
-BEGIN
-    CREATE TABLE event_comments (
-        id INT IDENTITY(1,1) PRIMARY KEY,
-        event_id INT NOT NULL FOREIGN KEY REFERENCES events(id) ON DELETE CASCADE,
-        user_id INT NOT NULL FOREIGN KEY REFERENCES users(id),
-        content NVARCHAR(MAX) NOT NULL,
-        created_at DATETIME DEFAULT GETDATE()
-    );
-END
+-- (Đã gộp vào bảng comments)
 
--- 13. Tạo bảng Join_Requests (Yêu cầu tham gia CLB)
-IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'join_requests')
+-- 13. Tạo bảng Requests (Yêu cầu & Tickets đa hình)
+IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'requests')
 BEGIN
-    CREATE TABLE join_requests (
+    CREATE TABLE requests (
         id INT IDENTITY(1,1) PRIMARY KEY,
-        club_id INT NOT NULL FOREIGN KEY REFERENCES clubs(id) ON DELETE CASCADE,
         user_id INT NOT NULL FOREIGN KEY REFERENCES users(id) ON DELETE CASCADE,
-        status NVARCHAR(50) DEFAULT 'pending', -- pending, approved, rejected
-        reason NVARCHAR(MAX), -- Lý do gia nhập hoặc từ chối
-        requested_at DATETIME DEFAULT GETDATE()
+        type NVARCHAR(50) NOT NULL, -- 'club_join', 'support'
+        target_id INT NULL, -- club_id cho club_join, NULL cho support
+        category NVARCHAR(100), -- Cho yêu cầu hỗ trợ
+        subject NVARCHAR(255),
+        message NVARCHAR(MAX),
+        status NVARCHAR(50) DEFAULT 'pending', -- pending, approved, rejected, resolved
+        reply_message NVARCHAR(MAX),
+        replied_by INT FOREIGN KEY REFERENCES users(id),
+        replied_at DATETIME,
+        created_at DATETIME DEFAULT GETDATE()
     );
 END
 

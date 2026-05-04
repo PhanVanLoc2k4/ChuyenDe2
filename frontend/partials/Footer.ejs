@@ -380,38 +380,49 @@
     });
 </script>
 
-<!-- Chatbot UI Structure -->
+<!-- Chatbot AI -->
+<link rel="stylesheet" href="CSS/chatbot.css">
+
 <div class="chatbot-launcher" id="chatbotLauncher">
-    <img src="images/ai-avatar.png" alt="AI Avatar"
-        style="width: 100%; height: 100%; border-radius: 50%; padding: 5px;">
+    <img src="images/chatbot-logo.png" alt="AI Avatar">
 </div>
 
 <div class="chatbot-container" id="chatbotContainer">
-    <div class="chatbot-header">
-        <div class="chatbot-header-info">
-            <div class="avatar">
-                <img src="images/ai-avatar.png" alt="AI">
-            </div>
-            <div class="title-text">
-                <h4>Hỗ trợ CLB Connect</h4>
-                <span>Tôi đang online</span>
-            </div>
+    <!-- Sidebar cho CLB -->
+    <div class="chatbot-sidebar" id="chatbotSidebar">
+        <div class="sidebar-item active ai-icon" id="aiChannel" title="Trợ lý AI Gemini">
+            <i class="fas fa-robot"></i>
         </div>
-        <div class="chatbot-header-actions">
-            <i class="fas fa-times" id="chatbotClose"></i>
-        </div>
+        <!-- Logo các CLB sẽ được thêm vào đây bằng JS -->
     </div>
 
-    <div class="chatbot-messages" id="chatbotMessages">
-        <!-- Messages will be injected here by chatbot.js -->
-    </div>
+    <div class="chatbot-main">
+        <div class="chatbot-header">
+            <div class="chatbot-header-info">
+                <div class="avatar" id="chatbotAvatar">
+                    <img src="images/chatbot-logo.png" alt="AI">
+                </div>
+                <div class="title-text">
+                    <h4 id="chatbotTitle">Trợ lý CLB Connect</h4>
+                    <span id="chatbotStatus">Tôi đang online</span>
+                </div>
+            </div>
+            <div class="chatbot-header-actions">
+                <i class="fas fa-times" id="chatbotClose"></i>
+            </div>
+        </div>
 
-    <div class="chatbot-input-area">
-        <div class="chatbot-input-wrapper">
-            <input type="text" id="chatbotInput" placeholder="Nhập câu hỏi của bạn...">
-            <button id="chatbotSend">
-                <i class="fas fa-paper-plane"></i>
-            </button>
+        <div class="chatbot-messages" id="chatbotMessages">
+            <!-- Messages will be injected here by chatbot.js -->
+        </div>
+
+        <div class="chatbot-input-area">
+            <div class="chatbot-input-wrapper">
+                <input type="text" id="chatbotInput" placeholder="Nhập câu hỏi của bạn...">
+                <button id="chatbotSend">
+                    <i class="fas fa-paper-plane"></i>
+                </button>
+            </div>
         </div>
     </div>
 </div>

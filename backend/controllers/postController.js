@@ -25,7 +25,7 @@ const getAllPosts = async (req, res) => {
                    -- Thông tin sự kiện gốc (nếu là share sự kiện)
                    origE.event_name as orig_event_name, origE.description as orig_event_desc, origE.image as orig_event_image,
                    origEC.club_name as orig_event_club
-                   ${user_id ? ", CASE WHEN EXISTS (SELECT 1 FROM post_likes pl WHERE pl.post_id = p.id AND pl.user_id = @current_uid) THEN 1 ELSE 0 END as user_liked" : ""}
+                   ${user_id ? ", CASE WHEN EXISTS (SELECT 1 FROM likes l WHERE l.likeable_id = p.id AND l.likeable_type = 'post' AND l.user_id = @current_uid) THEN 1 ELSE 0 END as user_liked" : ""}
             FROM posts p 
             LEFT JOIN clubs c ON p.club_id = c.id
             LEFT JOIN users u ON p.user_id = u.id
@@ -159,20 +159,20 @@ const likePost = async (req, res) => {
         const check = await pool.request()
             .input("pid", sql.Int, post_id)
             .input("uid", sql.Int, user_id)
-            .query("SELECT id FROM post_likes WHERE post_id = @pid AND user_id = @uid");
+            .query("SELECT id FROM likes WHERE likeable_id = @pid AND likeable_type = 'post' AND user_id = @uid");
 
         if (check.recordset.length > 0) {
             await pool.request()
                 .input("pid", sql.Int, post_id)
                 .input("uid", sql.Int, user_id)
-                .query("DELETE FROM post_likes WHERE post_id = @pid AND user_id = @uid");
-            await pool.request().input("id", sql.Int, post_id).query(`UPDATE posts SET likes = likes - 1 WHERE id = @id`);
+                .query("DELETE FROM likes WHERE likeable_id = @pid AND likeable_type = 'post' AND user_id = @uid");
+            await pool.request().input("id", sql.Int, post_id).query(`UPDATE posts SET likes = CASE WHEN likes > 0 THEN likes - 1 ELSE 0 END WHERE id = @id`);
             return res.json({ success: true, liked: false });
         } else {
             await pool.request()
                 .input("pid", sql.Int, post_id)
                 .input("uid", sql.Int, user_id)
-                .query("INSERT INTO post_likes (post_id, user_id) VALUES (@pid, @uid)");
+                .query("INSERT INTO likes (likeable_id, likeable_type, user_id) VALUES (@pid, 'post', @uid)");
             await pool.request().input("id", sql.Int, post_id).query(`UPDATE posts SET likes = likes + 1 WHERE id = @id`);
             return res.json({ success: true, liked: true });
         }
@@ -188,10 +188,10 @@ const getPostComments = async (req, res) => {
         const result = await pool.request()
             .input("pid", sql.Int, req.params.postId)
             .query(`
-                SELECT c.id, c.content, c.created_at, c.parent_id, u.full_name as author_name, u.avatar as author_avatar
+                SELECT c.id, c.user_id, c.content, c.created_at, c.parent_id, u.full_name as author_name, u.avatar as author_avatar
                 FROM comments c
                 LEFT JOIN users u ON c.user_id = u.id
-                WHERE c.post_id = @pid
+                WHERE c.commentable_id = @pid AND c.commentable_type = 'post'
                 ORDER BY c.created_at ASC
             `);
         res.json(result.recordset);
@@ -211,7 +211,8 @@ const createComment = async (req, res) => {
             .input("uid", sql.Int, user_id)
             .input("content", sql.NVarChar, content)
             .input("parent", sql.Int, parent_id || null)
-            .query(`INSERT INTO comments (post_id, user_id, content, created_at, parent_id) VALUES (@pid, @uid, @content, GETDATE(), @parent)`);
+            .query(`INSERT INTO comments (commentable_id, commentable_type, user_id, content, created_at, parent_id) 
+                    VALUES (@pid, 'post', @uid, @content, GETDATE(), @parent)`);
         
         await pool.request()
             .input("pid", sql.Int, post_id)
@@ -234,12 +235,11 @@ const updatePost = async (req, res) => {
         const check = await pool.request().input("id", sql.Int, post_id).query("SELECT user_id, club_id FROM posts WHERE id = @id");
         if (check.recordset.length === 0) return res.status(404).json({ message: "Không tìm thấy bài viết" });
         
-        const roleCheck = await pool.request()
-            .input("uid", sql.Int, user_id)
-            .query("SELECT r.role_name FROM user_roles ur JOIN roles r ON ur.role_id = r.id WHERE ur.user_id = @uid");
-        const isAdmin = roleCheck.recordset.some(r => r.role_name === 'admin');
+        const userQuery = await pool.request().input("uid", sql.Int, user_id).query("SELECT role FROM users WHERE id = @uid");
+        const userRole = (userQuery.recordset[0]?.role || '').toLowerCase();
+        const isUniversity = userRole === 'university';
 
-        if (Number(check.recordset[0].user_id) !== Number(user_id) && !isAdmin) {
+        if (Number(check.recordset[0].user_id) !== Number(user_id) && !isUniversity) {
             return res.status(403).json({ message: "Bạn không có quyền sửa bài viết này" });
         }
 
@@ -280,23 +280,22 @@ const deletePost = async (req, res) => {
         const post = check.recordset[0];
         const club_id = post.club_id;
 
-        // Lấy thông tin chủ CLB & Kiểm tra Admin
+        // Lấy thông tin chủ CLB & Kiểm tra Quyền Nhà trường (University)
         const clubCheck = await pool.request().input("cid", sql.Int, club_id).query("SELECT created_by FROM clubs WHERE id = @cid");
-        const roleCheck = await pool.request()
-            .input("uid", sql.Int, user_id)
-            .query("SELECT r.role_name FROM user_roles ur JOIN roles r ON ur.role_id = r.id WHERE ur.user_id = @uid");
+        const userQuery = await pool.request().input("uid", sql.Int, user_id).query("SELECT role FROM users WHERE id = @uid");
+        const userRole = (userQuery.recordset[0]?.role || '').toLowerCase();
             
-        const isAdmin = roleCheck.recordset.some(r => r.role_name === 'admin');
+        const isUniversity = userRole === 'university';
         const isLeader = clubCheck.recordset.length > 0 && Number(clubCheck.recordset[0].created_by) === Number(user_id);
         const isAuthor = Number(post.user_id) === Number(user_id);
 
-        if (!isAuthor && !isLeader && !isAdmin) {
+        if (!isAuthor && !isLeader && !isUniversity) {
             return res.status(403).json({ message: "Bạn không có quyền xóa bài viết này" });
         }
 
         // Xóa bình luận và like trước
-        await pool.request().input("pid", sql.Int, post_id).query("DELETE FROM comments WHERE post_id = @pid");
-        await pool.request().input("pid", sql.Int, post_id).query("DELETE FROM post_likes WHERE post_id = @pid");
+        await pool.request().input("pid", sql.Int, post_id).query("DELETE FROM comments WHERE commentable_id = @pid AND commentable_type = 'post'");
+        await pool.request().input("pid", sql.Int, post_id).query("DELETE FROM likes WHERE likeable_id = @pid AND likeable_type = 'post'");
         
         // Cuối cùng xóa bài viết
         await pool.request().input("id", sql.Int, post_id).query("DELETE FROM posts WHERE id = @id");
@@ -305,12 +304,27 @@ const deletePost = async (req, res) => {
     } catch (err) { res.status(500).json({ message: "Lỗi xóa bài viết" }); }
 };
 
+const deleteComment = async (req, res) => {
+    const { commentId } = req.params;
+    const pool = getPool();
+    try {
+        await pool.request()
+            .input("id", sql.Int, commentId)
+            .query("DELETE FROM comments WHERE id = @id OR parent_id = @id");
+        res.json({ success: true, message: "Đã xóa bình luận!" });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: "Lỗi xóa bình luận" });
+    }
+};
+
 module.exports = {
     getAllPosts,
     createPost,
     likePost,
     getPostComments,
     createComment,
+    deleteComment,
     updatePost,
     deletePost,
     createShare

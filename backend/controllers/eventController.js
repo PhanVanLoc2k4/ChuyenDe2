@@ -14,14 +14,13 @@ const getAllEvents = async (req, res) => {
                    (SELECT COUNT(*) FROM event_registrations er WHERE er.event_id = e.id) as participant_count,
                    c.club_name, c.id as club_id,
                    (CASE WHEN EXISTS (
-                       SELECT 1 FROM user_roles ur 
-                       JOIN roles r ON ur.role_id = r.id 
-                       WHERE ur.user_id = e.created_by AND r.role_name = 'admin'
+                       SELECT 1 FROM users u2 
+                       WHERE u2.id = e.created_by AND u2.role = 'university'
                    ) THEN 1 ELSE 0 END) as is_admin_event
         `;
         if (userId) {
             query += `, (CASE WHEN EXISTS (SELECT 1 FROM event_registrations er WHERE er.event_id = e.id AND er.user_id = @uid) THEN 1 ELSE 0 END) as is_registered `;
-            query += `, (CASE WHEN EXISTS (SELECT 1 FROM event_likes el WHERE el.event_id = e.id AND el.user_id = @uid) THEN 1 ELSE 0 END) as user_liked `;
+            query += `, (CASE WHEN EXISTS (SELECT 1 FROM likes l WHERE l.likeable_id = e.id AND l.likeable_type = 'event' AND l.user_id = @uid) THEN 1 ELSE 0 END) as user_liked `;
             request.input("uid", sql.Int, userId);
         } else {
             query += `, 0 as is_registered, 0 as user_liked `;
@@ -130,7 +129,7 @@ const getEventDetail = async (req, res) => {
         
         if (userId) {
             query += `, (CASE WHEN EXISTS (SELECT 1 FROM event_registrations er WHERE er.event_id = e.id AND er.user_id = @uid) THEN 1 ELSE 0 END) as is_registered `;
-            query += `, (CASE WHEN EXISTS (SELECT 1 FROM event_likes el WHERE el.event_id = e.id AND el.user_id = @uid) THEN 1 ELSE 0 END) as user_liked `;
+            query += `, (CASE WHEN EXISTS (SELECT 1 FROM likes l WHERE l.likeable_id = e.id AND l.likeable_type = 'event' AND l.user_id = @uid) THEN 1 ELSE 0 END) as user_liked `;
             request.input("uid", sql.Int, userId);
         } else {
             query += `, 0 as is_registered, 0 as user_liked `;
@@ -197,20 +196,20 @@ const likeEvent = async (req, res) => {
         const check = await pool.request()
             .input("eid", sql.Int, event_id)
             .input("uid", sql.Int, user_id)
-            .query("SELECT id FROM event_likes WHERE event_id = @eid AND user_id = @uid");
+            .query("SELECT id FROM likes WHERE likeable_id = @eid AND likeable_type = 'event' AND user_id = @uid");
 
         if (check.recordset.length > 0) {
             await pool.request()
                 .input("eid", sql.Int, event_id)
                 .input("uid", sql.Int, user_id)
-                .query("DELETE FROM event_likes WHERE event_id = @eid AND user_id = @uid");
+                .query("DELETE FROM likes WHERE likeable_id = @eid AND likeable_type = 'event' AND user_id = @uid");
             await pool.request().input("id", sql.Int, event_id).query(`UPDATE events SET likes = CASE WHEN likes > 0 THEN likes - 1 ELSE 0 END WHERE id = @id`);
             return res.json({ success: true, liked: false });
         } else {
             await pool.request()
                 .input("eid", sql.Int, event_id)
                 .input("uid", sql.Int, user_id)
-                .query("INSERT INTO event_likes (event_id, user_id) VALUES (@eid, @uid)");
+                .query("INSERT INTO likes (likeable_id, likeable_type, user_id) VALUES (@eid, 'event', @uid)");
             await pool.request().input("id", sql.Int, event_id).query(`UPDATE events SET likes = likes + 1 WHERE id = @id`);
             return res.json({ success: true, liked: true });
         }
@@ -251,12 +250,11 @@ const updateEvent = async (req, res) => {
         const check = await pool.request().input("id", sql.Int, event_id).query("SELECT created_by FROM events WHERE id = @id");
         if (check.recordset.length === 0) return res.status(404).json({ message: "Không tìm thấy sự kiện" });
 
-        const roleCheck = await pool.request()
-            .input("uid", sql.Int, user_id)
-            .query("SELECT r.role_name FROM user_roles ur JOIN roles r ON ur.role_id = r.id WHERE ur.user_id = @uid");
-        const isAdmin = roleCheck.recordset.some(r => r.role_name === 'admin');
+        const userQuery = await pool.request().input("uid", sql.Int, user_id).query("SELECT role FROM users WHERE id = @uid");
+        const userRole = (userQuery.recordset[0]?.role || '').toLowerCase();
+        const isUniversity = userRole === 'university';
 
-        if (Number(check.recordset[0].created_by) !== Number(user_id) && !isAdmin) {
+        if (Number(check.recordset[0].created_by) !== Number(user_id) && !isUniversity) {
             return res.status(403).json({ message: "Bạn không có quyền sửa sự kiện này" });
         }
 
@@ -300,22 +298,21 @@ const deleteEvent = async (req, res) => {
         const event = check.recordset[0];
         
         const clubCheck = await pool.request().input("cid", sql.Int, event.club_id).query("SELECT created_by FROM clubs WHERE id = @cid");
-        const roleCheck = await pool.request()
-            .input("uid", sql.Int, user_id)
-            .query("SELECT r.role_name FROM user_roles ur JOIN roles r ON ur.role_id = r.id WHERE ur.user_id = @uid");
+        const userQuery = await pool.request().input("uid", sql.Int, user_id).query("SELECT role FROM users WHERE id = @uid");
+        const userRole = (userQuery.recordset[0]?.role || '').toLowerCase();
             
-        const isAdmin = roleCheck.recordset.some(r => r.role_name === 'admin');
+        const isUniversity = userRole === 'university';
         const isLeader = clubCheck.recordset.length > 0 && Number(clubCheck.recordset[0].created_by) === Number(user_id);
         const isAuthor = Number(event.created_by) === Number(user_id);
 
-        if (!isAuthor && !isLeader && !isAdmin) {
+        if (!isAuthor && !isLeader && !isUniversity) {
             return res.status(403).json({ message: "Bạn không có quyền xóa sự kiện này" });
         }
 
         // Xóa các lượt đăng ký, like, comment trước
         await pool.request().input("eid", sql.Int, event_id).query("DELETE FROM event_registrations WHERE event_id = @eid");
-        await pool.request().input("eid", sql.Int, event_id).query("DELETE FROM event_likes WHERE event_id = @eid");
-        // (Nếu có bảng event_comments thì xóa ở đây)
+        await pool.request().input("eid", sql.Int, event_id).query("DELETE FROM likes WHERE likeable_id = @eid AND likeable_type = 'event'");
+        await pool.request().input("eid", sql.Int, event_id).query("DELETE FROM comments WHERE commentable_id = @eid AND commentable_type = 'event'");
 
         await pool.request().input("id", sql.Int, event_id).query("DELETE FROM events WHERE id = @id");
         res.json({ message: "Xóa sự kiện thành công" });
@@ -329,11 +326,11 @@ const getEventComments = async (req, res) => {
         const result = await pool.request()
             .input("eid", sql.Int, req.params.id)
             .query(`
-                SELECT ec.id, ec.content, ec.created_at, ec.parent_id, u.full_name as author_name, u.avatar as author_avatar
-                FROM event_comments ec
-                LEFT JOIN users u ON ec.user_id = u.id
-                WHERE ec.event_id = @eid
-                ORDER BY ec.created_at ASC
+                SELECT c.id, c.user_id, c.content, c.created_at, c.parent_id, u.full_name as author_name, u.avatar as author_avatar
+                FROM comments c
+                LEFT JOIN users u ON c.user_id = u.id
+                WHERE c.commentable_id = @eid AND c.commentable_type = 'event'
+                ORDER BY c.created_at ASC
             `);
         res.json(result.recordset);
     } catch (err) {
@@ -353,8 +350,8 @@ const createEventComment = async (req, res) => {
             .input("uid", sql.Int, user_id)
             .input("content", sql.NVarChar, content)
             .input("parent", sql.Int, parent_id || null)
-            .query(`INSERT INTO event_comments (event_id, user_id, content, created_at, parent_id) 
-                    VALUES (@eid, @uid, @content, GETDATE(), @parent)`);
+            .query(`INSERT INTO comments (commentable_id, commentable_type, user_id, content, created_at, parent_id) 
+                    VALUES (@eid, 'event', @uid, @content, GETDATE(), @parent)`);
         
         await pool.request()
             .input("eid", sql.Int, event_id)
@@ -364,6 +361,20 @@ const createEventComment = async (req, res) => {
     } catch (err) {
         console.error("Lỗi createEventComment:", err);
         res.status(500).json({ message: "Lỗi đăng bình luận sự kiện" });
+    }
+};
+
+const deleteEventComment = async (req, res) => {
+    const { commentId } = req.params;
+    const pool = getPool();
+    try {
+        await pool.request()
+            .input("id", sql.Int, commentId)
+            .query("DELETE FROM comments WHERE id = @id OR parent_id = @id");
+        res.json({ success: true, message: "Đã xóa bình luận!" });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: "Lỗi xóa bình luận" });
     }
 };
 
@@ -378,5 +389,6 @@ module.exports = {
     updateEvent,
     deleteEvent,
     getEventComments,
-    createEventComment
+    createEventComment,
+    deleteEventComment
 };
