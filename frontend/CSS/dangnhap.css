@@ -207,7 +207,7 @@ body::after {
     font-size: 50px;
     font-weight: 800;
     margin-bottom: 20px;
-    background: linear-gradient(to right, #1e293b, #475569);
+    background: linear-gradient(to right, #1e293b, #7e9ecd);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     line-height: 1.2;

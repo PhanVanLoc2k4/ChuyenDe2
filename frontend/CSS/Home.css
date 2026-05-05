@@ -5,10 +5,12 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:wght@700;800;900&family=Outfit:wght@400;500;600;700;800&display=swap');
 
 :root {
-    --primary: #dc2626;  /* Red */
+    --primary: #dc2626;
+    /* Red */
     --primary-dark: #b91c1c;
     --primary-light: #fef2f2;
-    --secondary: #1e293b; /* Dark Slate */
+    --secondary: #1e293b;
+    /* Dark Slate */
     --dark: #0f172a;
     --text-main: #334155;
     --text-light: #64748b;
@@ -105,7 +107,7 @@ section {
 
 .hero-subtitle {
     font-size: 18px;
-    color: var(--text-light);
+    color: #0f172a;
     margin-bottom: 40px;
     max-width: 80%;
     animation: fadeInUp 0.8s ease-out 0.4s both;
@@ -156,7 +158,8 @@ section {
 .bottom-card {
     bottom: 40px;
     right: -40px;
-    animation: float 6s ease-in-out infinite 2s; /* Delayed start */
+    animation: float 6s ease-in-out infinite 2s;
+    /* Delayed start */
 }
 
 .glass-icon {
@@ -297,7 +300,9 @@ section {
 .club-card::before {
     content: '';
     position: absolute;
-    top: 0; left: 0; right: 0;
+    top: 0;
+    left: 0;
+    right: 0;
     height: 4px;
     background: linear-gradient(90deg, var(--primary), #ef4444);
     opacity: 0;
@@ -324,7 +329,8 @@ section {
     font-size: 32px;
     font-weight: 700;
     color: white;
-    background: var(--dark); /* Fallback */
+    background: var(--dark);
+    /* Fallback */
 }
 
 .club-card h3 {
@@ -408,7 +414,7 @@ section {
     padding: 8px 12px;
     border-radius: 12px;
     text-align: center;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 .event-date-badge .day {
@@ -469,7 +475,8 @@ section {
 
 /* ================= BOTTOM CTA ================= */
 .bottom-cta {
-    margin: 0 5% -80px; /* Pull down into footer */
+    margin: 0 5% -80px;
+    /* Pull down into footer */
     position: relative;
     z-index: 10;
 }
@@ -488,9 +495,11 @@ section {
 .cta-content::before {
     content: '';
     position: absolute;
-    top: -50%; left: -10%;
-    width: 300px; height: 300px;
-    background: rgba(255,255,255,0.1);
+    top: -50%;
+    left: -10%;
+    width: 300px;
+    height: 300px;
+    background: rgba(255, 255, 255, 0.1);
     border-radius: 50%;
     filter: blur(40px);
 }
@@ -603,24 +612,53 @@ section {
 
 /* ================= ANIMATIONS ================= */
 @keyframes fadeInUp {
-    from { opacity: 0; transform: translateY(30px); }
-    to { opacity: 1; transform: translateY(0); }
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 @keyframes fadeInDown {
-    from { opacity: 0; transform: translateY(-30px); }
-    to { opacity: 1; transform: translateY(0); }
+    from {
+        opacity: 0;
+        transform: translateY(-30px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 @keyframes fadeInRight {
-    from { opacity: 0; transform: translateX(50px); }
-    to { opacity: 1; transform: translateX(0); }
+    from {
+        opacity: 0;
+        transform: translateX(50px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
 }
 
 @keyframes float {
-    0% { transform: translateY(0); }
-    50% { transform: translateY(-15px); }
-    100% { transform: translateY(0); }
+    0% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(-15px);
+    }
+
+    100% {
+        transform: translateY(0);
+    }
 }
 
 /* ================= RESPONSIVE ================= */
@@ -630,30 +668,72 @@ section {
         text-align: center;
         gap: 40px;
     }
-    
-    .hero-title { font-size: 48px; }
-    .hero-subtitle { margin: 0 auto 30px; }
-    .hero-cta { justify-content: center; }
-    
-    .top-card { top: 20px; left: 20px; }
-    .bottom-card { bottom: 20px; right: 20px; }
-    
-    .stats-section { flex-wrap: wrap; gap: 30px; }
-    .stat-divider { display: none; }
+
+    .hero-title {
+        font-size: 48px;
+    }
+
+    .hero-subtitle {
+        margin: 0 auto 30px;
+    }
+
+    .hero-cta {
+        justify-content: center;
+    }
+
+    .top-card {
+        top: 20px;
+        left: 20px;
+    }
+
+    .bottom-card {
+        bottom: 20px;
+        right: 20px;
+    }
+
+    .stats-section {
+        flex-wrap: wrap;
+        gap: 30px;
+    }
+
+    .stat-divider {
+        display: none;
+    }
 }
 
 @media (max-width: 768px) {
-    .btn-primary-large, .btn-secondary-large { width: 100%; padding: 14px; }
-    .hero-cta { flex-direction: column; }
-    
+
+    .btn-primary-large,
+    .btn-secondary-large {
+        width: 100%;
+        padding: 14px;
+    }
+
+    .hero-cta {
+        flex-direction: column;
+    }
+
     .stats-section {
         flex-direction: column;
         margin: -40px 5% 40px;
         padding: 40px 20px;
     }
-    
-    .section-header h2 { font-size: 32px; }
-    .cta-content h2 { font-size: 32px; }
-    .cta-content { padding: 40px 20px; }
-    .btn-primary-xl { width: 100%; padding: 16px 20px; font-size: 16px; }
+
+    .section-header h2 {
+        font-size: 32px;
+    }
+
+    .cta-content h2 {
+        font-size: 32px;
+    }
+
+    .cta-content {
+        padding: 40px 20px;
+    }
+
+    .btn-primary-xl {
+        width: 100%;
+        padding: 16px 20px;
+        font-size: 16px;
+    }
 }
