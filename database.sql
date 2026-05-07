@@ -15,12 +15,12 @@ GO
 -- 2. Tạo bảng Roles (Vai trò hệ thống)
 IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'roles')
 BEGIN
-    CREATE TABLE roles (
+    CREATE TABLE [roles] (
         id INT IDENTITY(1,1) PRIMARY KEY,
-        role NVARCHAR(50) NOT NULL UNIQUE
+        [role] NVARCHAR(50) NOT NULL UNIQUE
     );
     -- Thêm dữ liệu mặc định cho roles
-    INSERT INTO roles (role) VALUES ('university'), ('leader'), ('student');
+    INSERT INTO [roles] ([role]) VALUES ('university'), ('leader'), ('student');
 END
 
 -- 3. Tạo bảng Categories (Chuyên mục CLB)

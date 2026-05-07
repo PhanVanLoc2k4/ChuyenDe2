@@ -38,11 +38,15 @@ async function checkSchema(pool) {
     await runQuery(`
         IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'roles')
         BEGIN
-            CREATE TABLE roles (
+            CREATE TABLE [roles] (
                 id INT IDENTITY(1,1) PRIMARY KEY,
-                role NVARCHAR(50) NOT NULL UNIQUE
+                [role] NVARCHAR(50) NOT NULL UNIQUE
             );
-            INSERT INTO roles (role) VALUES ('university'), ('leader'), ('student');
+        END
+        
+        IF NOT EXISTS (SELECT * FROM [roles] WHERE [role] = 'student')
+        BEGIN
+            INSERT INTO [roles] ([role]) VALUES ('university'), ('leader'), ('student');
         END
     `, "Create/Update roles table");
 
@@ -82,8 +86,8 @@ async function checkSchema(pool) {
         AND EXISTS (SELECT * FROM sys.tables WHERE name = 'roles')
         BEGIN
             -- Đảm bảo dữ liệu trong users.role hợp lệ trước khi tạo constraint
-            UPDATE users SET role = 'student' WHERE role NOT IN (SELECT role FROM roles);
-            ALTER TABLE users ADD CONSTRAINT FK_Users_Roles FOREIGN KEY (role) REFERENCES roles(role);
+            UPDATE users SET [role] = 'student' WHERE [role] NOT IN (SELECT [role] FROM [roles]);
+            ALTER TABLE users ADD CONSTRAINT FK_Users_Roles FOREIGN KEY ([role]) REFERENCES [roles]([role]);
         END
     `, "Add FK_Users_Roles constraint");
 
