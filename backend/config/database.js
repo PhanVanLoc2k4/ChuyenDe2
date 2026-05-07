@@ -69,6 +69,41 @@ async function checkSchema(pool) {
     `, "Add users.status");
 
     await runQuery(`
+        IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('users') AND name = 'user_code')
+            ALTER TABLE users ADD user_code VARCHAR(50);
+    `, "Add users.user_code");
+
+    await runQuery(`
+        IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('users') AND name = 'phone')
+            ALTER TABLE users ADD phone NVARCHAR(20);
+    `, "Add users.phone");
+
+    await runQuery(`
+        IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('users') AND name = 'dob')
+            ALTER TABLE users ADD dob DATE;
+    `, "Add users.dob");
+
+    await runQuery(`
+        IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('users') AND name = 'gender')
+            ALTER TABLE users ADD gender NVARCHAR(10);
+    `, "Add users.gender");
+
+    await runQuery(`
+        IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('users') AND name = 'bio')
+            ALTER TABLE users ADD bio NVARCHAR(MAX);
+    `, "Add users.bio");
+
+    await runQuery(`
+        IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('users') AND name = 'hobbies')
+            ALTER TABLE users ADD hobbies NVARCHAR(MAX);
+    `, "Add users.hobbies");
+
+    await runQuery(`
+        IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('users') AND name = 'avatar')
+            ALTER TABLE users ADD avatar NVARCHAR(MAX);
+    `, "Add users.avatar");
+
+    await runQuery(`
         IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('users') AND name = 'training_points')
             ALTER TABLE users ADD training_points INT DEFAULT 0;
     `, "Add users.training_points");
@@ -111,13 +146,20 @@ async function checkSchema(pool) {
         END
     `, "Fix/Add event_registrations.attendance");
 
+    await runQuery(`
+        IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('club_members') AND name = 'role')
+            ALTER TABLE club_members ADD [role] NVARCHAR(50) DEFAULT 'member';
+    `, "Add/Fix club_members.role");
+
     // 3. Tạo các bảng mới nếu chưa có
     await runQuery(`
-        IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID('support_requests') AND type in (N'U'))
+        IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID('requests') AND type in (N'U'))
         BEGIN
-            CREATE TABLE support_requests (
+            CREATE TABLE requests (
                 id INT PRIMARY KEY IDENTITY(1,1),
-                user_id INT FOREIGN KEY REFERENCES users(id),
+                user_id INT FOREIGN KEY REFERENCES users(id) ON DELETE CASCADE,
+                type NVARCHAR(50) NOT NULL, -- 'club_join', 'support'
+                target_id INT NULL,
                 category NVARCHAR(100),
                 subject NVARCHAR(255),
                 message NVARCHAR(MAX),
@@ -128,7 +170,7 @@ async function checkSchema(pool) {
                 created_at DATETIME DEFAULT GETDATE()
             );
         END
-    `, "Create support_requests");
+    `, "Create requests");
 
     await runQuery(`
         IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID('training_point_history') AND type in (N'U'))

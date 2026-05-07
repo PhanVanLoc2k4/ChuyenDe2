@@ -79,7 +79,7 @@ BEGIN
         club_id INT NOT NULL FOREIGN KEY REFERENCES clubs(id) ON DELETE CASCADE,
         user_id INT NOT NULL FOREIGN KEY REFERENCES users(id) ON DELETE CASCADE,
         status NVARCHAR(50) DEFAULT 'active',
-        role NVARCHAR(50) DEFAULT 'member', -- leader, sub-leader, member
+        [role] NVARCHAR(50) DEFAULT 'member', -- leader, sub-leader, member
         joined_at DATETIME DEFAULT GETDATE()
     );
 END
